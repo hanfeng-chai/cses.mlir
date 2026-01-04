@@ -1,0 +1,10 @@
+*
+!*/
+!checker/*
+!.gitignore
+!asm2cpp.py
+!CMakeLists.txt
+!mlir-syntactic-sugar.patch
+!README.md
+!tests.zip
+!*.mlir

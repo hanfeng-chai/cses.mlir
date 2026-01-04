@@ -1,0 +1,549 @@
+diff --git a/mlir/include/mlir/Dialect/Arith/IR/ArithOps.td b/mlir/include/mlir/Dialect/Arith/IR/ArithOps.td
+index ef9ccb7e8..94c8dcc85 100644
+--- a/mlir/include/mlir/Dialect/Arith/IR/ArithOps.td
++++ b/mlir/include/mlir/Dialect/Arith/IR/ArithOps.td
+@@ -38,13 +38,13 @@ class Arith_ArithOp<string mnemonic, list<Trait> traits = []> :
+ // Base class for unary arithmetic operations.
+ class Arith_UnaryOp<string mnemonic, list<Trait> traits = []> :
+     Arith_ArithOp<mnemonic, traits # [Pure]> {
+-  let assemblyFormat = "$operand attr-dict `:` type($result)";
++  let assemblyFormat = "$operand attr-dict";
+ }
+ 
+ // Base class for binary arithmetic operations.
+ class Arith_BinaryOp<string mnemonic, list<Trait> traits = []> :
+     Arith_ArithOp<mnemonic, traits> {
+-  let assemblyFormat = "$lhs `,` $rhs attr-dict `:` type($result)";
++  let assemblyFormat = "$lhs `,` $rhs attr-dict";
+ }
+ 
+ // Base class for integer binary operations.
+@@ -68,7 +68,7 @@ class Arith_FloatUnaryOp<string mnemonic, list<Trait> traits = []> :
+         Arith_FastMathAttr, "::mlir::arith::FastMathFlags::none">:$fastmath)>,
+     Results<(outs FloatLike:$result)> {
+   let assemblyFormat = [{ $operand (`fastmath` `` $fastmath^)?
+-                          attr-dict `:` type($result) }];
++                          attr-dict }];
+ }
+ 
+ // Base class for floating point binary operations.
+@@ -81,7 +81,7 @@ class Arith_FloatBinaryOp<string mnemonic, list<Trait> traits = []> :
+         Arith_FastMathAttr, "::mlir::arith::FastMathFlags::none">:$fastmath)>,
+     Results<(outs FloatLike:$result)> {
+   let assemblyFormat = [{ $lhs `,` $rhs (`fastmath` `` $fastmath^)?
+-                          attr-dict `:` type($result) }];
++                          attr-dict }];
+ }
+ 
+ // Checks that tensor input and outputs have identical shapes. This is stricker
+@@ -155,7 +155,7 @@ class Arith_IntBinaryOpWithOverflowFlags<string mnemonic, list<Trait> traits = [
+     Results<(outs SignlessIntegerOrIndexLike:$result)> {
+ 
+   let assemblyFormat = [{ $lhs `,` $rhs (`overflow` `` $overflowFlags^)?
+-                          attr-dict `:` type($result) }];
++                          attr-dict }];
+ }
+ 
+ //===----------------------------------------------------------------------===//
+diff --git a/mlir/include/mlir/Dialect/Func/IR/FuncOps.td b/mlir/include/mlir/Dialect/Func/IR/FuncOps.td
+index 06ce4f16c..d9eac7d94 100644
+--- a/mlir/include/mlir/Dialect/Func/IR/FuncOps.td
++++ b/mlir/include/mlir/Dialect/Func/IR/FuncOps.td
+@@ -377,7 +377,7 @@ def ReturnOp : Func_Op<"return", [Pure, HasParent<"FuncOp">,
+     ```mlir
+     func.func @foo() -> (i32, f8) {
+       ...
+-      return %0, %1 : i32, f8
++      return %0, %1
+     }
+     ```
+   }];
+@@ -388,7 +388,7 @@ def ReturnOp : Func_Op<"return", [Pure, HasParent<"FuncOp">,
+     build($_builder, $_state, {});
+   }]>];
+ 
+-  let assemblyFormat = "attr-dict ($operands^ `:` type($operands))?";
++  let assemblyFormat = "attr-dict $operands";
+   let hasVerifier = 1;
+ }
+ 
+diff --git a/mlir/include/mlir/Dialect/SCF/IR/SCFOps.td b/mlir/include/mlir/Dialect/SCF/IR/SCFOps.td
+index 2d15544e8..1be5981a9 100644
+--- a/mlir/include/mlir/Dialect/SCF/IR/SCFOps.td
++++ b/mlir/include/mlir/Dialect/SCF/IR/SCFOps.td
+@@ -69,7 +69,7 @@ def ConditionOp : SCF_Op<"condition", [
+   let arguments = (ins I1:$condition, Variadic<AnyType>:$args);
+ 
+   let assemblyFormat =
+-      [{ `(` $condition `)` attr-dict ($args^ `:` type($args))? }];
++      [{ `(` $condition `)` attr-dict $args }];
+ }
+ 
+ //===----------------------------------------------------------------------===//
+@@ -1192,7 +1192,7 @@ def YieldOp : SCF_Op<"yield", [Pure, ReturnLike, Terminator,
+   let builders = [OpBuilder<(ins), [{ /* nothing to do */ }]>];
+ 
+   let assemblyFormat =
+-      [{  attr-dict ($results^ `:` type($results))? }];
++      [{  attr-dict $results }];
+ }
+ 
+ #endif // MLIR_DIALECT_SCF_SCFOPS
+diff --git a/mlir/include/mlir/IR/OpImplementation.h b/mlir/include/mlir/IR/OpImplementation.h
+index d70aa346e..ba8d1b743 100644
+--- a/mlir/include/mlir/IR/OpImplementation.h
++++ b/mlir/include/mlir/IR/OpImplementation.h
+@@ -1627,6 +1627,26 @@ public:
+                                      Type type,
+                                      SmallVectorImpl<Value> &result) = 0;
+ 
++  /// Resolve an operand to an SSA value by inferring its type from a prior
++  /// definition. This allows parsing operations without explicit type
++  /// annotations when the operand was defined earlier in the IR.
++  /// Returns failure if the operand was not previously defined (forward
++  /// references are not supported with type inference).
++  virtual ParseResult
++  resolveOperandInferType(const UnresolvedOperand &operand,
++                          SmallVectorImpl<Value> &result) = 0;
++
++  /// Resolve a list of operands to SSA values by inferring their types from
++  /// prior definitions. Emits an error on failure.
++  template <typename Operands = ArrayRef<UnresolvedOperand>>
++  ParseResult resolveOperandsInferType(Operands &&operands,
++                                       SmallVectorImpl<Value> &result) {
++    for (const UnresolvedOperand &operand : operands)
++      if (resolveOperandInferType(operand, result))
++        return failure();
++    return success();
++  }
++
+   /// Resolve a list of operands to SSA values, emitting an error on failure, or
+   /// appending the results to the list on success. This method should be used
+   /// when all operands have the same type.
+diff --git a/mlir/lib/AsmParser/Parser.cpp b/mlir/lib/AsmParser/Parser.cpp
+index 756d3d01a..fb1b53043 100644
+--- a/mlir/lib/AsmParser/Parser.cpp
++++ b/mlir/lib/AsmParser/Parser.cpp
+@@ -607,6 +607,9 @@ public:
+   ParseResult parseSSAUse(UnresolvedOperand &result,
+                           bool allowResultNumber = true);
+ 
++  /// Parse an inline operation expression.
++  ParseResult parseInlineOperation(UnresolvedOperand &result);
++
+   /// Given a reference to an SSA value and its type, return a reference. This
+   /// returns null on failure.
+   Value resolveSSAUse(UnresolvedOperand useInfo, Type type);
+@@ -627,6 +630,23 @@ public:
+     return {};
+   }
+ 
++  /// Return the type of an already-defined SSA value, or nullptr if not found.
++  /// This is used for type inference when parsing operations without explicit
++  /// type annotations.
++  Type getSSAValueType(StringRef name, unsigned number) {
++    auto &values = isolatedNameScopes.back().values;
++    if (!values.count(name) || number >= values[name].size())
++      return nullptr;
++    Value val = values[name][number].value;
++    if (!val || isForwardRefPlaceholder(val))
++      return nullptr;
++    return val.getType();
++  }
++
++  /// Resolve an SSA use, inferring the type from a previously defined value.
++  /// Returns null on failure (e.g., if the value was not previously defined).
++  Value resolveSSAUseInferType(UnresolvedOperand useInfo);
++
+   //===--------------------------------------------------------------------===//
+   // Operation Parsing
+   //===--------------------------------------------------------------------===//
+@@ -838,6 +858,9 @@ private:
+ 
+   /// The top level operation that holds all of the parsed operations.
+   Operation *topLevelOp;
++
++  /// Counter for inline operations.
++  unsigned nextInlineOperationId = 0;
+ };
+ } // namespace
+ 
+@@ -1025,7 +1048,11 @@ ParseResult OperationParser::addDefinition(UnresolvedOperand useInfo,
+ 
+   /// Record this definition for the current scope.
+   entries[useInfo.number] = {value, useInfo.location};
+-  recordDefinition(useInfo.name);
++  // Don't record empty names (used by inline operations) because they are
++  // indexed by number, not by name. Recording them would cause all inline
++  // operation results to be erased when popSSANameScope is called.
++  if (!useInfo.name.empty())
++    recordDefinition(useInfo.name);
+   return success();
+ }
+ 
+@@ -1036,7 +1063,8 @@ ParseResult OperationParser::addDefinition(UnresolvedOperand useInfo,
+ ///
+ ParseResult OperationParser::parseOptionalSSAUseList(
+     SmallVectorImpl<UnresolvedOperand> &results) {
+-  if (!getToken().isOrIsCodeCompletionFor(Token::percent_identifier))
++  if (!getToken().isOrIsCodeCompletionFor(Token::percent_identifier) &&
++      !getToken().is(Token::l_paren))
+     return success();
+   return parseCommaSeparatedList([&]() -> ParseResult {
+     UnresolvedOperand result;
+@@ -1049,13 +1077,18 @@ ParseResult OperationParser::parseOptionalSSAUseList(
+ 
+ /// Parse a SSA operand for an operation.
+ ///
+-///   ssa-use ::= ssa-id
++///   ssa-use ::= ssa-id | inline-operation
+ ///
+ ParseResult OperationParser::parseSSAUse(UnresolvedOperand &result,
+                                          bool allowResultNumber) {
+   if (getToken().isCodeCompletion())
+     return codeCompleteSSAUse();
+ 
++  // Check for inline operation syntax.
++  if (getToken().is(Token::l_paren) && allowResultNumber) {
++    return parseInlineOperation(result);
++  }
++
+   result.name = getTokenSpelling();
+   result.number = 0;
+   result.location = getToken().getLoc();
+@@ -1077,6 +1110,38 @@ ParseResult OperationParser::parseSSAUse(UnresolvedOperand &result,
+   return success();
+ }
+ 
++/// Parse an inline operation expression.
++ParseResult OperationParser::parseInlineOperation(UnresolvedOperand &result) {
++  SMLoc loc = getToken().getLoc();
++  consumeToken(Token::l_paren);
++  // Parse the operation (generic or custom format).
++  Token nameTok = getToken();
++  Operation *op = nameTok.is(Token::string) ? parseGenericOperation()
++                                            : parseCustomOperation({});
++  if (!op)
++    return failure();
++  if (parseToken(Token::r_paren, "expected ')' to close inline operation"))
++    return failure();
++  if (op->getNumResults() == 0)
++    return emitError(loc, "inline operation must have at least one result");
++
++  // Parse optional result number #N.
++  unsigned resultNo = 0;
++  if (getToken().is(Token::hash_identifier)) {
++    if (auto num = getToken().getHashIdentifierNumber())
++      resultNo = *num;
++    else
++      return emitError("invalid result number");
++    consumeToken(Token::hash_identifier);
++  }
++  if (resultNo >= op->getNumResults())
++    return emitError("result number out of range");
++
++  // Use empty name with unique number to avoid string lifetime issues.
++  result = {loc, "", nextInlineOperationId++};
++  return addDefinition(result, op->getResult(resultNo));
++}
++
+ /// Given an unbound reference to an SSA value and its type, return the value
+ /// it specifies.  This returns null on failure.
+ Value OperationParser::resolveSSAUse(UnresolvedOperand useInfo, Type type) {
+@@ -1123,6 +1188,20 @@ Value OperationParser::resolveSSAUse(UnresolvedOperand useInfo, Type type) {
+   return maybeRecordUse(result);
+ }
+ 
++/// Resolve an SSA use by inferring the type from a previously defined value.
++/// This enables parsing operations without explicit type annotations when
++/// the operand was defined earlier.
++Value OperationParser::resolveSSAUseInferType(UnresolvedOperand useInfo) {
++  Type type = getSSAValueType(useInfo.name, useInfo.number);
++  if (!type) {
++    emitError(useInfo.location, "cannot infer type for SSA value '")
++        .append(useInfo.name,
++                "': value must be defined before use when type is omitted");
++    return nullptr;
++  }
++  return resolveSSAUse(useInfo, type);
++}
++
+ /// Parse an SSA use with an associated type.
+ ///
+ ///   ssa-use-and-type ::= ssa-use `:` type
+@@ -1264,16 +1343,14 @@ ParseResult OperationParser::parseOperation() {
+ 
+   Operation *op;
+   Token nameTok = getToken();
+-  if (nameTok.is(Token::bare_identifier) || nameTok.isKeyword())
+-    op = parseCustomOperation(resultIDs);
+-  else if (nameTok.is(Token::string))
++  if (nameTok.is(Token::string))
+     op = parseGenericOperation();
+   else if (nameTok.isCodeCompletionFor(Token::string))
+     return codeCompleteStringDialectOrOperationName(nameTok.getStringValue());
+   else if (nameTok.isCodeCompletion())
+     return codeCompleteDialectOrElidedOpName(loc);
+   else
+-    return emitWrongTokenError("expected operation name in quotes");
++    op = parseCustomOperation(resultIDs);
+ 
+   // If parsing of the basic operation failed, then this whole thing fails.
+   if (!op)
+@@ -1711,7 +1788,8 @@ public:
+   OptionalParseResult
+   parseOptionalOperand(UnresolvedOperand &result,
+                        bool allowResultNumber = true) override {
+-    if (parser.getToken().isOrIsCodeCompletionFor(Token::percent_identifier))
++    if (parser.getToken().isOrIsCodeCompletionFor(Token::percent_identifier) ||
++        (parser.getToken().is(Token::l_paren) && allowResultNumber))
+       return parseOperand(result, allowResultNumber);
+     return std::nullopt;
+   }
+@@ -1727,7 +1805,8 @@ public:
+       // parseCommaSeparatedList doesn't handle the missing case for "none",
+       // so we handle it custom here.
+       Token tok = parser.getToken();
+-      if (!tok.isOrIsCodeCompletionFor(Token::percent_identifier)) {
++      if (!tok.isOrIsCodeCompletionFor(Token::percent_identifier) &&
++          !(tok.is(Token::l_paren) && allowResultNumber)) {
+         // If we didn't require any operands or required exactly zero (weird)
+         // then this is success.
+         if (requiredOperandCount == -1 || requiredOperandCount == 0)
+@@ -1766,6 +1845,17 @@ public:
+     return failure();
+   }
+ 
++  /// Resolve an operand to an SSA value by inferring its type from a prior
++  /// definition.
++  ParseResult resolveOperandInferType(const UnresolvedOperand &operand,
++                                      SmallVectorImpl<Value> &result) override {
++    if (auto value = parser.resolveSSAUseInferType(operand)) {
++      result.push_back(value);
++      return success();
++    }
++    return failure();
++  }
++
+   /// Parse an AffineMap of SSA ids.
+   ParseResult
+   parseAffineMapOfSSAIds(SmallVectorImpl<UnresolvedOperand> &operands,
+@@ -2008,12 +2098,16 @@ FailureOr<OperationName> OperationParser::parseCustomOperationName() {
+   // Accept keywords here as they may be interpreted as a shortened operation
+   // name, e.g., `dialect.keyword` can be spelled as just `keyword` within a
+   // region of an operation from `dialect`.
+-  if (nameTok.getKind() != Token::bare_identifier && !nameTok.isKeyword())
+-    return emitError("expected bare identifier or keyword");
+-  StringRef opName = nameTok.getSpelling();
+-  if (opName.empty())
+-    return (emitError("empty operation name is invalid"), failure());
+-  consumeToken();
++  StringRef opName;
++  if (nameTok.getKind() != Token::bare_identifier && !nameTok.isKeyword()) {
++    opName = nameTok.getKind() == Token::at_identifier ? "func.call"
++                                                       : "arith.constant";
++  } else {
++    opName = nameTok.getSpelling();
++    if (opName.empty())
++      return (emitError("empty operation name is invalid"), failure());
++    consumeToken();
++  }
+ 
+   // Check to see if this operation name is already registered.
+   std::optional<RegisteredOperationName> opInfo =
+@@ -2033,6 +2127,18 @@ FailureOr<OperationName> OperationParser::parseCustomOperationName() {
+ 
+     dialectName = getState().defaultDialectStack.back();
+     opNameStorage = (dialectName + "." + opName).str();
++    if (auto info =
++            RegisteredOperationName::lookup(opNameStorage, getContext()))
++      return *info;
++
++    static constexpr StringRef fallbackDialects[] = {"arith", "func", "scf"};
++    for (StringRef dialectName : fallbackDialects) {
++      getContext()->getOrLoadDialect(dialectName);
++      auto opNameStorage = (dialectName + "." + opName).str();
++      if (auto info =
++              RegisteredOperationName::lookup(opNameStorage, getContext()))
++        return *info;
++    }
+     opName = opNameStorage;
+   }
+ 
+diff --git a/mlir/tools/mlir-tblgen/OpFormatGen.cpp b/mlir/tools/mlir-tblgen/OpFormatGen.cpp
+index 67fc7636a..ae953251c 100644
+--- a/mlir/tools/mlir-tblgen/OpFormatGen.cpp
++++ b/mlir/tools/mlir-tblgen/OpFormatGen.cpp
+@@ -393,6 +393,12 @@ struct OperationFormat {
+   /// A flag indicating if this operation infers its result types
+   bool infersResultTypes = false;
+ 
++  /// A flag indicating if this operation infers its operand types from SSA
++  /// value definitions. When true, operand types are not required in the
++  /// assembly format and will be inferred from the types of already-defined
++  /// SSA values.
++  bool infersOperandTypes = false;
++
+   /// A flag indicating if this operation has the SingleBlockImplicitTerminator
+   /// trait.
+   bool hasImplicitTermTrait;
+@@ -1790,6 +1796,26 @@ void OperationFormat::genParserOperandTypeResolution(
+   if (op.getNumOperands() == 0)
+     return;
+ 
++  // Handle the case where operand types are inferred from SSA definitions.
++  // This is used when no type annotations are present in the assembly format.
++  if (infersOperandTypes) {
++    // If `operands` was specified (allOperands), use the full operand list.
++    if (allOperands) {
++      body << "  if (parser.resolveOperandsInferType(allOperands, "
++              "result.operands))\n"
++              "    return ::mlir::failure();\n";
++      return;
++    }
++
++    // Otherwise, resolve each operand individually by inferring its type.
++    for (const NamedTypeConstraint &operand : op.getOperands()) {
++      body << "  if (parser.resolveOperandsInferType(" << operand.name
++           << "Operands, result.operands))\n"
++           << "    return ::mlir::failure();\n";
++    }
++    return;
++  }
++
+   // Handle the case where all operand types are grouped together with
+   // "types(operands)".
+   if (allOperandTypes) {
+@@ -2787,6 +2813,12 @@ private:
+   void handleTypesMatchConstraint(
+       StringMap<TypeResolutionInstance> &variableTyResolver, const Record &def);
+ 
++  /// Handle TypesMatchWith when operand types are inferred from SSA.
++  /// Unlike handleTypesMatchConstraint, this doesn't require the lhs to be
++  /// explicitly seen in the format.
++  void handleTypesMatchConstraintWithSSAInference(
++      StringMap<TypeResolutionInstance> &variableTyResolver, const Record &def);
++
+   /// Check for inferable type resolution based on
+   /// `ShapedTypeMatchesElementCountAndTypes` constraint.
+   void handleShapedTypeMatchesElementCountAndTypesConstraint(
+@@ -2873,8 +2905,21 @@ LogicalResult OpFormatParser::verify(SMLoc loc,
+ 
+   // Verify the state of the various operation components.
+   if (failed(verifyAttributes(loc, elements)) ||
+-      failed(verifyResults(loc, variableTyResolver)) ||
+-      failed(verifyOperands(loc, variableTyResolver)) ||
++      failed(verifyOperands(loc, variableTyResolver)))
++    return failure();
++
++  // If operand types are inferred from SSA, re-process TypesMatchWith traits
++  // to establish result type inference from operand types.
++  if (fmt.infersOperandTypes) {
++    for (const Trait &trait : op.getTraits()) {
++      const Record &def = trait.getDef();
++      if (def.isSubClassOf("TypesMatchWith")) {
++        handleTypesMatchConstraintWithSSAInference(variableTyResolver, def);
++      }
++    }
++  }
++
++  if (failed(verifyResults(loc, variableTyResolver)) ||
+       failed(verifyRegions(loc)) || failed(verifySuccessors(loc)) ||
+       failed(verifyOIListElements(loc, elements)))
+     return failure();
+@@ -3083,6 +3128,10 @@ LogicalResult OpFormatParser::verifyOperands(
+   // Check that all of the operands are within the format, and their types can
+   // be inferred.
+   auto &buildableTypes = fmt.buildableTypes;
++
++  // Track operands whose types are missing (can't be inferred from format)
++  SmallVector<unsigned> missingTypeOperands;
++
+   for (unsigned i = 0, e = op.getNumOperands(); i != e; ++i) {
+     NamedTypeConstraint &operand = op.getOperand(i);
+ 
+@@ -3110,17 +3159,43 @@ LogicalResult OpFormatParser::verifyOperands(
+     // Similarly to results, allow a custom builder for resolving the type if
+     // we aren't using the 'operands' directive.
+     std::optional<StringRef> builder = operand.constraint.getBuilderCall();
+-    if (!builder || (fmt.allOperands && operand.isVariableLength())) {
+-      return emitErrorAndNote(
+-          loc,
+-          "type of operand #" + Twine(i) + ", named '" + operand.name +
+-              "', is not buildable and a buildable type cannot be inferred",
+-          "suggest adding a type constraint to the operation or adding a "
+-          "'type($" +
+-              operand.name + ")' directive to the " + "custom assembly format");
++    if (builder && !(fmt.allOperands && operand.isVariableLength())) {
++      auto it = buildableTypes.insert({*builder, buildableTypes.size()});
++      fmt.operandTypes[i].setBuilderIdx(it.first->second);
++      continue;
+     }
+-    auto it = buildableTypes.insert({*builder, buildableTypes.size()});
+-    fmt.operandTypes[i].setBuilderIdx(it.first->second);
++
++    // This operand's type cannot be inferred from the format.
++    // Track it for potential SSA-based type inference.
++    missingTypeOperands.push_back(i);
++  }
++
++  // If some operand types are missing, try to infer them from SSA definitions.
++  if (!missingTypeOperands.empty()) {
++    // Check if the op has SameOperandsAndResultType trait
++    bool hasSameOperandsAndResultType = false;
++    for (const Trait &trait : op.getTraits()) {
++      if (trait.getDef().getName() == "SameOperandsAndResultType") {
++        hasSameOperandsAndResultType = true;
++        break;
++      }
++    }
++
++    if (hasSameOperandsAndResultType) {
++      // Enable operand type inference from SSA definitions
++      fmt.infersOperandTypes = true;
++      // Also enable result type inference since they match operand types
++      fmt.infersResultTypes = true;
++      return success();
++    }
++
++    // For operations without SameOperandsAndResultType but with operands
++    // that could be inferred from SSA, we enable infersOperandTypes anyway.
++    // This allows operations like scf.yield or func.call to work.
++    fmt.infersOperandTypes = true;
++
++    // Note: Result types still need to be handled separately (e.g., via
++    // InferTypeOpInterface, symbol lookup for func.call, or explicit type).
+   }
+   return success();
+ }
+@@ -3149,6 +3224,11 @@ LogicalResult OpFormatParser::verifyResults(
+   if (fmt.allResultTypes)
+     return success();
+ 
++  // If operand types are inferred from SSA definitions, result types will also
++  // be inferred (via InferTypeOpInterface or SameOperandsAndResultType).
++  if (fmt.infersOperandTypes && fmt.infersResultTypes)
++    return success();
++
+   // If no result types are specified and we can infer them, infer all result
+   // types
+   if (op.getNumResults() > 0 && seenResultTypes.count() == 0 &&
+@@ -3297,6 +3377,18 @@ void OpFormatParser::handleTypesMatchConstraint(
+     variableTyResolver[rhsName] = {arg, transformer};
+ }
+ 
++void OpFormatParser::handleTypesMatchConstraintWithSSAInference(
++    StringMap<TypeResolutionInstance> &variableTyResolver, const Record &def) {
++  StringRef lhsName = def.getValueAsString("lhs");
++  StringRef rhsName = def.getValueAsString("rhs");
++  StringRef transformer = def.getValueAsString("transformer");
++  // When using SSA type inference, operand types are available even if not
++  // explicitly in the format. Check if lhs is an operand.
++  if (const NamedTypeConstraint *arg = findArg(op.getOperands(), lhsName)) {
++    variableTyResolver[rhsName] = {arg, transformer};
++  }
++}
++
+ void OpFormatParser::handleShapedTypeMatchesElementCountAndTypesConstraint(
+     StringMap<TypeResolutionInstance> &variableTyResolver, const Record &def) {
+   StringRef shapedArg = def.getValueAsString("shaped");
