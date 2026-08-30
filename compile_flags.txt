@@ -1,0 +1,4 @@
+-Wall
+-Wextra
+-Ichecker
+-std=c++23

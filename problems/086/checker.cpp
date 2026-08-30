@@ -1,0 +1,33 @@
+#include "testlib.h"
+#include <bits/stdc++.h>
+using namespace std;
+// SPJ for Message Route: shortest route 1..n along existing edges.
+int main(int argc, char *argv[]) {
+    registerTestlibCmd(argc, argv);
+    int n = inf.readInt(), m = inf.readInt();
+    set<pair<int, int>> es;
+    for (int i = 0; i < m; i++) {
+        int a = inf.readInt(), b = inf.readInt();
+        if (a > b) swap(a, b);
+        es.insert({a, b});
+    }
+    string jw = ans.readWord();
+    if (jw == "IMPOSSIBLE") {
+        string pw = ouf.readWord();
+        if (pw != "IMPOSSIBLE") quitf(_wa, "expected IMPOSSIBLE, found %s", pw.c_str());
+        quitf(_ok, "IMPOSSIBLE");
+    }
+    long long jk = atoll(jw.c_str());
+    long long pk = ouf.readLong();
+    if (pk != jk) quitf(_wa, "k differs: expected %lld, found %lld", jk, pk);
+    vector<int> path(pk);
+    for (int i = 0; i < pk; i++) path[i] = ouf.readInt(1, n);
+    if (path.front() != 1) quitf(_wa, "route must start at 1");
+    if (path.back() != n) quitf(_wa, "route must end at n");
+    for (int i = 0; i + 1 < (int)path.size(); i++) {
+        int a = path[i], b = path[i + 1];
+        if (a > b) swap(a, b);
+        if (!es.count({a, b})) quitf(_wa, "no connection %d-%d", path[i], path[i + 1]);
+    }
+    quitf(_ok, "route of %lld computers", pk);
+}
