@@ -1,0 +1,53 @@
+fn main() {
+    let nodes = read();
+    let edges = read();
+    let head = array(nodes + 1, -1);
+    let to = array(edges, 0);
+    let weight = array(edges, 0);
+    let next = array(edges, 0);
+    for edge in 0..edges {
+        let source = read();
+        to[edge] = read();
+        weight[edge] = read();
+        next[edge] = head[source];
+        head[source] = edge;
+    }
+    let infinity = 9_223_372_036_854_775_807;
+    let distance = array(2 * (nodes + 1), infinity);
+    let queue = heap(2 * edges + 1);
+    distance[2] = 0;
+    heap_push(queue, 0, 2);
+    while heap_size(queue) > 0 {
+        let current_distance = heap_first(queue);
+        let encoded = heap_second(queue);
+        heap_pop(queue);
+        let node = encoded / 2;
+        let used = encoded % 2;
+        if current_distance <= distance[encoded] {
+            var edge = head[node];
+            while edge != -1 {
+                let neighbor = to[edge];
+                let same_state = 2 * neighbor + used;
+                let regular = current_distance + weight[edge];
+                if regular < distance[same_state] {
+                    distance[same_state] = regular;
+                    heap_push(queue, regular, same_state);
+                }
+                if used == 0 {
+                    let discounted_state = 2 * neighbor + 1;
+                    let discounted = current_distance + weight[edge] / 2;
+                    if discounted < distance[discounted_state] {
+                        distance[discounted_state] = discounted;
+                        heap_push(queue, discounted, discounted_state);
+                    }
+                }
+                edge = next[edge];
+            }
+        }
+    }
+    var answer = distance[2 * nodes];
+    if distance[2 * nodes + 1] < answer {
+        answer = distance[2 * nodes + 1];
+    }
+    println(answer);
+}

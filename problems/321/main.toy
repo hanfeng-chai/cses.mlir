@@ -1,0 +1,157 @@
+fn query_distance(v: i64, off: array<i64>, fc: array<i32>, fd: array<i32>, best_distance: array<i64>) -> i64 {
+    var result = 1000000000;
+    for i in off[v]..off[v + 1] {
+        let centroid = i64(fc[i]);
+        if best_distance[centroid] < 1000000000 {
+            let candidate = i64(fd[i]) + best_distance[centroid];
+            if candidate < result {
+                result = candidate;
+            }
+        }
+    }
+    return result;
+}
+
+fn update_distance(v: i64, off: array<i64>, fc: array<i32>, fd: array<i32>, best_distance: array<i64>) {
+    for i in off[v]..off[v + 1] {
+        let centroid = i64(fc[i]);
+        if i64(fd[i]) < best_distance[centroid] {
+            best_distance[centroid] = i64(fd[i]);
+        }
+    }
+}
+
+fn main() {
+    let n = read();
+    let d = read();
+    let head = array(n + 1, -1);
+    let to = array(2 * n, 0);
+    let next = array(2 * n, 0);
+    for e in 0..n - 1 {
+        let a = read();
+        let b = read();
+        to[2 * e] = b;
+        next[2 * e] = head[a];
+        head[a] = 2 * e;
+        to[2 * e + 1] = a;
+        next[2 * e + 1] = head[b];
+        head[b] = 2 * e + 1;
+    }
+    let removed = array(n + 1, 0);
+    let parent = array(n + 1, 0);
+    let subtree = array(n + 1, 0);
+    let order = array(n + 1, 0);
+    let component_stack = array(n + 1, 0);
+    let tuple_u = array(n * 20 + 5, i32(0));
+    let tuple_c = array(n * 20 + 5, i32(0));
+    let tuple_d = array(n * 20 + 5, i32(0));
+    var tuple_total = 0;
+    var component_count = 1;
+    component_stack[0] = 1;
+    while component_count > 0 {
+        component_count -= 1;
+        let start = component_stack[component_count];
+        if removed[start] != 0 {
+            continue;
+        }
+        let centroid = centroid_find(start, head, to, next, removed, parent, subtree, order);
+        var order_size = 1;
+        var index = 0;
+        order[0] = centroid;
+        parent[centroid] = 0;
+        subtree[centroid] = 0;
+        while index < order_size {
+            let node = order[index];
+            tuple_u[tuple_total] = i32(node);
+            tuple_c[tuple_total] = i32(centroid);
+            tuple_d[tuple_total] = i32(subtree[node]);
+            tuple_total += 1;
+            var edge = head[node];
+            while edge != -1 {
+                let neighbor = to[edge];
+                if removed[neighbor] == 0 && neighbor != parent[node] {
+                    parent[neighbor] = node;
+                    subtree[neighbor] = subtree[node] + 1;
+                    order[order_size] = neighbor;
+                    order_size += 1;
+                }
+                edge = next[edge];
+            }
+            index += 1;
+        }
+        removed[centroid] = 1;
+        var edge = head[centroid];
+        while edge != -1 {
+            let neighbor = to[edge];
+            if removed[neighbor] == 0 {
+                component_stack[component_count] = neighbor;
+                component_count += 1;
+            }
+            edge = next[edge];
+        }
+    }
+    let off = array(n + 2, 0);
+    for i in 0..tuple_total {
+        off[i64(tuple_u[i]) + 1] += 1;
+    }
+    for v in 1..=n {
+        off[v + 1] += off[v];
+    }
+    let fc = array(tuple_total, i32(0));
+    let fd = array(tuple_total, i32(0));
+    let position = array(n + 1, 0);
+    for v in 1..=n {
+        position[v] = off[v];
+    }
+    for i in 0..tuple_total {
+        let v = i64(tuple_u[i]);
+        let pos = position[v];
+        fc[pos] = tuple_c[i];
+        fd[pos] = tuple_d[i];
+        position[v] += 1;
+    }
+    let depth = array(n + 1, -1);
+    let queue = array(n, 0);
+    var head_index = 0;
+    var tail_index = 0;
+    queue[tail_index] = 1;
+    tail_index += 1;
+    depth[1] = 0;
+    while head_index < tail_index {
+        let u = queue[head_index];
+        head_index += 1;
+        var edge = head[u];
+        while edge != -1 {
+            let v = to[edge];
+            if depth[v] == -1 {
+                depth[v] = depth[u] + 1;
+                queue[tail_index] = v;
+                tail_index += 1;
+            }
+            edge = next[edge];
+        }
+    }
+    let sort_depth = array(n, 0);
+    let sort_node = array(n, 0);
+    for v in 1..=n {
+        sort_depth[v - 1] = 0 - depth[v];
+        sort_node[v - 1] = v;
+    }
+    sort_pairs(sort_depth, sort_node);
+    let best_distance = array(n + 1, 1000000000);
+    let chosen = array(n, 0);
+    var chosen_count = 0;
+    for i in 0..n {
+        let u = sort_node[i];
+        if query_distance(u, off, fc, fd, best_distance) >= d {
+            chosen[chosen_count] = u;
+            chosen_count += 1;
+            update_distance(u, off, fc, fd, best_distance);
+        }
+    }
+    println(chosen_count);
+    for i in 0..chosen_count {
+        print(chosen[i], " ");
+    }
+    println();
+}

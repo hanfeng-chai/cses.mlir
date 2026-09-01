@@ -1,0 +1,25 @@
+fn main() {
+    let n = read();
+    let k = read();
+    let dp = array(k + 1, 0);
+    dp[0] = 1;
+    let prefix = array(k + 2, 0);
+    for i in 2..=n {
+        prefix[0] = 0;
+        for j in 0..=k {
+            prefix[j + 1] = (prefix[j] + dp[j]) % 1000000007;
+        }
+        let next = array(k + 1, 0);
+        for j in 0..=k {
+            var low = j - i + 1;
+            if low < 0 {
+                low = 0;
+            }
+            next[j] = (prefix[j + 1] - prefix[low] + 1000000007) % 1000000007;
+        }
+        for j in 0..=k {
+            dp[j] = next[j];
+        }
+    }
+    println(dp[k]);
+}

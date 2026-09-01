@@ -1,0 +1,163 @@
+fn main() {
+    let n = read();
+    let values = read_array(n);
+    var total = 0;
+    for i in 0..n {
+        total += values[i];
+    }
+    if total % 2 == 1 {
+        println(-1);
+        return;
+    }
+    let target = total / 2;
+    let words = target / 64 + 1;
+    let dp = array((n + 1) * words, 0);
+    dp[0] = 1;
+    for i in 1..=n {
+        let v = values[i - 1];
+        let word_shift = v / 64;
+        let bit_shift = v % 64;
+        // copy previous row
+        for w in 0..words {
+            dp[i * words + w] = dp[(i - 1) * words + w];
+        }
+        if bit_shift == 0 {
+            for w in words - 1..=word_shift by -1 {
+                dp[i * words + w] = dp[i * words + w] | dp[(i - 1) * words + w - word_shift];
+            }
+        } else {
+            for w in words - 1..=word_shift by -1 {
+                let lo = dp[(i - 1) * words + w - word_shift] << bit_shift;
+                var hi = 0;
+                if w - word_shift - 1 >= 0 {
+                    let shifted = dp[(i - 1) * words + w - word_shift - 1] >> (64 - bit_shift);
+                    hi = shifted & ((1 << bit_shift) - 1);
+                }
+                dp[i * words + w] = dp[i * words + w] | (lo | hi);
+            }
+        }
+    }
+    let tw = target / 64;
+    let tb = target % 64;
+    if ((dp[n * words + tw] >> tb) & 1) == 0 {
+        println(-1);
+        return;
+    }
+
+    let left_map = map(2000);
+    let right_map = map(2000);
+    let left_set = ordered(2000);
+    let right_set = ordered(2000);
+    var remaining = target;
+    for i in n..=1 by -1 {
+        let value = values[i - 1];
+        var possible = false;
+        if remaining >= value {
+            let w = (remaining - value) / 64;
+            let b = (remaining - value) % 64;
+            if ((dp[(i - 1) * words + w] >> b) & 1) == 1 {
+                possible = true;
+            }
+        }
+        if possible {
+            let count = map_get(left_map, value, 0) + 1;
+            map_set(left_map, value, count);
+            if count == 1 {
+                ordered_insert(left_set, value);
+            }
+            remaining -= value;
+        } else {
+            let count = map_get(right_map, value, 0) + 1;
+            map_set(right_map, value, count);
+            if count == 1 {
+                ordered_insert(right_set, value);
+            }
+        }
+    }
+
+    for step in 0..n - 1 {
+        var a = 0;
+        var b = 0;
+        if ordered_size(left_set) == 0 {
+            a = ordered_first(right_set);
+            // remove a
+            var count = map_get(right_map, a, 0) - 1;
+            map_set(right_map, a, count);
+            if count == 0 {
+                ordered_erase(right_set, a);
+            }
+            b = ordered_first(right_set);
+            count = map_get(right_map, b, 0) - 1;
+            map_set(right_map, b, count);
+            if count == 0 {
+                ordered_erase(right_set, b);
+            }
+            let diff = absolute(a - b);
+            count = map_get(right_map, diff, 0) + 1;
+            map_set(right_map, diff, count);
+            if count == 1 {
+                ordered_insert(right_set, diff);
+            }
+        } else if ordered_size(right_set) == 0 {
+            a = ordered_first(left_set);
+            var count = map_get(left_map, a, 0) - 1;
+            map_set(left_map, a, count);
+            if count == 0 {
+                ordered_erase(left_set, a);
+            }
+            b = ordered_first(left_set);
+            count = map_get(left_map, b, 0) - 1;
+            map_set(left_map, b, count);
+            if count == 0 {
+                ordered_erase(left_set, b);
+            }
+            let diff = absolute(a - b);
+            count = map_get(left_map, diff, 0) + 1;
+            map_set(left_map, diff, count);
+            if count == 1 {
+                ordered_insert(left_set, diff);
+            }
+        } else if ordered_last(left_set) > ordered_last(right_set) {
+            a = ordered_last(left_set);
+            var count = map_get(left_map, a, 0) - 1;
+            map_set(left_map, a, count);
+            if count == 0 {
+                ordered_erase(left_set, a);
+            }
+            b = ordered_first(right_set);
+            count = map_get(right_map, b, 0) - 1;
+            map_set(right_map, b, count);
+            if count == 0 {
+                ordered_erase(right_set, b);
+            }
+            let diff = a - b;
+            count = map_get(left_map, diff, 0) + 1;
+            map_set(left_map, diff, count);
+            if count == 1 {
+                ordered_insert(left_set, diff);
+            }
+        } else {
+            a = ordered_last(right_set);
+            var count = map_get(right_map, a, 0) - 1;
+            map_set(right_map, a, count);
+            if count == 0 {
+                ordered_erase(right_set, a);
+            }
+            b = ordered_first(left_set);
+            count = map_get(left_map, b, 0) - 1;
+            map_set(left_map, b, count);
+            if count == 0 {
+                ordered_erase(left_set, b);
+            }
+            let diff = a - b;
+            count = map_get(right_map, diff, 0) + 1;
+            map_set(right_map, diff, count);
+            if count == 1 {
+                ordered_insert(right_set, diff);
+            }
+        }
+        print(a);
+        print(" ");
+        println(b);
+    }
+}

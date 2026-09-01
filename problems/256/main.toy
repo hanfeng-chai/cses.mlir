@@ -1,0 +1,121 @@
+fn min_cost_spfa(
+    n: i64,
+    source: i64,
+    sink: i64,
+    head: array<i64>,
+    to: array<i64>,
+    cap: array<i64>,
+    cost: array<i64>,
+    flow: array<i64>,
+    next: array<i64>,
+    dist: array<i64>,
+    in_queue: array<i64>,
+    parent_edge: array<i64>,
+    queue: array<i64>,
+    q_head: array<i64>,
+    q_tail: array<i64>,
+    q_count: array<i64>
+) -> bool {
+    for i in 0..=n {
+        dist[i] = 1000000000000000000;
+        in_queue[i] = 0;
+        parent_edge[i] = -1;
+    }
+    let queue_size = length(queue);
+    dist[source] = 0;
+    in_queue[source] = 1;
+    q_head[0] = 0;
+    q_tail[0] = 0;
+    q_count[0] = 0;
+    queue[q_tail[0]] = source;
+    q_tail[0] = (q_tail[0] + 1) % queue_size;
+    q_count[0] += 1;
+    while q_count[0] > 0 {
+        let u = queue[q_head[0]];
+        q_head[0] = (q_head[0] + 1) % queue_size;
+        q_count[0] -= 1;
+        in_queue[u] = 0;
+        var e = head[u];
+        while e != -1 {
+            if cap[e] - flow[e] > 0 {
+                let v = to[e];
+                let candidate = dist[u] + cost[e];
+                if candidate < dist[v] {
+                    dist[v] = candidate;
+                    parent_edge[v] = e;
+                    if in_queue[v] == 0 {
+                        in_queue[v] = 1;
+                        queue[q_tail[0]] = v;
+                        q_tail[0] = (q_tail[0] + 1) % queue_size;
+                        q_count[0] += 1;
+                    }
+                }
+            }
+            e = next[e];
+        }
+    }
+    return dist[sink] < 1000000000000000000;
+}
+
+fn main() {
+    let n = read();
+    let m = read();
+    let k = read();
+    let head = array(n + 1, -1);
+    let to = array(2 * m, 0);
+    let cap = array(2 * m, 0);
+    let cost = array(2 * m, 0);
+    let flow = array(2 * m, 0);
+    let next = array(2 * m, 0);
+    for e in 0..m {
+        let a = read();
+        let b = read();
+        let r = read();
+        let c = read();
+        to[2 * e] = b;
+        cap[2 * e] = r;
+        cost[2 * e] = c;
+        next[2 * e] = head[a];
+        head[a] = 2 * e;
+        to[2 * e + 1] = a;
+        cap[2 * e + 1] = 0;
+        cost[2 * e + 1] = -c;
+        next[2 * e + 1] = head[b];
+        head[b] = 2 * e + 1;
+    }
+    let dist = array(n + 1, 0);
+    let in_queue = array(n + 1, 0);
+    let parent_edge = array(n + 1, 0);
+    let queue = array(4 * (n + 1) + 5, 0);
+    let q_head = array(1, 0);
+    let q_tail = array(1, 0);
+    let q_count = array(1, 0);
+    var total_flow = 0;
+    var total_cost = 0;
+    while total_flow < k && min_cost_spfa(n, 1, n, head, to, cap, cost, flow, next, dist, in_queue, parent_edge, queue, q_head, q_tail, q_count) {
+        var push = k - total_flow;
+        var v = n;
+        while v != 1 {
+            let e = parent_edge[v];
+            let remaining = cap[e] - flow[e];
+            if remaining < push {
+                push = remaining;
+            }
+            v = to[e ^ 1];
+        }
+        v = n;
+        while v != 1 {
+            let e = parent_edge[v];
+            flow[e] += push;
+            flow[e ^ 1] -= push;
+            v = to[e ^ 1];
+        }
+        total_flow += push;
+        total_cost += push * dist[n];
+    }
+    if total_flow < k {
+        println(-1);
+    } else {
+        println(total_cost);
+    }
+}

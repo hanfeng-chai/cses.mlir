@@ -1,0 +1,23 @@
+fn main() {
+    let n = read();
+    let k = read();
+    let values = array(n, 0);
+    for i in 0..n {
+        let line = read_text();
+        var value = 0;
+        for j in 0..k {
+            value = value * 2 + at(line, j) - 48;
+        }
+        values[i] = value;
+    }
+    var best = k;
+    for i in 0..n {
+        for j in i + 1..n {
+            best = min(best, popcount(values[i] ^ values[j]));
+        }
+        if best == 0 {
+            break;
+        }
+    }
+    println(best);
+}

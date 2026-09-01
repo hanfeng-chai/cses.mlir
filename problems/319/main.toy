@@ -1,0 +1,58 @@
+fn main() {
+    let n = read();
+    let head = array(n + 1, -1);
+    let to = array(2 * n, 0);
+    let next = array(2 * n, 0);
+    let degree = array(n + 1, 0);
+    for e in 0..n - 1 {
+        let a = read();
+        let b = read();
+        to[2 * e] = b;
+        next[2 * e] = head[a];
+        head[a] = 2 * e;
+        to[2 * e + 1] = a;
+        next[2 * e + 1] = head[b];
+        head[b] = 2 * e + 1;
+        degree[a] += 1;
+        degree[b] += 1;
+    }
+    var root = 1;
+    for v in 1..=n {
+        if degree[v] >= 2 {
+            root = v;
+            break;
+        }
+    }
+    let leaves = array(n, 0);
+    var leaf_count = 0;
+    let visited = array(n + 1, 0);
+    let stack = array(n, 0);
+    visited[root] = 1;
+    var stack_size = 1;
+    stack[0] = root;
+    while stack_size > 0 {
+        stack_size -= 1;
+        let u = stack[stack_size];
+        if degree[u] == 1 {
+            leaves[leaf_count] = u;
+            leaf_count += 1;
+        }
+        var e = head[u];
+        while e != -1 {
+            let v = to[e];
+            if visited[v] == 0 {
+                visited[v] = 1;
+                stack[stack_size] = v;
+                stack_size += 1;
+            }
+            e = next[e];
+        }
+    }
+    let need = (leaf_count + 1) / 2;
+    println(need);
+    let half = leaf_count / 2;
+    for i in 0..need {
+        let j = (i + half) % leaf_count;
+        println(leaves[i], " ", leaves[j]);
+    }
+}

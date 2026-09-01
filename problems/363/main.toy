@@ -1,0 +1,70 @@
+fn main() {
+    let n = read();
+    let m = read();
+    let a = read_array(n);
+    let b = read_array(m);
+    var pos_b = array(m + 1, 0);
+    for i in 0..m {
+        pos_b[b[i]] = i;
+    }
+    var vals = array(n, 0);
+    var seq = array(n, 0);
+    var k = 0;
+    for i in 0..n {
+        if a[i] <= m {
+            vals[k] = a[i];
+            seq[k] = pos_b[a[i]];
+            k += 1;
+        }
+    }
+
+    var tails = array(k + 1, 0);
+    var tails_idx = array(k + 1, 0);
+    var prev_idx = array(k + 1, 0);
+    for i in 0..=k {
+        prev_idx[i] = -1;
+    }
+    var tail_size = 0;
+    for i in 0..k {
+        let v = seq[i];
+        var lo = 0;
+        var hi = tail_size;
+        while lo < hi {
+            let mid = (lo + hi) / 2;
+            if tails[mid] < v {
+                lo = mid + 1;
+            } else {
+                hi = mid;
+            }
+        }
+        if lo > 0 {
+            prev_idx[i] = tails_idx[lo - 1];
+        }
+        if lo == tail_size {
+            tails[tail_size] = v;
+            tails_idx[tail_size] = i;
+            tail_size += 1;
+        } else {
+            tails[lo] = v;
+            tails_idx[lo] = i;
+        }
+    }
+
+    println(tail_size);
+    var res = array(tail_size + 1, 0);
+    var count = 0;
+    var current = -1;
+    if tail_size > 0 {
+        current = tails_idx[tail_size - 1];
+    }
+    while current != -1 {
+        res[count] = vals[current];
+        count += 1;
+        current = prev_idx[current];
+    }
+    for i in count - 1..=0 by -1 {
+        print(res[i]);
+        print(" ");
+    }
+    print("\n");
+}

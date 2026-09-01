@@ -1,0 +1,115 @@
+fn segment_set(tree: array<i64>, base: i64, position: i64, value: i64) {
+    var node = base + position;
+    tree[node] = value;
+    while node > 1 {
+        node /= 2;
+        tree[node] = tree[2 * node];
+        if tree[2 * node + 1] < tree[node] {
+            tree[node] = tree[2 * node + 1];
+        }
+    }
+}
+
+fn segment_min(tree: array<i64>, base: i64, begin: i64, end: i64) -> i64 {
+    var left = base + begin;
+    var right = base + end + 1;
+    var result = 9_223_372_036_854_775_807;
+    while left < right {
+        if (left & 1) != 0 {
+            if tree[left] < result {
+                result = tree[left];
+            }
+            left += 1;
+        }
+        if (right & 1) != 0 {
+            right -= 1;
+            if tree[right] < result {
+                result = tree[right];
+            }
+        }
+        left /= 2;
+        right /= 2;
+    }
+    return result;
+}
+
+fn main() {
+    let size = read();
+    let queries = read();
+    let values = array(size + 1, 0);
+    let next_position = array(size + 1, size + 1);
+    let positions = ordered(size + queries);
+    let key_base = size + 1;
+    for position in 1..=size {
+        values[position] = read();
+        let key = values[position] * key_base + position;
+        let previous_key = ordered_floor(positions, key - 1, -1);
+        if previous_key != -1 && previous_key / key_base == values[position] {
+            let previous = previous_key % key_base;
+            next_position[previous] = position;
+        }
+        ordered_insert(positions, key);
+    }
+    var base = 1;
+    while base <= size {
+        base *= 2;
+    }
+    let tree = array(2 * base, size + 1);
+    for position in 1..=size {
+        tree[base + position] = next_position[position];
+    }
+    var node = base;
+    while node > 1 {
+        node -= 1;
+        tree[node] = tree[2 * node];
+        if tree[2 * node + 1] < tree[node] {
+            tree[node] = tree[2 * node + 1];
+        }
+    }
+    for query in 0..queries {
+        let kind = read();
+        let first = read();
+        let second = read();
+        if kind == 1 {
+            let position = first;
+            let old_value = values[position];
+            let new_value = second;
+            if old_value != new_value {
+                let old_key = old_value * key_base + position;
+                let predecessor_key = ordered_floor(positions, old_key - 1, -1);
+                let successor_key = ordered_ceiling(positions, old_key + 1, -1);
+                var successor = size + 1;
+                if successor_key != -1 && successor_key / key_base == old_value {
+                    successor = successor_key % key_base;
+                }
+                if predecessor_key != -1 && predecessor_key / key_base == old_value {
+                    let predecessor = predecessor_key % key_base;
+                    next_position[predecessor] = successor;
+                    segment_set(tree, base, predecessor, successor);
+                }
+                ordered_erase(positions, old_key);
+
+                let new_key = new_value * key_base + position;
+                let new_predecessor_key = ordered_floor(positions, new_key - 1, -1);
+                let new_successor_key = ordered_ceiling(positions, new_key + 1, -1);
+                var new_successor = size + 1;
+                if new_successor_key != -1 && new_successor_key / key_base == new_value {
+                    new_successor = new_successor_key % key_base;
+                }
+                if new_predecessor_key != -1 && new_predecessor_key / key_base == new_value {
+                    let new_predecessor = new_predecessor_key % key_base;
+                    next_position[new_predecessor] = position;
+                    segment_set(tree, base, new_predecessor, position);
+                }
+                next_position[position] = new_successor;
+                segment_set(tree, base, position, new_successor);
+                ordered_insert(positions, new_key);
+                values[position] = new_value;
+            }
+        } else if segment_min(tree, base, first, second) > second {
+            println("YES");
+        } else {
+            println("NO");
+        }
+    }
+}

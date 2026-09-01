@@ -1,0 +1,115 @@
+fn jump(up: array<i64>, stride: i64, levels: i64, start: i64, steps: i64) -> i64 {
+    var node = start;
+    for level in 0..levels {
+        if ((steps >> level) & 1) != 0 {
+            node = up[level * stride + node];
+        }
+    }
+    return node;
+}
+
+fn main() {
+    let nodes = read();
+    let queries = read();
+    let levels = 20;
+    let stride = nodes + 1;
+    let successor = array(stride, 0);
+    let up = array(levels * stride, 0);
+    for node in 1..=nodes {
+        successor[node] = read();
+        up[node] = successor[node];
+    }
+    for level in 1..levels {
+        for node in 1..=nodes {
+            up[level * stride + node] = up[(level - 1) * stride + up[(level - 1) * stride + node]];
+        }
+    }
+
+    let state = array(stride, 0);
+    let on_cycle = array(stride, 0);
+    let cycle_id = array(stride, -1);
+    let cycle_index = array(stride, 0);
+    let cycle_length = array(nodes, 0);
+    let path = array(nodes, 0);
+    var cycle_count = 0;
+    for start in 1..=nodes {
+        if state[start] == 0 {
+            var path_size = 0;
+            var node = start;
+            while state[node] == 0 {
+                state[node] = 1;
+                path[path_size] = node;
+                path_size += 1;
+                node = successor[node];
+            }
+            if state[node] == 1 {
+                let cycle_start = node;
+                var current = node;
+                var length = 0;
+                var first = true;
+                while first || current != cycle_start {
+                    first = false;
+                    on_cycle[current] = 1;
+                    cycle_id[current] = cycle_count;
+                    cycle_index[current] = length;
+                    length += 1;
+                    current = successor[current];
+                }
+                cycle_length[cycle_count] = length;
+                cycle_count += 1;
+            }
+            for index in 0..path_size {
+                state[path[index]] = 2;
+            }
+        }
+    }
+
+    let depth = array(stride, -1);
+    let entry = array(stride, 0);
+    for node in 1..=nodes {
+        if on_cycle[node] != 0 {
+            depth[node] = 0;
+            entry[node] = node;
+        }
+    }
+    let stack = array(nodes, 0);
+    for start in 1..=nodes {
+        if depth[start] == -1 {
+            var size = 0;
+            var node = start;
+            while depth[node] == -1 {
+                stack[size] = node;
+                size += 1;
+                node = successor[node];
+            }
+            var current_depth = depth[node];
+            let cycle_entry = entry[node];
+            while size > 0 {
+                size -= 1;
+                current_depth += 1;
+                depth[stack[size]] = current_depth;
+                entry[stack[size]] = cycle_entry;
+            }
+        }
+    }
+
+    for query in 0..queries {
+        let first = read();
+        let second = read();
+        var answer = -1;
+        if on_cycle[second] == 0 {
+            if depth[first] >= depth[second] && entry[first] == entry[second]
+                && jump(up, stride, levels, first, depth[first] - depth[second]) == second {
+                answer = depth[first] - depth[second];
+            }
+        } else {
+            let first_entry = entry[first];
+            if cycle_id[first_entry] == cycle_id[second] {
+                let length = cycle_length[cycle_id[second]];
+                let around = ((cycle_index[second] - cycle_index[first_entry]) % length + length) % length;
+                answer = depth[first] + around;
+            }
+        }
+        println(answer);
+    }
+}

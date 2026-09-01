@@ -1,0 +1,60 @@
+fn transformed_char(s: string, m: i64, index: i64) -> i64 {
+    var result = 0;
+    if index == 0 {
+        result = 94;
+    } else if index == m - 1 {
+        result = 36;
+    } else if index % 2 == 1 {
+        result = 35;
+    } else {
+        result = at(s, (index - 2) / 2);
+    }
+    return result;
+}
+
+fn main() {
+    let s = read_text();
+    let n = length(s);
+    let m = 2 * n + 3;
+    let p = array(m, 0);
+    var c = 0;
+    var r = 0;
+    for i in 1..m - 1 {
+        if i < r {
+            let mirror = 2 * c - i;
+            let candidate = r - i;
+            if p[mirror] < candidate {
+                p[i] = p[mirror];
+            } else {
+                p[i] = candidate;
+            }
+        }
+        var continuing = true;
+        while continuing {
+            let left = i - p[i] - 1;
+            let right = i + p[i] + 1;
+            if transformed_char(s, m, left) == transformed_char(s, m, right) {
+                p[i] += 1;
+            } else {
+                continuing = false;
+            }
+        }
+        if i + p[i] > r {
+            c = i;
+            r = i + p[i];
+        }
+    }
+    var best = 0;
+    var center = 0;
+    for i in 1..m - 1 {
+        if p[i] > best {
+            best = p[i];
+            center = i;
+        }
+    }
+    let start = (center - best) / 2;
+    for i in 0..best {
+        put(at(s, start + i));
+    }
+    put(10);
+}

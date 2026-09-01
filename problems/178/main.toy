@@ -1,0 +1,39 @@
+fn totient(input: i64) -> i64 {
+    var value = input;
+    var result = input;
+    var prime = 2;
+    while prime * prime <= value {
+        if value % prime == 0 {
+            while value % prime == 0 {
+                value /= prime;
+            }
+            result -= result / prime;
+        }
+        prime += 1;
+    }
+    if value > 1 {
+        result -= result / value;
+    }
+    return result;
+}
+
+fn main() {
+    let length = read();
+    let colors = read();
+    let modulus = 1_000_000_007;
+    var answer = 0;
+    var divisor = 1;
+    while divisor * divisor <= length {
+        if length % divisor == 0 {
+            answer = (answer + (totient(length / divisor) % modulus)
+                * pow_mod(colors, divisor, modulus)) % modulus;
+            if divisor != length / divisor {
+                answer = (answer + (totient(divisor) % modulus)
+                    * pow_mod(colors, length / divisor, modulus)) % modulus;
+            }
+        }
+        divisor += 1;
+    }
+    answer = answer * pow_mod(length, modulus - 2, modulus) % modulus;
+    println(answer);
+}

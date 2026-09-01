@@ -1,0 +1,33 @@
+fn main() {
+    let n = read();
+    let k = read();
+    let x = read();
+    let a = read();
+    let b = read();
+    let c = read();
+    let arr = array(n, 0);
+    var prev = x;
+    arr[0] = x;
+    for i in 1..n {
+        prev = (a * prev + b) % c;
+        arr[i] = prev;
+    }
+    let dq = array(n, 0);
+    var head = 0;
+    var tail = 0;
+    var answer = 0;
+    for i in 0..n {
+        while tail > head && arr[dq[tail - 1]] >= arr[i] {
+            tail -= 1;
+        }
+        dq[tail] = i;
+        tail += 1;
+        if dq[head] <= i - k {
+            head += 1;
+        }
+        if i >= k - 1 {
+            answer ^= arr[dq[head]];
+        }
+    }
+    println(answer);
+}

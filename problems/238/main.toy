@@ -1,0 +1,69 @@
+fn main() {
+    let n = read();
+    let m = read();
+    let head = array(n + 1, -1);
+    let to = array(m, 0);
+    let next = array(m, 0);
+    let indegree = array(n + 1, 0);
+    for e in 0..m {
+        let a = read();
+        let b = read();
+        to[e] = b;
+        next[e] = head[a];
+        head[a] = e;
+        indegree[b] += 1;
+    }
+    let topo = array(n, 0);
+    let stack = array(n, 0);
+    var stack_size = 0;
+    for u in 1..=n {
+        if indegree[u] == 0 {
+            stack[stack_size] = u;
+            stack_size += 1;
+        }
+    }
+    var topo_size = 0;
+    while stack_size > 0 {
+        stack_size -= 1;
+        let u = stack[stack_size];
+        topo[topo_size] = u;
+        topo_size += 1;
+        var e = head[u];
+        while e != -1 {
+            let v = to[e];
+            indegree[v] -= 1;
+            if indegree[v] == 0 {
+                stack[stack_size] = v;
+                stack_size += 1;
+            }
+            e = next[e];
+        }
+    }
+    let words = (n + 63) / 64;
+    let reach = array(n * words, 0);
+    var p = topo_size;
+    while p > 0 {
+        p -= 1;
+        let u = topo[p];
+        reach[(u - 1) * words + ((u - 1) >> 6)] |= 1 << ((u - 1) & 63);
+        var e = head[u];
+        while e != -1 {
+            let v = to[e];
+            for t in 0..words {
+                reach[(u - 1) * words + t] |= reach[(v - 1) * words + t];
+            }
+            e = next[e];
+        }
+    }
+    for u in 1..=n {
+        var count = 0;
+        for t in 0..words {
+            count += popcount(reach[(u - 1) * words + t]);
+        }
+        if u != 1 {
+            print(" ");
+        }
+        print(count);
+    }
+    println();
+}

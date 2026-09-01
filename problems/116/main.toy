@@ -1,0 +1,43 @@
+fn main() {
+    let nodes = read();
+    let edges = read();
+    let head = array(nodes + 1, -1);
+    let to = array(4 * edges, 0);
+    let next = array(4 * edges, 0);
+    let capacity = array(4 * edges, 0);
+    let first = array(edges, 0);
+    let second = array(edges, 0);
+    for edge in 0..edges {
+        first[edge] = read();
+        second[edge] = read();
+        flow_add(head, to, next, capacity, 4 * edge, first[edge], second[edge], 1);
+        flow_add(head, to, next, capacity, 4 * edge + 2, second[edge], first[edge], 1);
+    }
+    let flow = max_flow(nodes + 1, 1, nodes, head, to, next, capacity);
+    let reachable = array(nodes + 1, 0);
+    let queue = array(nodes, 0);
+    var queue_head = 0;
+    var queue_tail = 1;
+    queue[0] = 1;
+    reachable[1] = 1;
+    while queue_head < queue_tail {
+        let node = queue[queue_head];
+        queue_head += 1;
+        var edge = head[node];
+        while edge != -1 {
+            let neighbor = to[edge];
+            if capacity[edge] > 0 && reachable[neighbor] == 0 {
+                reachable[neighbor] = 1;
+                queue[queue_tail] = neighbor;
+                queue_tail += 1;
+            }
+            edge = next[edge];
+        }
+    }
+    println(flow);
+    for edge in 0..edges {
+        if reachable[first[edge]] != reachable[second[edge]] {
+            println(first[edge], " ", second[edge]);
+        }
+    }
+}

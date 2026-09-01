@@ -1,0 +1,25 @@
+fn main() {
+    let street_length = read();
+    let count = read();
+    let lights = ordered(count + 2);
+    let segments = ordered(2 * count + 1);
+    ordered_insert(lights, 0);
+    ordered_insert(lights, street_length);
+    ordered_insert(segments, street_length);
+
+    for index in 0..count {
+        let position = read();
+        let left = ordered_floor(lights, position, 0);
+        let right = ordered_ceiling(lights, position, street_length);
+        ordered_erase(segments, right - left);
+        ordered_insert(segments, position - left);
+        ordered_insert(segments, right - position);
+        ordered_insert(lights, position);
+        print(ordered_last(segments));
+        if index + 1 < count {
+            print(" ");
+        } else {
+            println();
+        }
+    }
+}

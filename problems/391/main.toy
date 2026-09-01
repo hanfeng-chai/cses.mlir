@@ -1,0 +1,37 @@
+fn main() {
+    let n = read();
+    let x = read();
+    let h = read_array(n);
+    let s = read_array(n);
+    let k = read_array(n);
+
+    var price = array(n * 20 + 10, 0);
+    var pages = array(n * 20 + 10, 0);
+    var item_count = 0;
+    for i in 0..n {
+        var remaining = k[i];
+        var take = 1;
+        while remaining > 0 {
+            var count = take;
+            if count > remaining {
+                count = remaining;
+            }
+            price[item_count] = h[i] * count;
+            pages[item_count] = s[i] * count;
+            item_count += 1;
+            remaining -= count;
+            take *= 2;
+        }
+    }
+
+    let dp = array(x + 1, 0);
+    for item in 0..item_count {
+        for c in x..=price[item] by -1 {
+            let candidate = dp[c - price[item]] + pages[item];
+            if candidate > dp[c] {
+                dp[c] = candidate;
+            }
+        }
+    }
+    println(dp[x]);
+}

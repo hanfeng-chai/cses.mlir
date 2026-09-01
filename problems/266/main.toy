@@ -1,0 +1,42 @@
+fn main() {
+    let n = read();
+    let k = read();
+    let values = read_array(n);
+    let lower = ordered(n + 5);
+    let upper = ordered(n + 5);
+    for i in 0..n {
+        let value = values[i];
+        if ordered_size(lower) == 0 || value <= ordered_last(lower) {
+            ordered_insert(lower, value);
+        } else {
+            ordered_insert(upper, value);
+        }
+        if i >= k {
+            let old = values[i - k];
+            if ordered_ceiling(lower, old, -1) == old {
+                ordered_erase(lower, old);
+            } else {
+                ordered_erase(upper, old);
+            }
+        }
+        let window = min(i + 1, k);
+        let target = (window + 1) / 2;
+        while ordered_size(lower) > target {
+            let value = ordered_last(lower);
+            ordered_erase(lower, value);
+            ordered_insert(upper, value);
+        }
+        while ordered_size(lower) < target {
+            let value = ordered_first(upper);
+            ordered_erase(upper, value);
+            ordered_insert(lower, value);
+        }
+        if i >= k - 1 {
+            if i != k - 1 {
+                print(" ");
+            }
+            print(ordered_last(lower));
+        }
+    }
+    println();
+}

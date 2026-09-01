@@ -1,0 +1,15 @@
+fn main() {
+    let maximum = 1_000_000;
+    let divisors = array(maximum + 1, 0);
+    for divisor in 1..=maximum {
+        var multiple = divisor;
+        while multiple <= maximum {
+            divisors[multiple] += 1;
+            multiple += divisor;
+        }
+    }
+    let queries = read();
+    for query in 0..queries {
+        println(divisors[read()]);
+    }
+}

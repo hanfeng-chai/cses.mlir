@@ -1,0 +1,28 @@
+fn main() {
+    let n = read();
+    let h = read_array(n);
+    let stack = array(n + 1, 0);
+    var top = 0;
+    var best = 0;
+    for i in 0..=n {
+        var current = 0;
+        if i < n {
+            current = h[i];
+        }
+        while top > 0 && h[stack[top - 1]] >= current {
+            let height = h[stack[top - 1]];
+            top -= 1;
+            var left = -1;
+            if top > 0 {
+                left = stack[top - 1];
+            }
+            let width = i - left - 1;
+            if height * width > best {
+                best = height * width;
+            }
+        }
+        stack[top] = i;
+        top += 1;
+    }
+    println(best);
+}

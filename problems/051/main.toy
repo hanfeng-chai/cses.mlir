@@ -1,0 +1,34 @@
+fn main() {
+    let count = read();
+    let target = read();
+    let values = array(count, 0);
+    for index in 0..count {
+        values[index] = read();
+    }
+    let pairs = map(2 * count * count);
+    var found = false;
+    for middle in 1..count {
+        if !found {
+            for first in 0..middle - 1 {
+                let sum = values[first] + values[middle - 1];
+                if map_get(pairs, sum, -1) == -1 {
+                    map_set(pairs, sum, first * count + middle - 1);
+                }
+            }
+            for last in middle + 1..count {
+                if !found {
+                    let encoded = map_get(pairs, target - values[middle] - values[last], -1);
+                    if encoded != -1 {
+                        let first = encoded / count;
+                        let second = encoded % count;
+                        println(first + 1, " ", second + 1, " ", middle + 1, " ", last + 1);
+                        found = true;
+                    }
+                }
+            }
+        }
+    }
+    if !found {
+        println("IMPOSSIBLE");
+    }
+}

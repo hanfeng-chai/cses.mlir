@@ -1,0 +1,42 @@
+fn main() {
+    let text = read_text();
+    let counts = array(26, 0);
+    for index in 0..length(text) {
+        let letter = at(text, index) - 65;
+        counts[letter] += 1;
+    }
+
+    var odd_count = 0;
+    var middle = 0;
+    for letter in 0..26 {
+        if (counts[letter] & 1) != 0 {
+            odd_count += 1;
+            middle = 65 + letter;
+        }
+    }
+
+    if odd_count > 1 {
+        println("NO SOLUTION");
+    } else {
+        for letter in 0..26 {
+            var copies = counts[letter] / 2;
+            while copies > 0 {
+                put(65 + letter);
+                copies -= 1;
+            }
+        }
+        if odd_count == 1 {
+            put(middle);
+        }
+        var letter = 26;
+        while letter > 0 {
+            letter -= 1;
+            var copies = counts[letter] / 2;
+            while copies > 0 {
+                put(65 + letter);
+                copies -= 1;
+            }
+        }
+        println();
+    }
+}

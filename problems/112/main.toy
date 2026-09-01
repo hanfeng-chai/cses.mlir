@@ -1,0 +1,55 @@
+fn main() {
+    let nodes = read();
+    let edges = read();
+    let head = array(nodes + 1, -1);
+    let to = array(edges, 0);
+    let next = array(edges, 0);
+    let indegree = array(nodes + 1, 0);
+    let outdegree = array(nodes + 1, 0);
+    for edge in 0..edges {
+        let source = read();
+        to[edge] = read();
+        next[edge] = head[source];
+        head[source] = edge;
+        outdegree[source] += 1;
+        indegree[to[edge]] += 1;
+    }
+    var possible = outdegree[1] - indegree[1] == 1
+        && indegree[nodes] - outdegree[nodes] == 1;
+    for node in 2..nodes {
+        if indegree[node] != outdegree[node] {
+            possible = false;
+        }
+    }
+    let cursor = array(nodes + 1, 0);
+    for node in 1..=nodes {
+        cursor[node] = head[node];
+    }
+    let stack = array(edges + 2, 0);
+    let path = array(edges + 2, 0);
+    var stack_size = 1;
+    var path_size = 0;
+    stack[0] = 1;
+    while stack_size > 0 && possible {
+        let node = stack[stack_size - 1];
+        if cursor[node] != -1 {
+            let edge = cursor[node];
+            cursor[node] = next[edge];
+            stack[stack_size] = to[edge];
+            stack_size += 1;
+        } else {
+            path[path_size] = node;
+            path_size += 1;
+            stack_size -= 1;
+        }
+    }
+    if !possible || path_size != edges + 1 || path[path_size - 1] != 1 || path[0] != nodes {
+        println("IMPOSSIBLE");
+    } else {
+        while path_size > 0 {
+            path_size -= 1;
+            print(path[path_size], " ");
+        }
+        println();
+    }
+}

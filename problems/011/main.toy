@@ -1,0 +1,13 @@
+fn main() {
+    let tests = read();
+    for test in 0..tests {
+        let first = read();
+        let second = read();
+        let possible = (first + second) % 3 == 0 && first <= 2 * second && second <= 2 * first;
+        if possible {
+            println("YES");
+        } else {
+            println("NO");
+        }
+    }
+}

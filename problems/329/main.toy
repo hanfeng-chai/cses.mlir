@@ -1,0 +1,77 @@
+fn main() {
+    let tests = read();
+    let query_n = array(tests, 0);
+    let query_a = array(tests, 0);
+    let query_b = array(tests, 0);
+    var max_n = 1;
+    for i in 0..tests {
+        query_n[i] = read();
+        query_a[i] = read();
+        query_b[i] = read();
+        if query_n[i] > max_n {
+            max_n = query_n[i];
+        }
+    }
+    let n = max_n;
+    let fact = array(n + 1, 0);
+    let inv = array(n + 1, 0);
+    fact[0] = 1;
+    for i in 1..=n {
+        fact[i] = fact[i - 1] * i % 1000000007;
+    }
+    inv[n] = pow_mod(fact[n], 1000000005, 1000000007);
+    var i = n;
+    while i > 0 {
+        inv[i - 1] = inv[i] * i % 1000000007;
+        i -= 1;
+    }
+    let off = array(n + 2, 0);
+    for m in 1..=n {
+        off[m + 1] = off[m] + m;
+    }
+    let eulerian = array(off[n + 1], i32(0));
+    eulerian[off[1]] = i32(1);
+    for m in 2..=n {
+        for d in 0..m {
+            var value = 0;
+            if d <= m - 2 {
+                value += (d + 1) * i64(eulerian[off[m - 1] + d]);
+            }
+            if d >= 1 && d - 1 <= m - 2 {
+                value += (m - d) * i64(eulerian[off[m - 1] + d - 1]);
+            }
+            eulerian[off[m] + d] = i32(value % 1000000007);
+        }
+    }
+    for query in 0..tests {
+        let qn = query_n[query];
+        let a = query_a[query];
+        let b = query_b[query];
+        let m = a + b;
+        var answer = 0;
+        if m <= qn {
+            let comb = fact[qn] * inv[m] % 1000000007 * inv[qn - m] % 1000000007;
+            var dexc = 0;
+            for f in 0..=m {
+                let choose = fact[m] * inv[f] % 1000000007 * inv[m - f] % 1000000007;
+                let size = m - f;
+                var e = 0;
+                if size == 0 {
+                    if b == 0 {
+                        e = 1;
+                    }
+                } else if b >= 0 && b < size {
+                    e = i64(eulerian[off[size] + b]);
+                }
+                let term = choose * e % 1000000007;
+                if f % 2 == 1 {
+                    dexc = (dexc - term + 1000000007) % 1000000007;
+                } else {
+                    dexc = (dexc + term) % 1000000007;
+                }
+            }
+            answer = fact[qn] * comb % 1000000007 * dexc % 1000000007;
+        }
+        println(answer);
+    }
+}

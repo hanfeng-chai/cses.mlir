@@ -1,0 +1,19 @@
+fn main() {
+    let tests = read();
+    for test in 0..tests {
+        let x1 = read();
+        let y1 = read();
+        let x2 = read();
+        let y2 = read();
+        let x3 = read();
+        let y3 = read();
+        let cross = (x2 - x1) * (y3 - y1) - (y2 - y1) * (x3 - x1);
+        if cross > 0 {
+            println("LEFT");
+        } else if cross < 0 {
+            println("RIGHT");
+        } else {
+            println("TOUCH");
+        }
+    }
+}

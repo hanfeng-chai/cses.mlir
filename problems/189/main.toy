@@ -1,0 +1,19 @@
+fn main() {
+    let n = read();
+    let k = read();
+    var answer = f64(0);
+    for i in 0..k {
+        var numerator = f64(1);
+        for e in 0..n {
+            numerator *= f64(i);
+        }
+        var denominator = f64(1);
+        for e in 0..n {
+            denominator *= f64(k);
+        }
+        answer += numerator / denominator;
+    }
+    answer = f64(k) - answer;
+    print_fixed(answer, 6);
+    println();
+}

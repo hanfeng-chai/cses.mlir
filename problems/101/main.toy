@@ -1,0 +1,25 @@
+fn main() {
+    let nodes = read();
+    let queries = read();
+    let levels = 30;
+    let stride = nodes + 1;
+    let up = array(levels * stride, 0);
+    for node in 1..=nodes {
+        up[node] = read();
+    }
+    for level in 1..levels {
+        for node in 1..=nodes {
+            up[level * stride + node] = up[(level - 1) * stride + up[(level - 1) * stride + node]];
+        }
+    }
+    for query in 0..queries {
+        var node = read();
+        let steps = read();
+        for level in 0..levels {
+            if ((steps >> level) & 1) != 0 {
+                node = up[level * stride + node];
+            }
+        }
+        println(node);
+    }
+}

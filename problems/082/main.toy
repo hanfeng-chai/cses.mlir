@@ -1,0 +1,38 @@
+fn modular_add(tree: array<i64>, index: i64, value: i64, modulus: i64) {
+    var position = index;
+    while position < length(tree) {
+        tree[position] = (tree[position] + value) % modulus;
+        position += position & (0 - position);
+    }
+}
+
+fn modular_sum(tree: array<i64>, index: i64, modulus: i64) -> i64 {
+    var position = index;
+    var result = 0;
+    while position > 0 {
+        result = (result + tree[position]) % modulus;
+        position -= position & (0 - position);
+    }
+    return result;
+}
+
+fn main() {
+    let count = read();
+    let values = array(count, 0);
+    let sorted = array(count, 0);
+    for index in 0..count {
+        values[index] = read();
+        sorted[index] = values[index];
+    }
+    sort(sorted);
+    let tree = array(count + 1, 0);
+    let modulus = 1_000_000_007;
+    var answer = 0;
+    for index in 0..count {
+        let rank = lower_bound(sorted, values[index]) + 1;
+        let subsequences = (modular_sum(tree, rank - 1, modulus) + 1) % modulus;
+        modular_add(tree, rank, subsequences, modulus);
+        answer = (answer + subsequences) % modulus;
+    }
+    println(answer);
+}

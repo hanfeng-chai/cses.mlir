@@ -1,0 +1,147 @@
+fn sift_slice(values: array<i64>, start: i64, count: i64) {
+    var index = start;
+    while 2 * index + 1 < count {
+        var child = 2 * index + 1;
+        if child + 1 < count && values[child + 1] > values[child] {
+            child += 1;
+        }
+        if values[child] <= values[index] {
+            return;
+        }
+        let temporary = values[index];
+        values[index] = values[child];
+        values[child] = temporary;
+        index = child;
+    }
+}
+
+fn heap_sort_slice(values: array<i64>, count: i64) {
+    var begin = count / 2;
+    while begin > 0 {
+        begin -= 1;
+        sift_slice(values, begin, count);
+    }
+    var end = count;
+    while end > 1 {
+        end -= 1;
+        let temporary = values[0];
+        values[0] = values[end];
+        values[end] = temporary;
+        sift_slice(values, 0, end);
+    }
+}
+
+fn main() {
+    let n = read();
+    let m = read();
+    let head = array(n + 1, -1);
+    let to = array(m, 0);
+    let next = array(m, 0);
+    let head_r = array(n + 1, -1);
+    let to_r = array(m, 0);
+    let next_r = array(m, 0);
+    for e in 0..m {
+        let a = read();
+        let b = read();
+        to[e] = b;
+        next[e] = head[a];
+        head[a] = e;
+        to_r[e] = a;
+        next_r[e] = head_r[b];
+        head_r[b] = e;
+    }
+    let visited = array(n + 1, 0);
+    let cursor = array(n + 1, 0);
+    for v in 1..=n {
+        cursor[v] = head[v];
+    }
+    let stack = array(n, 0);
+    let post = array(n, 0);
+    var post_size = 0;
+    visited[1] = 1;
+    var stack_size = 1;
+    stack[0] = 1;
+    while stack_size > 0 {
+        let u = stack[stack_size - 1];
+        let e = cursor[u];
+        if e != -1 {
+            cursor[u] = next[e];
+            let v = to[e];
+            if visited[v] == 0 {
+                visited[v] = 1;
+                stack[stack_size] = v;
+                stack_size += 1;
+            }
+        } else {
+            stack_size -= 1;
+            post[post_size] = u;
+            post_size += 1;
+        }
+    }
+    let order = array(post_size, 0);
+    for i in 0..post_size {
+        order[i] = post[post_size - 1 - i];
+    }
+    let rpo = array(n + 1, -1);
+    for i in 0..post_size {
+        rpo[order[i]] = i;
+    }
+    let idom = array(n + 1, -1);
+    idom[1] = 1;
+    var changed = true;
+    while changed {
+        changed = false;
+        for i in 0..post_size {
+            let b = order[i];
+            if b == 1 {
+                continue;
+            }
+            var new_idom = -1;
+            var e = head_r[b];
+            while e != -1 {
+                let p = to_r[e];
+                if rpo[p] != -1 && idom[p] != -1 {
+                    if new_idom == -1 {
+                        new_idom = p;
+                    } else {
+                        var first = p;
+                        var second = new_idom;
+                        while first != second {
+                            while rpo[first] > rpo[second] {
+                                first = idom[first];
+                            }
+                            while rpo[second] > rpo[first] {
+                                second = idom[second];
+                            }
+                        }
+                        new_idom = first;
+                    }
+                }
+                e = next_r[e];
+            }
+            if new_idom != -1 && idom[b] != new_idom {
+                idom[b] = new_idom;
+                changed = true;
+            }
+        }
+    }
+    let critical = array(n, 0);
+    var critical_count = 0;
+    var x = n;
+    var walking = true;
+    while walking {
+        critical[critical_count] = x;
+        critical_count += 1;
+        if x == 1 {
+            walking = false;
+        } else {
+            x = idom[x];
+        }
+    }
+    heap_sort_slice(critical, critical_count);
+    println(critical_count);
+    for i in 0..critical_count {
+        print(critical[i], " ");
+    }
+    println();
+}

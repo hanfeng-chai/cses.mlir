@@ -1,0 +1,17 @@
+fn main() {
+    let count = read();
+    let duration = array(count, 0);
+    let deadline = array(count, 0);
+    for task in 0..count {
+        duration[task] = read();
+        deadline[task] = read();
+    }
+    sort_pairs(duration, deadline);
+    var time = 0;
+    var reward = 0;
+    for task in 0..count {
+        time += duration[task];
+        reward += deadline[task] - time;
+    }
+    println(reward);
+}

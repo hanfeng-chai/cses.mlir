@@ -1,0 +1,110 @@
+fn try_kuhn(head: array<i64>, to: array<i64>, next_edge: array<i64>, match_col: array<i64>, match_row: array<i64>, used: array<i64>, r: i64) -> bool {
+    var edge = head[r];
+    while edge != -1 {
+        let c = to[edge];
+        if used[c] == 0 {
+            used[c] = 1;
+            if match_col[c] == -1 || try_kuhn(head, to, next_edge, match_col, match_row, used, match_col[c]) {
+                match_col[c] = r;
+                match_row[r] = c;
+                return true;
+            }
+        }
+        edge = next_edge[edge];
+    }
+    return false;
+}
+
+fn main() {
+    let n = read();
+    var head = array(n, 0);
+    for i in 0..n {
+        head[i] = -1;
+    }
+    let to = array(n * n, 0);
+    let next_edge = array(n * n, 0);
+    var edge_count = 0;
+    for r in 0..n {
+        let line = read_text();
+        for c in 0..n {
+            if at(line, c) == 111 {
+                to[edge_count] = c;
+                next_edge[edge_count] = head[r];
+                head[r] = edge_count;
+                edge_count += 1;
+            }
+        }
+    }
+
+    var match_row = array(n, 0);
+    var match_col = array(n, 0);
+    for i in 0..n {
+        match_row[i] = -1;
+        match_col[i] = -1;
+    }
+    let used = array(n, 0);
+    for r in 0..n {
+        for c in 0..n {
+            used[c] = 0;
+        }
+        try_kuhn(head, to, next_edge, match_col, match_row, used, r);
+    }
+
+    var vis_row = array(n, 0);
+    var vis_col = array(n, 0);
+    let queue = array(n + 1, 0);
+    var q_head = 0;
+    var q_tail = 0;
+    for r in 0..n {
+        if match_row[r] == -1 {
+            vis_row[r] = 1;
+            queue[q_tail] = r;
+            q_tail += 1;
+        }
+    }
+    while q_head < q_tail {
+        let r = queue[q_head];
+        q_head += 1;
+        var edge = head[r];
+        while edge != -1 {
+            let c = to[edge];
+            if vis_col[c] == 0 {
+                vis_col[c] = 1;
+                let r2 = match_col[c];
+                if r2 != -1 && vis_row[r2] == 0 {
+                    vis_row[r2] = 1;
+                    queue[q_tail] = r2;
+                    q_tail += 1;
+                }
+            }
+            edge = next_edge[edge];
+        }
+    }
+
+    var count = 0;
+    for r in 0..n {
+        if vis_row[r] == 0 {
+            count += 1;
+        }
+    }
+    for c in 0..n {
+        if vis_col[c] == 1 {
+            count += 1;
+        }
+    }
+    println(count);
+    for r in 0..n {
+        if vis_row[r] == 0 {
+            print(1);
+            print(" ");
+            println(r + 1);
+        }
+    }
+    for c in 0..n {
+        if vis_col[c] == 1 {
+            print(2);
+            print(" ");
+            println(c + 1);
+        }
+    }
+}

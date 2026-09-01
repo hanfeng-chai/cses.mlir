@@ -1,0 +1,22 @@
+fn main() {
+    let count = read();
+    let ending = array(count, 0);
+    let starting = array(count, 0);
+    let reward = array(count, 0);
+    for project in 0..count {
+        starting[project] = read();
+        ending[project] = read();
+        reward[project] = read();
+    }
+    sort_triples(ending, starting, reward);
+    let best = array(count + 1, 0);
+    for project in 0..count {
+        let compatible = lower_bound_prefix(ending, project, starting[project]);
+        let candidate = reward[project] + best[compatible];
+        best[project + 1] = best[project];
+        if candidate > best[project + 1] {
+            best[project + 1] = candidate;
+        }
+    }
+    println(best[count]);
+}

@@ -1,0 +1,217 @@
+fn main() {
+    let n = read();
+    let a = read_array(n);
+    let b = read_array(n);
+
+    var list_l = array(8, 0);
+    var list_r = array(8, 0);
+    var len_l = 0;
+    var len_r = 0;
+    var min_value = 0;
+
+    list_l[0] = a[0] - 1;
+    list_r[0] = a[0] - 1;
+    len_l = 1;
+    len_r = 1;
+
+    if n == 1 {
+        // evalAt(0)
+        var cost = min_value;
+        for i in 0..len_l {
+            if list_l[i] > 0 {
+                cost += list_l[i];
+            }
+        }
+        for i in 0..len_r {
+            if list_r[i] < 0 {
+                cost += 0 - list_r[i];
+            }
+        }
+        println(cost);
+        return;
+    }
+
+    // addAbs(0)
+    list_l[len_l] = 0;
+    len_l += 1;
+    list_r[len_r] = 0;
+    len_r += 1;
+    // balance
+    var li = 0;
+    for i in 1..len_l {
+        if list_l[i] > list_l[li] {
+            li = i;
+        }
+    }
+    var ri = 0;
+    for i in 1..len_r {
+        if list_r[i] < list_r[ri] {
+            ri = i;
+        }
+    }
+    var l_val = list_l[li];
+    var r_val = list_r[ri];
+    if l_val > r_val {
+        list_l[li] = r_val;
+        list_r[ri] = l_val;
+        min_value += l_val - r_val;
+        list_l[len_l] = r_val;
+        len_l += 1;
+        list_r[len_r] = l_val;
+        len_r += 1;
+    }
+
+    var run_c = a[0] + b[0] - 2;
+    // addAbs(run_c)
+    list_l[len_l] = run_c;
+    len_l += 1;
+    list_r[len_r] = run_c;
+    len_r += 1;
+    li = 0;
+    for i in 1..len_l {
+        if list_l[i] > list_l[li] {
+            li = i;
+        }
+    }
+    ri = 0;
+    for i in 1..len_r {
+        if list_r[i] < list_r[ri] {
+            ri = i;
+        }
+    }
+    l_val = list_l[li];
+    r_val = list_r[ri];
+    if l_val > r_val {
+        list_l[li] = r_val;
+        list_r[ri] = l_val;
+        min_value += l_val - r_val;
+        list_l[len_l] = r_val;
+        len_l += 1;
+        list_r[len_r] = l_val;
+        len_r += 1;
+    }
+
+    for i in 1..n - 1 {
+        // shiftBy(a[i]-1)
+        let delta = a[i] - 1;
+        for t in 0..len_l {
+            list_l[t] += delta;
+        }
+        for t in 0..len_r {
+            list_r[t] += delta;
+        }
+        // clip
+        var max_l = list_l[0];
+        for t in 1..len_l {
+            if list_l[t] > max_l {
+                max_l = list_l[t];
+            }
+        }
+        list_l[0] = max_l;
+        len_l = 1;
+        var min_r = list_r[0];
+        for t in 1..len_r {
+            if list_r[t] < min_r {
+                min_r = list_r[t];
+            }
+        }
+        list_r[0] = min_r;
+        len_r = 1;
+        // addAbs(0)
+        list_l[len_l] = 0;
+        len_l += 1;
+        list_r[len_r] = 0;
+        len_r += 1;
+        li = 0;
+        for t in 1..len_l {
+            if list_l[t] > list_l[li] {
+                li = t;
+            }
+        }
+        ri = 0;
+        for t in 1..len_r {
+            if list_r[t] < list_r[ri] {
+                ri = t;
+            }
+        }
+        l_val = list_l[li];
+        r_val = list_r[ri];
+        if l_val > r_val {
+            list_l[li] = r_val;
+            list_r[ri] = l_val;
+            min_value += l_val - r_val;
+            list_l[len_l] = r_val;
+            len_l += 1;
+            list_r[len_r] = l_val;
+            len_r += 1;
+        }
+        run_c += a[i] + b[i] - 2;
+        // addAbs(run_c)
+        list_l[len_l] = run_c;
+        len_l += 1;
+        list_r[len_r] = run_c;
+        len_r += 1;
+        li = 0;
+        for t in 1..len_l {
+            if list_l[t] > list_l[li] {
+                li = t;
+            }
+        }
+        ri = 0;
+        for t in 1..len_r {
+            if list_r[t] < list_r[ri] {
+                ri = t;
+            }
+        }
+        l_val = list_l[li];
+        r_val = list_r[ri];
+        if l_val > r_val {
+            list_l[li] = r_val;
+            list_r[ri] = l_val;
+            min_value += l_val - r_val;
+            list_l[len_l] = r_val;
+            len_l += 1;
+            list_r[len_r] = l_val;
+            len_r += 1;
+        }
+    }
+
+    // shiftBy(a[n-1]-1) and clip
+    let delta = a[n - 1] - 1;
+    for t in 0..len_l {
+        list_l[t] += delta;
+    }
+    for t in 0..len_r {
+        list_r[t] += delta;
+    }
+    var max_l = list_l[0];
+    for t in 1..len_l {
+        if list_l[t] > max_l {
+            max_l = list_l[t];
+        }
+    }
+    list_l[0] = max_l;
+    len_l = 1;
+    var min_r = list_r[0];
+    for t in 1..len_r {
+        if list_r[t] < min_r {
+            min_r = list_r[t];
+        }
+    }
+    list_r[0] = min_r;
+    len_r = 1;
+
+    // evalAt(0)
+    var cost = min_value;
+    for i in 0..len_l {
+        if list_l[i] > 0 {
+            cost += list_l[i];
+        }
+    }
+    for i in 0..len_r {
+        if list_r[i] < 0 {
+            cost += 0 - list_r[i];
+        }
+    }
+    println(cost);
+}

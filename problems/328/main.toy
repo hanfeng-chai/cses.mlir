@@ -1,0 +1,46 @@
+fn main() {
+    let n = read();
+    let k = read();
+    let grid = array(n * n, i8(0));
+    for y in 0..n {
+        let line = read_text();
+        for x in 0..n {
+            grid[y * n + x] = i8(at(line, x) - 65);
+        }
+    }
+    let upward = array(n * n, i16(0));
+    for x in 0..n {
+        for y in 0..n {
+            if y > 0 && grid[y * n + x] == grid[(y - 1) * n + x] {
+                upward[y * n + x] = upward[(y - 1) * n + x] + i16(1);
+            } else {
+                upward[y * n + x] = i16(1);
+            }
+        }
+    }
+    let answer = array(k, 0);
+    for top in 0..n {
+        for bottom in top..n {
+            let height = bottom - top + 1;
+            var active_letter = -1;
+            var valid_left_borders = 0;
+            for x in 0..n {
+                var letter = -1;
+                if grid[top * n + x] == grid[bottom * n + x] {
+                    letter = i64(grid[top * n + x]);
+                }
+                if letter != active_letter {
+                    active_letter = letter;
+                    valid_left_borders = 0;
+                }
+                if letter != -1 && i64(upward[bottom * n + x]) >= height {
+                    answer[letter] += valid_left_borders + 1;
+                    valid_left_borders += 1;
+                }
+            }
+        }
+    }
+    for letter in 0..k {
+        println(answer[letter]);
+    }
+}

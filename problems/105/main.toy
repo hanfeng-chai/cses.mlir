@@ -1,0 +1,29 @@
+fn main() {
+    let nodes = read();
+    let edges = read();
+    let parent = array(nodes + 1, 0);
+    let size = array(nodes + 1, 1);
+    for node in 1..=nodes {
+        parent[node] = node;
+    }
+    var components = nodes;
+    var largest = 1;
+    for edge in 0..edges {
+        var first = dsu_find(parent, read());
+        var second = dsu_find(parent, read());
+        if first != second {
+            if size[first] < size[second] {
+                let temporary = first;
+                first = second;
+                second = temporary;
+            }
+            parent[second] = first;
+            size[first] += size[second];
+            components -= 1;
+            if size[first] > largest {
+                largest = size[first];
+            }
+        }
+        println(components, " ", largest);
+    }
+}

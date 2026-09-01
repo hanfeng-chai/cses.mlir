@@ -1,0 +1,19 @@
+fn main() {
+    var low = 1;
+    var high = 1000000000;
+    while low < high {
+        let mid = low + (high - low) / 2;
+        print("? ");
+        println(mid);
+        flush();
+        let response = read_text();
+        if at(response, 0) == 89 {
+            low = mid + 1;
+        } else {
+            high = mid;
+        }
+    }
+    print("! ");
+    println(low);
+    flush();
+}

@@ -1,0 +1,44 @@
+fn main() {
+    let n = read();
+    let limit = 2 * n + 1;
+    let composite = array(limit + 1, 0);
+    var i = 2;
+    while i * i <= limit {
+        if composite[i] == 0 {
+            for j in i * i..=limit by i {
+                composite[j] = 1;
+            }
+        }
+        i += 1;
+    }
+    let b = array(n + 1, 0);
+    var high = n;
+    while high >= 1 {
+        var p = -1;
+        var candidate = high + 1;
+        while candidate <= 2 * high && p == -1 {
+            if candidate >= 2 && composite[candidate] == 0 {
+                p = candidate;
+            }
+            candidate += 1;
+        }
+        for index in p - high..=high {
+            b[index] = p - index;
+        }
+        high = p - high - 1;
+    }
+    for i in 1..=n {
+        if i != 1 {
+            print(" ");
+        }
+        print(i);
+    }
+    println();
+    for i in 1..=n {
+        if i != 1 {
+            print(" ");
+        }
+        print(b[i]);
+    }
+    println();
+}

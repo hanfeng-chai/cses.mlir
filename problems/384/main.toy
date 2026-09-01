@@ -1,0 +1,58 @@
+fn reduce_block(memo_steps: map, memo_rem: map, value: i64, outside_maximum: i64, out_steps: array<i64>, out_rem: array<i64>) {
+    if value < 10 {
+        let digit = value;
+        var subtract = digit;
+        if outside_maximum > subtract {
+            subtract = outside_maximum;
+        }
+        if subtract == 0 {
+            out_steps[0] = 0;
+            out_rem[0] = 0;
+            return;
+        }
+        out_steps[0] = 1;
+        out_rem[0] = value - subtract;
+        return;
+    }
+    let key = outside_maximum * 576460752303423488 + value;
+    let cached = map_get(memo_steps, key, -1);
+    if cached != -1 {
+        out_steps[0] = cached;
+        out_rem[0] = map_get(memo_rem, key, 0);
+        return;
+    }
+
+    var power = 1;
+    while power <= value / 10 {
+        power *= 10;
+    }
+    var current = value;
+    var steps = 0;
+    var suffix_steps = array(1, 0);
+    var suffix_rem = array(1, 0);
+    while current >= power {
+        let leading = current / power;
+        var om2 = leading;
+        if outside_maximum > om2 {
+            om2 = outside_maximum;
+        }
+        reduce_block(memo_steps, memo_rem, current % power, om2, suffix_steps, suffix_rem);
+        steps += suffix_steps[0];
+        current = leading * power + suffix_rem[0];
+    }
+    reduce_block(memo_steps, memo_rem, current, outside_maximum, suffix_steps, suffix_rem);
+    out_steps[0] = steps + suffix_steps[0];
+    out_rem[0] = suffix_rem[0];
+    map_set(memo_steps, key, out_steps[0]);
+    map_set(memo_rem, key, out_rem[0]);
+}
+
+fn main() {
+    let n = read();
+    let memo_steps = map(1000);
+    let memo_rem = map(1000);
+    var steps = array(1, 0);
+    var rem = array(1, 0);
+    reduce_block(memo_steps, memo_rem, n, 0, steps, rem);
+    println(steps[0]);
+}

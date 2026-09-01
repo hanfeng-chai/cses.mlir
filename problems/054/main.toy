@@ -1,0 +1,14 @@
+fn main() {
+    let count = read();
+    let target = read();
+    let frequencies = map(2 * count + 1);
+    map_set(frequencies, 0, 1);
+    var prefix = 0;
+    var answer = 0;
+    for index in 0..count {
+        prefix += read();
+        answer += map_get(frequencies, prefix - target, 0);
+        map_set(frequencies, prefix, map_get(frequencies, prefix, 0) + 1);
+    }
+    println(answer);
+}

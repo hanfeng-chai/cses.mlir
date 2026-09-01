@@ -1,0 +1,69 @@
+fn modpow(base: i64, exp: i64) -> i64 {
+    var result = 1;
+    var a = base % 1000000007;
+    var b = exp;
+    while b > 0 {
+        if b % 2 == 1 {
+            result = result * a % 1000000007;
+        }
+        a = a * a % 1000000007;
+        b = b / 2;
+    }
+    return result;
+}
+
+fn main() {
+    let n = read();
+    let m = read();
+    var ty = array(m, 0);
+    var tx = array(m, 0);
+    for i in 0..m {
+        ty[i] = read();
+        tx[i] = read();
+    }
+    sort_pairs_prefix(ty, tx, m);
+
+    let mx = 2 * n + 5;
+    let fact = array(mx, 0);
+    let inv = array(mx, 0);
+    fact[0] = 1;
+    for i in 1..mx {
+        fact[i] = fact[i - 1] * i % 1000000007;
+    }
+    inv[mx - 1] = modpow(fact[mx - 1], 1000000005);
+    for i in mx - 1..=1 by -1 {
+        inv[i - 1] = inv[i] * i % 1000000007;
+    }
+
+    var f = array(m, 0);
+    for i in 0..m {
+        // paths from (1,1) to trap i
+        var value = fact[ty[i] + tx[i] - 2] * inv[ty[i] - 1] % 1000000007 * inv[tx[i] - 1] % 1000000007;
+        for j in 0..i {
+            if ty[j] <= ty[i] && tx[j] <= tx[i] {
+                let dy = ty[i] - ty[j];
+                let dx = tx[i] - tx[j];
+                let ways = fact[dy + dx] * inv[dy] % 1000000007 * inv[dx] % 1000000007;
+                value -= f[j] * ways % 1000000007;
+                value = value % 1000000007;
+            }
+        }
+        if value < 0 {
+            value += 1000000007;
+        }
+        f[i] = value;
+    }
+
+    var ans = fact[2 * n - 2] * inv[n - 1] % 1000000007 * inv[n - 1] % 1000000007;
+    for i in 0..m {
+        let dy = n - ty[i];
+        let dx = n - tx[i];
+        let ways = fact[dy + dx] * inv[dy] % 1000000007 * inv[dx] % 1000000007;
+        ans -= f[i] * ways % 1000000007;
+        ans = ans % 1000000007;
+    }
+    if ans < 0 {
+        ans += 1000000007;
+    }
+    println(ans);
+}

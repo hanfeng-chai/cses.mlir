@@ -1,0 +1,50 @@
+fn main() {
+    let n = read();
+    let k = read();
+    let x = read_array(n);
+    let doubled = 2 * n;
+    var prefix = array(doubled + 1, 0);
+    for i in 0..doubled {
+        prefix[i + 1] = prefix[i] + x[i % n];
+    }
+
+    let jump = array(19 * (doubled + 1), 0);
+    var e = 0;
+    for s in 0..doubled {
+        if e < s {
+            e = s;
+        }
+        while e < doubled && prefix[e + 1] - prefix[s] <= k {
+            e += 1;
+        }
+        jump[s] = e;
+    }
+    jump[doubled] = doubled;
+    for level in 1..19 {
+        for s in 0..=doubled {
+            var mid = jump[(level - 1) * (doubled + 1) + s];
+            if mid > doubled {
+                mid = doubled;
+            }
+            jump[level * (doubled + 1) + s] = jump[(level - 1) * (doubled + 1) + mid];
+        }
+    }
+
+    var best = doubled + 1;
+    for s in 0..n {
+        let target = s + n;
+        var current = s;
+        var count = 0;
+        for level in 18..=0 by -1 {
+            if jump[level * (doubled + 1) + current] < target {
+                current = jump[level * (doubled + 1) + current];
+                count += 1 << level;
+            }
+        }
+        count += 1;
+        if count < best {
+            best = count;
+        }
+    }
+    println(best);
+}

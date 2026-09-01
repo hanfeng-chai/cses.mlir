@@ -1,0 +1,39 @@
+fn main() {
+    let tests = read();
+    for test in 0..tests {
+        let size = read();
+        let first_wins = read();
+        let second_wins = read();
+        let possible = first_wins + second_wins <= size
+            && ((first_wins == 0) == (second_wins == 0));
+        if !possible {
+            println("NO");
+        } else {
+            println("YES");
+            let first = array(size + 1, 0);
+            if first_wins == 0 {
+                for index in 1..=size {
+                    first[index] = index;
+                }
+            } else {
+                for index in 1..=first_wins {
+                    first[index] = index + second_wins;
+                }
+                for index in first_wins + 1..=first_wins + second_wins {
+                    first[index] = index - first_wins;
+                }
+                for index in first_wins + second_wins + 1..=size {
+                    first[index] = index;
+                }
+            }
+            for index in 1..=size {
+                print(first[index], " ");
+            }
+            println();
+            for index in 1..=size {
+                print(index, " ");
+            }
+            println();
+        }
+    }
+}

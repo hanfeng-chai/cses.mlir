@@ -1,0 +1,55 @@
+fn augment(
+    boy: i64,
+    head: array<i64>,
+    to: array<i64>,
+    next: array<i64>,
+    matched: array<i64>,
+    seen: array<i64>
+) -> bool {
+    var found = false;
+    var edge = head[boy];
+    while edge != -1 && !found {
+        let girl = to[edge];
+        if seen[girl] == 0 {
+            seen[girl] = 1;
+            if matched[girl] == 0 || augment(matched[girl], head, to, next, matched, seen) {
+                matched[girl] = boy;
+                found = true;
+            }
+        }
+        edge = next[edge];
+    }
+    return found;
+}
+
+fn main() {
+    let boys = read();
+    let girls = read();
+    let edges = read();
+    let head = array(boys + 1, -1);
+    let to = array(edges, 0);
+    let next = array(edges, 0);
+    for edge in 0..edges {
+        let boy = read();
+        to[edge] = read();
+        next[edge] = head[boy];
+        head[boy] = edge;
+    }
+    let matched = array(girls + 1, 0);
+    let seen = array(girls + 1, 0);
+    var count = 0;
+    for boy in 1..=boys {
+        for girl in 1..=girls {
+            seen[girl] = 0;
+        }
+        if augment(boy, head, to, next, matched, seen) {
+            count += 1;
+        }
+    }
+    println(count);
+    for girl in 1..=girls {
+        if matched[girl] != 0 {
+            println(matched[girl], " ", girl);
+        }
+    }
+}

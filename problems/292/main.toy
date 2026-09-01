@@ -1,0 +1,173 @@
+fn main() {
+    let n = read();
+    if n <= 3 {
+        println("IMPOSSIBLE");
+        return;
+    }
+    let grid = array(n * n, 0);
+    for i in 0..n {
+        for j in 0..n {
+            grid[i * n + j] = (i + j) % n + 1;
+        }
+    }
+    let slot = array(2 * n, 0);
+    for i in 0..n {
+        for j in 0..n {
+            slot[i] += grid[i * n + j];
+            slot[n + j] += grid[i * n + j];
+        }
+    }
+    let freq = map(8 * n + 8);
+    var collisions = 0;
+    for s in 0..2 * n {
+        let f = map_get(freq, slot[s], 0) + 1;
+        if f >= 2 {
+            collisions += 1;
+        }
+        map_set(freq, slot[s], f);
+    }
+    let state = array(1, 998244353);
+    var iteration = 0;
+    let cap = 40 * n * n + 2000000;
+    while collisions > 0 && iteration < cap {
+        iteration += 1;
+        var x = state[0];
+        x ^= x << 13;
+        x ^= x >> 7;
+        x ^= x << 17;
+        state[0] = x;
+        let i1 = (x & 1048575) % n;
+        x ^= x << 13;
+        x ^= x >> 7;
+        x ^= x << 17;
+        state[0] = x;
+        let j1 = (x & 1048575) % n;
+        x ^= x << 13;
+        x ^= x >> 7;
+        x ^= x << 17;
+        state[0] = x;
+        let i2 = (x & 1048575) % n;
+        x ^= x << 13;
+        x ^= x >> 7;
+        x ^= x << 17;
+        state[0] = x;
+        let j2 = (x & 1048575) % n;
+        let a = grid[i1 * n + j1];
+        let b = grid[i2 * n + j2];
+        if a == b {
+            continue;
+        }
+        let old_collisions = collisions;
+        // apply: four affected slots: row i1, row i2, col j1, col j2
+        var f = map_get(freq, slot[i1], 0);
+        if f >= 2 {
+            collisions -= 1;
+        }
+        map_set(freq, slot[i1], f - 1);
+        slot[i1] += b - a;
+        f = map_get(freq, slot[i1], 0) + 1;
+        if f >= 2 {
+            collisions += 1;
+        }
+        map_set(freq, slot[i1], f);
+        f = map_get(freq, slot[i2], 0);
+        if f >= 2 {
+            collisions -= 1;
+        }
+        map_set(freq, slot[i2], f - 1);
+        slot[i2] += a - b;
+        f = map_get(freq, slot[i2], 0) + 1;
+        if f >= 2 {
+            collisions += 1;
+        }
+        map_set(freq, slot[i2], f);
+        f = map_get(freq, slot[n + j1], 0);
+        if f >= 2 {
+            collisions -= 1;
+        }
+        map_set(freq, slot[n + j1], f - 1);
+        slot[n + j1] += b - a;
+        f = map_get(freq, slot[n + j1], 0) + 1;
+        if f >= 2 {
+            collisions += 1;
+        }
+        map_set(freq, slot[n + j1], f);
+        f = map_get(freq, slot[n + j2], 0);
+        if f >= 2 {
+            collisions -= 1;
+        }
+        map_set(freq, slot[n + j2], f - 1);
+        slot[n + j2] += a - b;
+        f = map_get(freq, slot[n + j2], 0) + 1;
+        if f >= 2 {
+            collisions += 1;
+        }
+        map_set(freq, slot[n + j2], f);
+        grid[i1 * n + j1] = b;
+        grid[i2 * n + j2] = a;
+        x = state[0];
+        x ^= x << 13;
+        x ^= x >> 7;
+        x ^= x << 17;
+        state[0] = x;
+        let accept = collisions <= old_collisions || (x & 1048575) % 100 < 3;
+        if !accept {
+            // revert
+            grid[i1 * n + j1] = a;
+            grid[i2 * n + j2] = b;
+            f = map_get(freq, slot[i1], 0);
+            if f >= 2 {
+                collisions -= 1;
+            }
+            map_set(freq, slot[i1], f - 1);
+            slot[i1] -= b - a;
+            f = map_get(freq, slot[i1], 0) + 1;
+            if f >= 2 {
+                collisions += 1;
+            }
+            map_set(freq, slot[i1], f);
+            f = map_get(freq, slot[i2], 0);
+            if f >= 2 {
+                collisions -= 1;
+            }
+            map_set(freq, slot[i2], f - 1);
+            slot[i2] -= a - b;
+            f = map_get(freq, slot[i2], 0) + 1;
+            if f >= 2 {
+                collisions += 1;
+            }
+            map_set(freq, slot[i2], f);
+            f = map_get(freq, slot[n + j1], 0);
+            if f >= 2 {
+                collisions -= 1;
+            }
+            map_set(freq, slot[n + j1], f - 1);
+            slot[n + j1] -= b - a;
+            f = map_get(freq, slot[n + j1], 0) + 1;
+            if f >= 2 {
+                collisions += 1;
+            }
+            map_set(freq, slot[n + j1], f);
+            f = map_get(freq, slot[n + j2], 0);
+            if f >= 2 {
+                collisions -= 1;
+            }
+            map_set(freq, slot[n + j2], f - 1);
+            slot[n + j2] -= a - b;
+            f = map_get(freq, slot[n + j2], 0) + 1;
+            if f >= 2 {
+                collisions += 1;
+            }
+            map_set(freq, slot[n + j2], f);
+        }
+    }
+    for i in 0..n {
+        for j in 0..n {
+            if j != 0 {
+                print(" ");
+            }
+            print(grid[i * n + j]);
+        }
+        println();
+    }
+}

@@ -1,0 +1,81 @@
+fn main() {
+    let n = read();
+    let degree = array(n + 1, 0);
+    var total = 0;
+    for i in 1..=n {
+        degree[i] = read();
+        total += degree[i];
+    }
+    if total % 2 == 1 {
+        println("IMPOSSIBLE");
+        return;
+    }
+    let heap = heap(n + 5);
+    for i in 1..=n {
+        if degree[i] > 0 {
+            heap_push(heap, 0 - degree[i], i);
+        }
+    }
+    let edge_a = array(total / 2 + 5, 0);
+    let edge_b = array(total / 2 + 5, 0);
+    var edge_count = 0;
+    var possible = true;
+    while heap_size(heap) > 0 && possible {
+        let d = 0 - heap_first(heap);
+        let v = heap_second(heap);
+        heap_pop(heap);
+        if d != degree[v] {
+            continue;
+        }
+        if d == 0 {
+            continue;
+        }
+        let taken_a = array(d, 0);
+        let taken_b = array(d, 0);
+        var taken_count = 0;
+        while taken_count < d && possible {
+            if heap_size(heap) == 0 {
+                possible = false;
+                break;
+            }
+            let d2 = 0 - heap_first(heap);
+            let u = heap_second(heap);
+            heap_pop(heap);
+            if d2 != degree[u] {
+                continue;
+            }
+            if d2 == 0 {
+                possible = false;
+                break;
+            }
+            taken_a[taken_count] = d2;
+            taken_b[taken_count] = u;
+            taken_count += 1;
+        }
+        if !possible {
+            break;
+        }
+        degree[v] = 0;
+        for t in 0..taken_count {
+            let u = taken_b[t];
+            edge_a[edge_count] = v;
+            edge_b[edge_count] = u;
+            edge_count += 1;
+            degree[u] -= 1;
+        }
+        for t in 0..taken_count {
+            let u = taken_b[t];
+            if degree[u] > 0 {
+                heap_push(heap, 0 - degree[u], u);
+            }
+        }
+    }
+    if !possible {
+        println("IMPOSSIBLE");
+        return;
+    }
+    println(edge_count);
+    for e in 0..edge_count {
+        println(edge_a[e], " ", edge_b[e]);
+    }
+}

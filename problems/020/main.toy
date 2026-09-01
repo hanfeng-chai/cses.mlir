@@ -1,0 +1,56 @@
+fn main() {
+    let size = read();
+    let cell_count = size * size;
+    let distance = array(cell_count, -1);
+    let queue_x = array(cell_count, 0);
+    let queue_y = array(cell_count, 0);
+    let delta_x = array(8, 0);
+    let delta_y = array(8, 0);
+
+    delta_x[0] = 1;
+    delta_y[0] = 2;
+    delta_x[1] = 1;
+    delta_y[1] = -2;
+    delta_x[2] = -1;
+    delta_y[2] = 2;
+    delta_x[3] = -1;
+    delta_y[3] = -2;
+    delta_x[4] = 2;
+    delta_y[4] = 1;
+    delta_x[5] = 2;
+    delta_y[5] = -1;
+    delta_x[6] = -2;
+    delta_y[6] = 1;
+    delta_x[7] = -2;
+    delta_y[7] = -1;
+
+    distance[0] = 0;
+    var head = 0;
+    var tail = 1;
+    while head < tail {
+        let row = queue_x[head];
+        let column = queue_y[head];
+        head += 1;
+        for direction in 0..8 {
+            let next_row = row + delta_x[direction];
+            let next_column = column + delta_y[direction];
+            if next_row >= 0
+                && next_row < size
+                && next_column >= 0
+                && next_column < size
+                && distance[next_row * size + next_column] == -1 {
+                distance[next_row * size + next_column] = distance[row * size + column] + 1;
+                queue_x[tail] = next_row;
+                queue_y[tail] = next_column;
+                tail += 1;
+            }
+        }
+    }
+
+    for row in 0..size {
+        for column in 0..size {
+            print(distance[row * size + column], " ");
+        }
+        println();
+    }
+}

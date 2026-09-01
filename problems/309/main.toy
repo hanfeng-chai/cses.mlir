@@ -1,0 +1,156 @@
+fn main() {
+    let n = read();
+    let q = read();
+    let coin = array(n + 1, 0);
+    for v in 1..=n {
+        coin[v] = read();
+    }
+    let head = array(n + 1, -1);
+    let to = array(2 * n, 0);
+    let next = array(2 * n, 0);
+    for e in 0..n - 1 {
+        let a = read();
+        let b = read();
+        to[2 * e] = b;
+        next[2 * e] = head[a];
+        head[a] = 2 * e;
+        to[2 * e + 1] = a;
+        next[2 * e + 1] = head[b];
+        head[b] = 2 * e + 1;
+    }
+    let gd = array(n + 1, 0);
+    for v in 1..=n {
+        gd[v] = -1;
+    }
+    let queue = array(n + 1, 0);
+    var tail_index = 0;
+    for v in 1..=n {
+        if coin[v] == 1 {
+            gd[v] = 0;
+            queue[tail_index] = v;
+            tail_index += 1;
+        }
+    }
+    var head_index = 0;
+    while head_index < tail_index {
+        let u = queue[head_index];
+        head_index += 1;
+        var e = head[u];
+        while e != -1 {
+            let v = to[e];
+            if gd[v] == -1 {
+                gd[v] = gd[u] + 1;
+                queue[tail_index] = v;
+                tail_index += 1;
+            }
+            e = next[e];
+        }
+    }
+    var levels = 1;
+    while (1 << levels) < n {
+        levels += 1;
+    }
+    levels += 1;
+    let stride = n + 1;
+    let up = array(levels * stride, 0);
+    let mn = array(levels * stride, 0);
+    let depth = array(n + 1, 0);
+    let visited = array(n + 1, 0);
+    let stack = array(n, 0);
+    visited[1] = 1;
+    up[1] = 1;
+    mn[1] = gd[1];
+    var stack_size = 1;
+    stack[0] = 1;
+    while stack_size > 0 {
+        stack_size -= 1;
+        let u = stack[stack_size];
+        var e = head[u];
+        while e != -1 {
+            let v = to[e];
+            if visited[v] == 0 {
+                visited[v] = 1;
+                depth[v] = depth[u] + 1;
+                up[v] = u;
+                mn[v] = gd[v];
+                stack[stack_size] = v;
+                stack_size += 1;
+            }
+            e = next[e];
+        }
+    }
+    for k in 1..levels {
+        for v in 1..=n {
+            let ancestor = up[(k - 1) * stride + v];
+            up[k * stride + v] = up[(k - 1) * stride + ancestor];
+            let first_min = mn[(k - 1) * stride + v];
+            let second_min = mn[(k - 1) * stride + ancestor];
+            if second_min < first_min {
+                mn[k * stride + v] = second_min;
+            } else {
+                mn[k * stride + v] = first_min;
+            }
+        }
+    }
+    for query in 0..q {
+        let a = read();
+        let b = read();
+        var u = a;
+        var v = b;
+        if depth[u] < depth[v] {
+            let temporary = u;
+            u = v;
+            v = temporary;
+        }
+        var difference = depth[u] - depth[v];
+        var k = 0;
+        while k < levels {
+            if ((difference >> k) & 1) == 1 {
+                u = up[k * stride + u];
+            }
+            k += 1;
+        }
+        var lca = u;
+        if u != v {
+            var k2 = levels - 1;
+            while k2 >= 0 {
+                if up[k2 * stride + u] != up[k2 * stride + v] {
+                    u = up[k2 * stride + u];
+                    v = up[k2 * stride + v];
+                }
+                k2 -= 1;
+            }
+            lca = up[u];
+        }
+        var best = 1000000000;
+        var u2 = a;
+        var d1 = depth[a] - depth[lca];
+        var k3 = 0;
+        while k3 < levels {
+            if ((d1 >> k3) & 1) == 1 {
+                if mn[k3 * stride + u2] < best {
+                    best = mn[k3 * stride + u2];
+                }
+                u2 = up[k3 * stride + u2];
+            }
+            k3 += 1;
+        }
+        var v2 = b;
+        var d2 = depth[b] - depth[lca];
+        var k4 = 0;
+        while k4 < levels {
+            if ((d2 >> k4) & 1) == 1 {
+                if mn[k4 * stride + v2] < best {
+                    best = mn[k4 * stride + v2];
+                }
+                v2 = up[k4 * stride + v2];
+            }
+            k4 += 1;
+        }
+        if gd[lca] < best {
+            best = gd[lca];
+        }
+        let distance = depth[a] + depth[b] - 2 * depth[lca];
+        println(distance + 2 * best);
+    }
+}

@@ -1,0 +1,68 @@
+fn main() {
+    let n = read();
+    let shift = 1000000;
+    let event_x = array(2 * n + 5, 0);
+    let event_type = array(2 * n + 5, 0);
+    let event_a = array(2 * n + 5, 0);
+    let event_b = array(2 * n + 5, 0);
+    var event_count = 0;
+    for i in 0..n {
+        let x1 = read();
+        let y1 = read();
+        let x2 = read();
+        let y2 = read();
+        if y1 == y2 {
+            var x_left = x1;
+            if x2 < x_left {
+                x_left = x2;
+            }
+            var x_right = x1;
+            if x2 > x_right {
+                x_right = x2;
+            }
+            event_x[event_count] = x_left;
+            event_type[event_count] = 0;
+            event_a[event_count] = y1 + shift + 1;
+            event_count += 1;
+            event_x[event_count] = x_right;
+            event_type[event_count] = 2;
+            event_a[event_count] = y1 + shift + 1;
+            event_count += 1;
+        } else {
+            var y_low = y1;
+            if y2 < y_low {
+                y_low = y2;
+            }
+            var y_high = y1;
+            if y2 > y_high {
+                y_high = y2;
+            }
+            event_x[event_count] = x1;
+            event_type[event_count] = 1;
+            event_a[event_count] = y_low + shift + 1;
+            event_b[event_count] = y_high + shift + 1;
+            event_count += 1;
+        }
+    }
+    let key = array(event_count, 0);
+    let order = array(event_count, 0);
+    for i in 0..event_count {
+        key[i] = (event_x[i] + 1000001) * 4 + event_type[i];
+        order[i] = i;
+    }
+    sort_pairs(key, order);
+    let tree = array(2 * shift + 2, 0);
+    var answer = 0;
+    for position in 0..event_count {
+        let i = order[position];
+        let type = event_type[i];
+        if type == 0 {
+            fenwick_add(tree, event_a[i], 1);
+        } else if type == 2 {
+            fenwick_add(tree, event_a[i], -1);
+        } else {
+            answer += fenwick_sum(tree, event_b[i]) - fenwick_sum(tree, event_a[i] - 1);
+        }
+    }
+    println(answer);
+}

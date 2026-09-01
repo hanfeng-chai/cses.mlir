@@ -1,0 +1,28 @@
+fn main() {
+    let count = read();
+    let weights = array(count, 0);
+    var total = 0;
+    for index in 0..count {
+        let weight = read();
+        weights[index] = weight;
+        total += weight;
+    }
+
+    var best = 9_223_372_036_854_775_807;
+    for mask in 0..(1 << count) {
+        var subset = 0;
+        for index in 0..count {
+            if (mask & (1 << index)) != 0 {
+                subset += weights[index];
+            }
+        }
+        var difference = total - 2 * subset;
+        if difference < 0 {
+            difference = 0 - difference;
+        }
+        if difference < best {
+            best = difference;
+        }
+    }
+    println(best);
+}

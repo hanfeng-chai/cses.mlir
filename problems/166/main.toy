@@ -1,0 +1,41 @@
+fn main() {
+    let factors = read();
+    let prime = array(factors, 0);
+    let exponent = array(factors, 0);
+    let modulus = 1_000_000_007;
+    let exponent_modulus = modulus - 1;
+    let doubled_exponent_modulus = 2 * exponent_modulus;
+    var divisor_count = 1;
+    var divisor_sum = 1;
+    var doubled_count = 1;
+    var count_is_even = false;
+    for index in 0..factors {
+        prime[index] = read();
+        exponent[index] = read();
+        divisor_count = divisor_count * ((exponent[index] + 1) % modulus) % modulus;
+        var geometric = (pow_mod(prime[index], exponent[index] + 1, modulus) - 1 + modulus) % modulus;
+        geometric = geometric * pow_mod((prime[index] - 1) % modulus, modulus - 2, modulus) % modulus;
+        divisor_sum = divisor_sum * geometric % modulus;
+        doubled_count = doubled_count * ((exponent[index] + 1) % doubled_exponent_modulus)
+            % doubled_exponent_modulus;
+        if exponent[index] % 2 == 1 {
+            count_is_even = true;
+        }
+    }
+    var divisor_product = 1;
+    if count_is_even {
+        let half = (doubled_count / 2) % exponent_modulus;
+        for index in 0..factors {
+            let power = (exponent[index] % exponent_modulus) * half % exponent_modulus;
+            divisor_product = divisor_product * pow_mod(prime[index], power, modulus) % modulus;
+        }
+    } else {
+        let count_modulus = doubled_count % exponent_modulus;
+        for index in 0..factors {
+            let power = ((exponent[index] / 2) % exponent_modulus) * count_modulus
+                % exponent_modulus;
+            divisor_product = divisor_product * pow_mod(prime[index], power, modulus) % modulus;
+        }
+    }
+    println(divisor_count, " ", divisor_sum, " ", divisor_product);
+}

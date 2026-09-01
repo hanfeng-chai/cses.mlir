@@ -1,0 +1,29 @@
+fn main() {
+    let height = read();
+    let width = read();
+    let stride = width + 1;
+    let cuts = array((height + 1) * stride, 0);
+    for row in 1..=height {
+        for column in 1..=width {
+            if row != column {
+                var best = 1_000_000_000;
+                for split in 1..row {
+                    let candidate = cuts[split * stride + column]
+                        + cuts[(row - split) * stride + column] + 1;
+                    if candidate < best {
+                        best = candidate;
+                    }
+                }
+                for split in 1..column {
+                    let candidate = cuts[row * stride + split]
+                        + cuts[row * stride + column - split] + 1;
+                    if candidate < best {
+                        best = candidate;
+                    }
+                }
+                cuts[row * stride + column] = best;
+            }
+        }
+    }
+    println(cuts[height * stride + width]);
+}

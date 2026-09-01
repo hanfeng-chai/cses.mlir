@@ -1,0 +1,193 @@
+fn main() {
+    let n = read();
+    let values = read_array(n);
+    var total = 0;
+    for i in 0..n {
+        total += values[i];
+    }
+    let left_size = n / 2;
+    let right_size = n - left_size;
+
+    let left_count = 1 << left_size;
+    let right_count = 1 << right_size;
+    var left_raw = array(left_count, 0);
+    var right_raw = array(right_count, 0);
+    for mask in 1..left_count {
+        var bit = 0;
+        for b in 0..left_size {
+            if ((mask >> b) & 1) == 1 {
+                bit = b;
+                break;
+            }
+        }
+        left_raw[mask] = left_raw[mask & (mask - 1)] + values[bit];
+    }
+    for mask in 1..right_count {
+        var bit = 0;
+        for b in 0..right_size {
+            if ((mask >> b) & 1) == 1 {
+                bit = b;
+                break;
+            }
+        }
+        right_raw[mask] = right_raw[mask & (mask - 1)] + values[left_size + bit];
+    }
+    let left_sorted = array(left_count, 0);
+    for i in 0..left_count {
+        left_sorted[i] = left_raw[i];
+    }
+    sort(left_sorted);
+    let right_sorted = array(right_count, 0);
+    for i in 0..right_count {
+        right_sorted[i] = right_raw[i];
+    }
+    sort(right_sorted);
+
+    var low = -1;
+    var high = total;
+    while high - low > 1 {
+        let middle = low + (high - low) / 2;
+        var count = 0;
+        var j = right_count - 1;
+        var i = 0;
+        while i < left_count && j >= 0 {
+            while j >= 0 && left_sorted[i] + right_sorted[j] > middle {
+                j -= 1;
+            }
+            if j < 0 {
+                break;
+            }
+            count += j + 1;
+            if count > middle + 1 {
+                break;
+            }
+            i += 1;
+        }
+        if count > middle + 1 {
+            high = middle;
+        } else {
+            low = middle;
+        }
+    }
+    let target = high;
+
+    // collect groups
+    var group_l = array(8, 0);
+    var group_r = array(8, 0);
+    var group_lc = array(8, 0);
+    var group_rc = array(8, 0);
+    var group_count = 0;
+    var represented = 0;
+    var i = 0;
+    var j = right_count - 1;
+    while i < left_count && j >= 0 && represented < 2 {
+        let sum = left_sorted[i] + right_sorted[j];
+        if sum < target {
+            let value = left_sorted[i];
+            while i < left_count && left_sorted[i] == value {
+                i += 1;
+            }
+        } else if sum > target {
+            let value = right_sorted[j];
+            while j >= 0 && right_sorted[j] == value {
+                j -= 1;
+            }
+        } else {
+            var next_i = i + 1;
+            while next_i < left_count && left_sorted[next_i] == left_sorted[i] {
+                next_i += 1;
+            }
+            var first_j = j - 1;
+            while first_j >= 0 && right_sorted[first_j] == right_sorted[j] {
+                first_j -= 1;
+            }
+            group_l[group_count] = left_sorted[i];
+            group_r[group_count] = right_sorted[j];
+            group_lc[group_count] = next_i - i;
+            group_rc[group_count] = j - first_j;
+            group_count += 1;
+            represented += (next_i - i) * (j - first_j);
+            i = next_i;
+            j = first_j;
+        }
+    }
+
+    // find masks for group 0
+    var lm0 = array(2, 0);
+    var lm0_count = 0;
+    var need_l = 1;
+    if group_lc[0] >= 2 {
+        need_l = 2;
+    }
+    for mask in 0..left_count {
+        if lm0_count >= need_l {
+            break;
+        }
+        if left_raw[mask] == group_l[0] {
+            lm0[lm0_count] = mask;
+            lm0_count += 1;
+        }
+    }
+    var rm0 = array(2, 0);
+    var rm0_count = 0;
+    var need_r = 1;
+    if group_rc[0] >= 2 {
+        need_r = 2;
+    }
+    for mask in 0..right_count {
+        if rm0_count >= need_r {
+            break;
+        }
+        if right_raw[mask] == group_r[0] {
+            rm0[rm0_count] = mask;
+            rm0_count += 1;
+        }
+    }
+
+    var first_mask = lm0[0] | (rm0[0] << left_size);
+    var second_mask = 0;
+    if group_lc[0] * group_rc[0] >= 2 {
+        if lm0_count >= 2 {
+            second_mask = lm0[1] | (rm0[0] << left_size);
+        } else {
+            second_mask = lm0[0] | (rm0[1] << left_size);
+        }
+    } else {
+        var lm1 = 0;
+        for mask in 0..left_count {
+            if left_raw[mask] == group_l[1] {
+                lm1 = mask;
+                break;
+            }
+        }
+        var rm1 = 0;
+        for mask in 0..right_count {
+            if right_raw[mask] == group_r[1] {
+                rm1 = mask;
+                break;
+            }
+        }
+        second_mask = lm1 | (rm1 << left_size);
+    }
+
+    let common = first_mask & second_mask;
+    let first = first_mask ^ common;
+    let second = second_mask ^ common;
+
+    println(popcount(first));
+    for idx in 0..n {
+        if ((first >> idx) & 1) == 1 {
+            print(values[idx]);
+            print(" ");
+        }
+    }
+    print("\n");
+    println(popcount(second));
+    for idx in 0..n {
+        if ((second >> idx) & 1) == 1 {
+            print(values[idx]);
+            print(" ");
+        }
+    }
+    print("\n");
+}

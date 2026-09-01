@@ -1,0 +1,21 @@
+fn main() {
+    let count = read();
+    let frequencies = map(2 * count);
+    let unique_values = array(count, 0);
+    var unique_count = 0;
+    for index in 0..count {
+        let value = read();
+        let frequency = map_get(frequencies, value, 0);
+        if frequency == 0 {
+            unique_values[unique_count] = value;
+            unique_count += 1;
+        }
+        map_set(frequencies, value, frequency + 1);
+    }
+    let modulus = 1_000_000_007;
+    var answer = 1;
+    for index in 0..unique_count {
+        answer = answer * (map_get(frequencies, unique_values[index], 0) + 1) % modulus;
+    }
+    println((answer - 1 + modulus) % modulus);
+}

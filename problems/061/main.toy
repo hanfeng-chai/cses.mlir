@@ -1,0 +1,24 @@
+fn main() {
+    let coin_count = read();
+    let target = read();
+    let coins = array(coin_count, 0);
+    for index in 0..coin_count {
+        coins[index] = read();
+    }
+    let infinity = 1_000_000_000;
+    let minimum = array(target + 1, infinity);
+    minimum[0] = 0;
+    for sum in 1..=target {
+        for index in 0..coin_count {
+            let coin = coins[index];
+            if coin <= sum && minimum[sum - coin] + 1 < minimum[sum] {
+                minimum[sum] = minimum[sum - coin] + 1;
+            }
+        }
+    }
+    if minimum[target] >= infinity {
+        println(-1);
+    } else {
+        println(minimum[target]);
+    }
+}

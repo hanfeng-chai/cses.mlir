@@ -1,0 +1,94 @@
+fn persistent_add(
+    previous: i64, position: i64, value: i64, left: i64, right: i64,
+    sum: array<i64>, left_child: array<i64>, right_child: array<i64>, next_node: array<i64>
+) -> i64 {
+    let node = next_node[0];
+    next_node[0] += 1;
+    sum[node] = sum[previous] + value;
+    left_child[node] = left_child[previous];
+    right_child[node] = right_child[previous];
+    if left != right {
+        let middle = (left + right) / 2;
+        if position <= middle {
+            left_child[node] = persistent_add(
+                left_child[previous], position, value, left, middle,
+                sum, left_child, right_child, next_node
+            );
+        } else {
+            right_child[node] = persistent_add(
+                right_child[previous], position, value, middle + 1, right,
+                sum, left_child, right_child, next_node
+            );
+        }
+    }
+    return node;
+}
+
+fn persistent_prefix_sum(
+    before: i64, after: i64, left: i64, right: i64, limit: i64,
+    sum: array<i64>, left_child: array<i64>, right_child: array<i64>
+) -> i64 {
+    var result = 0;
+    if right <= limit {
+        result = sum[after] - sum[before];
+    } else if left <= limit {
+        let middle = (left + right) / 2;
+        result = persistent_prefix_sum(
+            left_child[before], left_child[after], left, middle, limit,
+            sum, left_child, right_child
+        );
+        if limit > middle {
+            result += persistent_prefix_sum(
+                right_child[before], right_child[after], middle + 1, right, limit,
+                sum, left_child, right_child
+            );
+        }
+    }
+    return result;
+}
+
+fn main() {
+    let size = read();
+    let queries = read();
+    let values = array(size + 1, 0);
+    let coordinates = array(size, 0);
+    for index in 1..=size {
+        values[index] = read();
+        coordinates[index - 1] = values[index];
+    }
+    sort(coordinates);
+    let capacity = (size + 1) * 22 + 1;
+    let sum = array(capacity, 0);
+    let left_child = array(capacity, 0);
+    let right_child = array(capacity, 0);
+    let next_node = array(1, 1);
+    let roots = array(size + 1, 0);
+    for index in 1..=size {
+        roots[index] = persistent_add(
+            roots[index - 1], lower_bound(coordinates, values[index]), values[index],
+            0, size - 1, sum, left_child, right_child, next_node
+        );
+    }
+    for query in 0..queries {
+        let left = read();
+        let right = read();
+        var reachable = 0;
+        var growing = true;
+        while growing {
+            let coordinate = upper_bound(coordinates, reachable + 1) - 1;
+            var next_reachable = 0;
+            if coordinate >= 0 {
+                next_reachable = persistent_prefix_sum(
+                    roots[left - 1], roots[right], 0, size - 1, coordinate,
+                    sum, left_child, right_child
+                );
+            }
+            if next_reachable > reachable {
+                reachable = next_reachable;
+            } else {
+                growing = false;
+            }
+        }
+        println(reachable + 1);
+    }
+}

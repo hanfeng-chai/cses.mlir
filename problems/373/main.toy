@@ -1,0 +1,41 @@
+fn floor_div(a: i64, b: i64) -> i64 {
+    var q = a / b;
+    let r = a % b;
+    if r != 0 && ((r < 0) != (b < 0)) {
+        q -= 1;
+    }
+    return q;
+}
+
+fn main() {
+    let n = read();
+    for test in 0..n {
+        let x = read();
+        let y = read();
+        var d = 0;
+        if x == 2 && y == 2 {
+            d = 4;
+        } else {
+            var dx = absolute(x - 1);
+            var dy = absolute(y - 1);
+            if dx < dy {
+                let tmp = dx;
+                dx = dy;
+                dy = tmp;
+            }
+            if dx == 1 && dy == 0 {
+                d = 3;
+            } else if dx == 2 && dy == 2 {
+                d = 4;
+            } else {
+                let delta = dx - dy;
+                if dy > delta {
+                    d = delta - 2 * floor_div(delta - dy, 3);
+                } else {
+                    d = delta - 2 * floor_div(delta - dy, 4);
+                }
+            }
+        }
+        println(d);
+    }
+}

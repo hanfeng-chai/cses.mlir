@@ -1,0 +1,19 @@
+fn main() {
+    let maximum = 1_000_000;
+    let answers = array(maximum + 1, 0);
+    let modulus = 1_000_000_007;
+    var split = 1;
+    var merged = 1;
+    answers[1] = 2;
+    for height in 2..=maximum {
+        let next_split = (4 * split + merged) % modulus;
+        let next_merged = (split + 2 * merged) % modulus;
+        split = next_split;
+        merged = next_merged;
+        answers[height] = (split + merged) % modulus;
+    }
+    let tests = read();
+    for test in 0..tests {
+        println(answers[read()]);
+    }
+}

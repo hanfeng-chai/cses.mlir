@@ -1,0 +1,855 @@
+fn toy_pair_greater(
+    first_left: i64,
+    second_left: i64,
+    first_right: i64,
+    second_right: i64
+) -> bool {
+    return first_left > first_right || (first_left == first_right && second_left > second_right);
+}
+
+fn toy_sift_down(values: array<i64>, begin: i64, end: i64) {
+    var root = begin;
+    var finished = false;
+    while root * 2 + 1 < end && !finished {
+        var child = root * 2 + 1;
+        if child + 1 < end && values[child] < values[child + 1] {
+            child += 1;
+        }
+        if values[root] < values[child] {
+            let temporary = values[root];
+            values[root] = values[child];
+            values[child] = temporary;
+            root = child;
+        } else {
+            finished = true;
+        }
+    }
+}
+
+fn sort(values: array<i64>) {
+    let size = length(values);
+    var begin = size / 2;
+    while begin > 0 {
+        begin -= 1;
+        toy_sift_down(values, begin, size);
+    }
+    var end = size;
+    while end > 1 {
+        end -= 1;
+        let temporary = values[0];
+        values[0] = values[end];
+        values[end] = temporary;
+        toy_sift_down(values, 0, end);
+    }
+}
+
+fn toy_sift_down_pairs(first: array<i64>, second: array<i64>, begin: i64, end: i64) {
+    var root = begin;
+    var finished = false;
+    while root * 2 + 1 < end && !finished {
+        var child = root * 2 + 1;
+        if child + 1 < end
+            && toy_pair_greater(first[child + 1], second[child + 1], first[child], second[child]) {
+            child += 1;
+        }
+        if toy_pair_greater(first[child], second[child], first[root], second[root]) {
+            let first_temporary = first[root];
+            let second_temporary = second[root];
+            first[root] = first[child];
+            second[root] = second[child];
+            first[child] = first_temporary;
+            second[child] = second_temporary;
+            root = child;
+        } else {
+            finished = true;
+        }
+    }
+}
+
+fn sort_pairs(first: array<i64>, second: array<i64>) {
+    let size = length(first);
+    var begin = size / 2;
+    while begin > 0 {
+        begin -= 1;
+        toy_sift_down_pairs(first, second, begin, size);
+    }
+    var end = size;
+    while end > 1 {
+        end -= 1;
+        let first_temporary = first[0];
+        let second_temporary = second[0];
+        first[0] = first[end];
+        second[0] = second[end];
+        first[end] = first_temporary;
+        second[end] = second_temporary;
+        toy_sift_down_pairs(first, second, 0, end);
+    }
+}
+
+fn lower_bound(values: array<i64>, target: i64) -> i64 {
+    var left = 0;
+    var right = length(values);
+    while left < right {
+        let middle = left + (right - left) / 2;
+        if values[middle] < target {
+            left = middle + 1;
+        } else {
+            right = middle;
+        }
+    }
+    return left;
+}
+
+fn lower_bound_prefix(values: array<i64>, size: i64, target: i64) -> i64 {
+    var left = 0;
+    var right = size;
+    while left < right {
+        let middle = left + (right - left) / 2;
+        if values[middle] < target {
+            left = middle + 1;
+        } else {
+            right = middle;
+        }
+    }
+    return left;
+}
+
+fn upper_bound(values: array<i64>, target: i64) -> i64 {
+    var left = 0;
+    var right = length(values);
+    while left < right {
+        let middle = left + (right - left) / 2;
+        if values[middle] <= target {
+            left = middle + 1;
+        } else {
+            right = middle;
+        }
+    }
+    return left;
+}
+
+fn absolute(value: i64) -> i64 {
+    var result = value;
+    if result < 0 {
+        result = 0 - result;
+    }
+    return result;
+}
+
+fn gcd(first_value: i64, second_value: i64) -> i64 {
+    var first = first_value;
+    var second = second_value;
+    while second != 0 {
+        let remainder = first % second;
+        first = second;
+        second = remainder;
+    }
+    if first < 0 {
+        first = 0 - first;
+    }
+    return first;
+}
+
+fn pow_mod(base_value: i64, exponent_value: i64, modulus: i64) -> i64 {
+    var base = base_value % modulus;
+    if base < 0 {
+        base += modulus;
+    }
+    var exponent = exponent_value;
+    var result = 1;
+    while exponent > 0 {
+        if (exponent & 1) != 0 {
+            result = result * base % modulus;
+        }
+        base = base * base % modulus;
+        exponent >>= 1;
+    }
+    return result;
+}
+
+fn matrix_multiply_mod(
+    size: i64,
+    left: array<i64>,
+    right: array<i64>,
+    output: array<i64>,
+    modulus: i64
+) {
+    for index in 0..size * size {
+        output[index] = 0;
+    }
+    for row in 0..size {
+        for middle in 0..size {
+            if left[row * size + middle] != 0 {
+                for column in 0..size {
+                    output[row * size + column] = (
+                        output[row * size + column]
+                        + left[row * size + middle] * right[middle * size + column]
+                    ) % modulus;
+                }
+            }
+        }
+    }
+}
+
+fn matrix_power_mod(matrix: array<i64>, size: i64, exponent_value: i64, modulus: i64) {
+    let result = array(size * size, 0);
+    let scratch = array(size * size, 0);
+    for index in 0..size {
+        result[index * size + index] = 1;
+    }
+    var exponent = exponent_value;
+    while exponent > 0 {
+        if (exponent & 1) != 0 {
+            matrix_multiply_mod(size, result, matrix, scratch, modulus);
+            for index in 0..size * size {
+                result[index] = scratch[index];
+            }
+        }
+        matrix_multiply_mod(size, matrix, matrix, scratch, modulus);
+        for index in 0..size * size {
+            matrix[index] = scratch[index];
+        }
+        exponent >>= 1;
+    }
+    for index in 0..size * size {
+        matrix[index] = result[index];
+    }
+}
+
+fn toy_triple_greater(
+    first_left: i64,
+    second_left: i64,
+    third_left: i64,
+    first_right: i64,
+    second_right: i64,
+    third_right: i64
+) -> bool {
+    return first_left > first_right
+        || (first_left == first_right && second_left > second_right)
+        || (first_left == first_right && second_left == second_right && third_left > third_right);
+}
+
+fn toy_sift_down_triples(
+    first: array<i64>,
+    second: array<i64>,
+    third: array<i64>,
+    begin: i64,
+    end: i64
+) {
+    var root = begin;
+    var finished = false;
+    while root * 2 + 1 < end && !finished {
+        var child = root * 2 + 1;
+        if child + 1 < end
+            && toy_triple_greater(
+                first[child + 1], second[child + 1], third[child + 1],
+                first[child], second[child], third[child]
+            ) {
+            child += 1;
+        }
+        if toy_triple_greater(
+            first[child], second[child], third[child],
+            first[root], second[root], third[root]
+        ) {
+            let first_temporary = first[root];
+            let second_temporary = second[root];
+            let third_temporary = third[root];
+            first[root] = first[child];
+            second[root] = second[child];
+            third[root] = third[child];
+            first[child] = first_temporary;
+            second[child] = second_temporary;
+            third[child] = third_temporary;
+            root = child;
+        } else {
+            finished = true;
+        }
+    }
+}
+
+fn sort_triples(first: array<i64>, second: array<i64>, third: array<i64>) {
+    let size = length(first);
+    var begin = size / 2;
+    while begin > 0 {
+        begin -= 1;
+        toy_sift_down_triples(first, second, third, begin, size);
+    }
+    var end = size;
+    while end > 1 {
+        end -= 1;
+        let first_temporary = first[0];
+        let second_temporary = second[0];
+        let third_temporary = third[0];
+        first[0] = first[end];
+        second[0] = second[end];
+        third[0] = third[end];
+        first[end] = first_temporary;
+        second[end] = second_temporary;
+        third[end] = third_temporary;
+        toy_sift_down_triples(first, second, third, 0, end);
+    }
+}
+
+fn fenwick_add(tree: array<i64>, index: i64, delta: i64) {
+    var position = index;
+    while position < length(tree) {
+        tree[position] += delta;
+        position += position & (0 - position);
+    }
+}
+
+fn fenwick_sum(tree: array<i64>, index: i64) -> i64 {
+    var position = index;
+    var result = 0;
+    while position > 0 {
+        result += tree[position];
+        position -= position & (0 - position);
+    }
+    return result;
+}
+
+fn fenwick_find(tree: array<i64>, order: i64) -> i64 {
+    var target = order;
+    var index = 0;
+    var step = 1;
+    while step * 2 < length(tree) {
+        step *= 2;
+    }
+    while step > 0 {
+        let next = index + step;
+        if next < length(tree) && tree[next] < target {
+            index = next;
+            target -= tree[next];
+        }
+        step /= 2;
+    }
+    return index + 1;
+}
+
+fn dsu_find(parent: array<i64>, value: i64) -> i64 {
+    var root = value;
+    if parent[value] != value {
+        parent[value] = dsu_find(parent, parent[value]);
+        root = parent[value];
+    }
+    return root;
+}
+
+fn dsu_union(parent: array<i64>, size: array<i64>, first: i64, second: i64) -> bool {
+    var left = dsu_find(parent, first);
+    var right = dsu_find(parent, second);
+    var merged = false;
+    if left != right {
+        if size[left] < size[right] {
+            let temporary = left;
+            left = right;
+            right = temporary;
+        }
+        parent[right] = left;
+        size[left] += size[right];
+        merged = true;
+    }
+    return merged;
+}
+
+fn kosaraju(
+    nodes: i64,
+    head: array<i64>,
+    to: array<i64>,
+    next: array<i64>,
+    reverse_head: array<i64>,
+    from: array<i64>,
+    reverse_next: array<i64>,
+    component: array<i64>
+) -> i64 {
+    let visited = array(nodes, 0);
+    let cursor = array(nodes, -1);
+    let stack = array(nodes, 0);
+    let order = array(nodes, 0);
+    var order_size = 0;
+    for start in 0..nodes {
+        if visited[start] == 0 {
+            var stack_size = 1;
+            stack[0] = start;
+            visited[start] = 1;
+            cursor[start] = head[start];
+            while stack_size > 0 {
+                let node = stack[stack_size - 1];
+                let edge = cursor[node];
+                if edge == -1 {
+                    order[order_size] = node;
+                    order_size += 1;
+                    stack_size -= 1;
+                } else {
+                    cursor[node] = next[edge];
+                    let neighbor = to[edge];
+                    if visited[neighbor] == 0 {
+                        visited[neighbor] = 1;
+                        cursor[neighbor] = head[neighbor];
+                        stack[stack_size] = neighbor;
+                        stack_size += 1;
+                    }
+                }
+            }
+        }
+    }
+
+    var component_count = 0;
+    while order_size > 0 {
+        order_size -= 1;
+        let start = order[order_size];
+        if component[start] == -1 {
+            var stack_size = 1;
+            stack[0] = start;
+            component[start] = component_count;
+            while stack_size > 0 {
+                stack_size -= 1;
+                let node = stack[stack_size];
+                var edge = reverse_head[node];
+                while edge != -1 {
+                    let neighbor = from[edge];
+                    if component[neighbor] == -1 {
+                        component[neighbor] = component_count;
+                        stack[stack_size] = neighbor;
+                        stack_size += 1;
+                    }
+                    edge = reverse_next[edge];
+                }
+            }
+            component_count += 1;
+        }
+    }
+    return component_count;
+}
+
+fn flow_add(
+    head: array<i64>,
+    to: array<i64>,
+    next: array<i64>,
+    capacity: array<i64>,
+    edge: i64,
+    source: i64,
+    destination: i64,
+    value: i64
+) {
+    to[edge] = destination;
+    capacity[edge] = value;
+    next[edge] = head[source];
+    head[source] = edge;
+    to[edge ^ 1] = source;
+    capacity[edge ^ 1] = 0;
+    next[edge ^ 1] = head[destination];
+    head[destination] = edge ^ 1;
+}
+
+fn flow_bfs(
+    nodes: i64,
+    source: i64,
+    sink: i64,
+    head: array<i64>,
+    to: array<i64>,
+    next: array<i64>,
+    capacity: array<i64>,
+    level: array<i64>,
+    queue: array<i64>
+) -> bool {
+    for node in 0..nodes {
+        level[node] = -1;
+    }
+    var queue_head = 0;
+    var queue_tail = 1;
+    queue[0] = source;
+    level[source] = 0;
+    while queue_head < queue_tail {
+        let node = queue[queue_head];
+        queue_head += 1;
+        var edge = head[node];
+        while edge != -1 {
+            let neighbor = to[edge];
+            if capacity[edge] > 0 && level[neighbor] == -1 {
+                level[neighbor] = level[node] + 1;
+                queue[queue_tail] = neighbor;
+                queue_tail += 1;
+            }
+            edge = next[edge];
+        }
+    }
+    return level[sink] >= 0;
+}
+
+fn flow_dfs(
+    node: i64,
+    sink: i64,
+    available: i64,
+    to: array<i64>,
+    next: array<i64>,
+    capacity: array<i64>,
+    level: array<i64>,
+    cursor: array<i64>
+) -> i64 {
+    var result = 0;
+    if node == sink {
+        result = available;
+    } else {
+        while cursor[node] != -1 && result == 0 {
+            let edge = cursor[node];
+            let neighbor = to[edge];
+            if capacity[edge] > 0 && level[neighbor] == level[node] + 1 {
+                var sent = available;
+                if capacity[edge] < sent {
+                    sent = capacity[edge];
+                }
+                sent = flow_dfs(neighbor, sink, sent, to, next, capacity, level, cursor);
+                if sent > 0 {
+                    capacity[edge] -= sent;
+                    capacity[edge ^ 1] += sent;
+                    result = sent;
+                }
+            }
+            if result == 0 {
+                cursor[node] = next[edge];
+            }
+        }
+    }
+    return result;
+}
+
+fn max_flow(
+    nodes: i64,
+    source: i64,
+    sink: i64,
+    head: array<i64>,
+    to: array<i64>,
+    next: array<i64>,
+    capacity: array<i64>
+) -> i64 {
+    let level = array(nodes, -1);
+    let cursor = array(nodes, -1);
+    let queue = array(nodes, 0);
+    var total = 0;
+    var searching = flow_bfs(nodes, source, sink, head, to, next, capacity, level, queue);
+    while searching {
+        for node in 0..nodes {
+            cursor[node] = head[node];
+        }
+        var sent = flow_dfs(
+            source, sink, 9_223_372_036_854_775_807,
+            to, next, capacity, level, cursor
+        );
+        while sent > 0 {
+            total += sent;
+            sent = flow_dfs(
+                source, sink, 9_223_372_036_854_775_807,
+                to, next, capacity, level, cursor
+            );
+        }
+        searching = flow_bfs(nodes, source, sink, head, to, next, capacity, level, queue);
+    }
+    return total;
+}
+
+fn root_tree(
+    nodes: i64,
+    root: i64,
+    head: array<i64>,
+    to: array<i64>,
+    next: array<i64>,
+    parent: array<i64>,
+    order: array<i64>
+) {
+    let stack = array(nodes, 0);
+    var stack_size = 1;
+    var order_size = 0;
+    stack[0] = root;
+    parent[root] = -1;
+    while stack_size > 0 {
+        stack_size -= 1;
+        let node = stack[stack_size];
+        order[order_size] = node;
+        order_size += 1;
+        var edge = head[node];
+        while edge != -1 {
+            let neighbor = to[edge];
+            if neighbor != parent[node] {
+                parent[neighbor] = node;
+                stack[stack_size] = neighbor;
+                stack_size += 1;
+            }
+            edge = next[edge];
+        }
+    }
+}
+
+fn graph_bfs_farthest(
+    nodes: i64,
+    start: i64,
+    head: array<i64>,
+    to: array<i64>,
+    next: array<i64>,
+    distance: array<i64>,
+    queue: array<i64>
+) -> i64 {
+    for node in 0..=nodes {
+        distance[node] = -1;
+    }
+    var queue_head = 0;
+    var queue_tail = 1;
+    queue[0] = start;
+    distance[start] = 0;
+    var farthest = start;
+    while queue_head < queue_tail {
+        let node = queue[queue_head];
+        queue_head += 1;
+        if distance[node] > distance[farthest] {
+            farthest = node;
+        }
+        var edge = head[node];
+        while edge != -1 {
+            let neighbor = to[edge];
+            if distance[neighbor] == -1 {
+                distance[neighbor] = distance[node] + 1;
+                queue[queue_tail] = neighbor;
+                queue_tail += 1;
+            }
+            edge = next[edge];
+        }
+    }
+    return farthest;
+}
+
+fn lift_ancestor(
+    up: array<i64>, stride: i64, levels: i64, start: i64, steps: i64
+) -> i64 {
+    var node = start;
+    for level in 0..levels {
+        if ((steps >> level) & 1) != 0 {
+            node = up[level * stride + node];
+        }
+    }
+    return node;
+}
+
+fn tree_lca(
+    up: array<i64>, depth: array<i64>, stride: i64, levels: i64,
+    first_start: i64, second_start: i64
+) -> i64 {
+    var first = first_start;
+    var second = second_start;
+    if depth[first] < depth[second] {
+        let temporary = first;
+        first = second;
+        second = temporary;
+    }
+    first = lift_ancestor(up, stride, levels, first, depth[first] - depth[second]);
+    if first != second {
+        var level = levels;
+        while level > 0 {
+            level -= 1;
+            if up[level * stride + first] != up[level * stride + second] {
+                first = up[level * stride + first];
+                second = up[level * stride + second];
+            }
+        }
+        first = up[first];
+    }
+    return first;
+}
+
+fn tree_euler(
+    nodes: i64,
+    root: i64,
+    head: array<i64>,
+    to: array<i64>,
+    next: array<i64>,
+    parent: array<i64>,
+    entry: array<i64>,
+    exit: array<i64>
+) {
+    let cursor = array(nodes + 1, -1);
+    let stack = array(nodes, 0);
+    var stack_size = 1;
+    var timer = 1;
+    stack[0] = root;
+    parent[root] = 0;
+    entry[root] = 1;
+    cursor[root] = head[root];
+    while stack_size > 0 {
+        let node = stack[stack_size - 1];
+        let edge = cursor[node];
+        if edge == -1 {
+            exit[node] = timer;
+            stack_size -= 1;
+        } else {
+            cursor[node] = next[edge];
+            let neighbor = to[edge];
+            if neighbor != parent[node] {
+                parent[neighbor] = node;
+                timer += 1;
+                entry[neighbor] = timer;
+                cursor[neighbor] = head[neighbor];
+                stack[stack_size] = neighbor;
+                stack_size += 1;
+            }
+        }
+    }
+}
+
+fn centroid_find(
+    start: i64,
+    head: array<i64>,
+    to: array<i64>,
+    next: array<i64>,
+    removed: array<i64>,
+    parent: array<i64>,
+    subtree: array<i64>,
+    order: array<i64>
+) -> i64 {
+    var order_size = 1;
+    var index = 0;
+    order[0] = start;
+    parent[start] = 0;
+    while index < order_size {
+        let node = order[index];
+        subtree[node] = 1;
+        var edge = head[node];
+        while edge != -1 {
+            let neighbor = to[edge];
+            if removed[neighbor] == 0 && neighbor != parent[node] {
+                parent[neighbor] = node;
+                order[order_size] = neighbor;
+                order_size += 1;
+            }
+            edge = next[edge];
+        }
+        index += 1;
+    }
+    index = order_size;
+    while index > 0 {
+        index -= 1;
+        let node = order[index];
+        if parent[node] != 0 {
+            subtree[parent[node]] += subtree[node];
+        }
+    }
+    var result = start;
+    var found = false;
+    index = 0;
+    while index < order_size && !found {
+        let node = order[index];
+        var largest = order_size - subtree[node];
+        var edge = head[node];
+        while edge != -1 {
+            let neighbor = to[edge];
+            if removed[neighbor] == 0 && parent[neighbor] == node
+                && subtree[neighbor] > largest {
+                largest = subtree[neighbor];
+            }
+            edge = next[edge];
+        }
+        if largest <= order_size / 2 {
+            result = node;
+            found = true;
+        }
+        index += 1;
+    }
+    return result;
+}
+fn integer_sqrt(value: i64) -> i64 {
+    var low = 1;
+    var high = 2;
+    while high <= value / high {
+        high *= 2;
+    }
+    while high - low > 1 {
+        let middle = low + (high - low) / 2;
+        if middle <= value / middle {
+            low = middle;
+        } else {
+            high = middle;
+        }
+    }
+    return low;
+}
+
+fn minimum(first: i64, second: i64) -> i64 {
+    if first < second {
+        return first;
+    }
+    return second;
+}
+
+fn maximum(first: i64, second: i64) -> i64 {
+    if first > second {
+        return first;
+    }
+    return second;
+}
+
+fn read_array(count: i64) -> array<i64> {
+    let result = array(count, 0);
+    for i in 0..count {
+        result[i] = read();
+    }
+    return result;
+}
+
+fn equal(first: string, second: string) -> bool {
+    if length(first) != length(second) {
+        return false;
+    }
+    for i in 0..length(first) {
+        if at(first, i) != at(second, i) {
+            return false;
+        }
+    }
+    return true;
+}
+
+fn unique_sorted(values: array<i64>, size: i64) -> i64 {
+    if size == 0 {
+        return 0;
+    }
+    var write = 1;
+    for i in 1..size {
+        if values[i] != values[write - 1] {
+            values[write] = values[i];
+            write += 1;
+        }
+    }
+    return write;
+}
+
+fn sort_prefix(values: array<i64>, count: i64) {
+    var begin = count / 2;
+    while begin > 0 {
+        begin -= 1;
+        toy_sift_down(values, begin, count);
+    }
+    var end = count;
+    while end > 1 {
+        end -= 1;
+        let temporary = values[0];
+        values[0] = values[end];
+        values[end] = temporary;
+        toy_sift_down(values, 0, end);
+    }
+}
+
+fn sort_pairs_prefix(first: array<i64>, second: array<i64>, count: i64) {
+    var begin = count / 2;
+    while begin > 0 {
+        begin -= 1;
+        toy_sift_down_pairs(first, second, begin, count);
+    }
+    var end = count;
+    while end > 1 {
+        end -= 1;
+        let first_temporary = first[0];
+        let second_temporary = second[0];
+        first[0] = first[end];
+        second[0] = second[end];
+        first[end] = first_temporary;
+        second[end] = second_temporary;
+        toy_sift_down_pairs(first, second, 0, end);
+    }
+}

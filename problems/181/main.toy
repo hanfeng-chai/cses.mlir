@@ -1,0 +1,28 @@
+fn main() {
+    let index = read();
+    let modulus = 1_000_000_007;
+    let initial = array(6, 0);
+    initial[0] = 1;
+    for sum in 1..6 {
+        for die in 1..=sum {
+            initial[sum] += initial[sum - die];
+        }
+    }
+    if index <= 5 {
+        println(initial[index] % modulus);
+    } else {
+        let matrix = array(36, 0);
+        for column in 0..6 {
+            matrix[column] = 1;
+        }
+        for row in 1..6 {
+            matrix[row * 6 + row - 1] = 1;
+        }
+        matrix_power_mod(matrix, 6, index - 5, modulus);
+        var answer = 0;
+        for column in 0..6 {
+            answer = (answer + matrix[column] * initial[5 - column]) % modulus;
+        }
+        println(answer);
+    }
+}

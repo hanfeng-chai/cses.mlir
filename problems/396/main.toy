@@ -1,0 +1,90 @@
+fn main() {
+    let n = read();
+    let m = read();
+    let stride = m + 3;
+    let second = array((n + 2) * stride, 0);
+    var heights = array(m, 0);
+    var left = array(m, 0);
+    var right = array(m, 0);
+    let stack = array(m + 1, 0);
+
+    for y in 0..n {
+        let row = read_text();
+        for x in 0..m {
+            if at(row, x) == 42 {
+                heights[x] = 0;
+            } else {
+                heights[x] += 1;
+            }
+        }
+        var top = 0;
+        for x in 0..m {
+            while top > 0 && heights[stack[top - 1]] >= heights[x] {
+                top -= 1;
+            }
+            if top == 0 {
+                left[x] = 0;
+            } else {
+                left[x] = stack[top - 1] + 1;
+            }
+            stack[top] = x;
+            top += 1;
+        }
+        top = 0;
+        for x in m - 1..=0 by -1 {
+            while top > 0 && heights[stack[top - 1]] > heights[x] {
+                top -= 1;
+            }
+            if top == 0 {
+                right[x] = m - 1;
+            } else {
+                right[x] = stack[top - 1] - 1;
+            }
+            stack[top] = x;
+            top += 1;
+        }
+        for x in 0..m {
+            let h = heights[x];
+            if h == 0 {
+                continue;
+            }
+            var a = x - left[x] + 1;
+            var b = right[x] - x + 1;
+            if a > b {
+                let tmp = a;
+                a = b;
+                b = tmp;
+            }
+            second[h * stride + 1] += 1;
+            second[h * stride + a + 1] -= 1;
+            second[h * stride + b + 1] -= 1;
+            second[h * stride + a + b + 1] += 1;
+        }
+    }
+
+    let answer = array((n + 2) * stride, 0);
+    for h in 1..=n {
+        var slope = 0;
+        var value = 0;
+        for w in 1..=m {
+            slope += second[h * stride + w];
+            value += slope;
+            answer[h * stride + w] = value;
+        }
+    }
+    for w in 1..=m {
+        for h in n - 1..=1 by -1 {
+            answer[h * stride + w] += answer[(h + 1) * stride + w];
+        }
+    }
+
+    for h in 1..=n {
+        for w in 1..=m {
+            if w > 1 {
+                print(" ");
+            }
+            print(answer[h * stride + w]);
+        }
+        print("\n");
+    }
+}

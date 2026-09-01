@@ -1,0 +1,20 @@
+fn main() {
+    let n = read();
+    let basis = array(31, 0);
+    var rank = 0;
+    for i in 0..n {
+        var x = read();
+        for b in 0..30 {
+            let bit = 29 - b;
+            if ((x >> bit) & 1) == 1 {
+                if basis[bit] == 0 {
+                    basis[bit] = x;
+                    rank += 1;
+                    break;
+                }
+                x ^= basis[bit];
+            }
+        }
+    }
+    println(1 << rank);
+}

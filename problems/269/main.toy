@@ -1,0 +1,124 @@
+fn li_chao_insert(node: i64, lo: i64, hi: i64, a: i64, b: i64, seg_a: array<i64>, seg_b: array<i64>) {
+    let mid = (lo + hi) / 2;
+    var new_a = a;
+    var new_b = b;
+    let left_better = new_a * lo + new_b > seg_a[node] * lo + seg_b[node];
+    let mid_better = new_a * mid + new_b > seg_a[node] * mid + seg_b[node];
+    if mid_better {
+        let temp_a = seg_a[node];
+        let temp_b = seg_b[node];
+        seg_a[node] = new_a;
+        seg_b[node] = new_b;
+        new_a = temp_a;
+        new_b = temp_b;
+    }
+    if lo == hi {
+        return;
+    }
+    if left_better != mid_better {
+        li_chao_insert(2 * node, lo, mid, new_a, new_b, seg_a, seg_b);
+    } else {
+        li_chao_insert(2 * node + 1, mid + 1, hi, new_a, new_b, seg_a, seg_b);
+    }
+}
+
+fn li_chao_insert_segment(node: i64, lo: i64, hi: i64, ql: i64, qr: i64, a: i64, b: i64, seg_a: array<i64>, seg_b: array<i64>) {
+    if qr < lo || hi < ql {
+        return;
+    }
+    if ql <= lo && hi <= qr {
+        li_chao_insert(node, lo, hi, a, b, seg_a, seg_b);
+        return;
+    }
+    let mid = (lo + hi) / 2;
+    li_chao_insert_segment(2 * node, lo, mid, ql, qr, a, b, seg_a, seg_b);
+    li_chao_insert_segment(2 * node + 1, mid + 1, hi, ql, qr, a, b, seg_a, seg_b);
+}
+
+fn li_chao_query(node: i64, lo: i64, hi: i64, x: i64, seg_a: array<i64>, seg_b: array<i64>) -> i64 {
+    let result = seg_a[node] * x + seg_b[node];
+    if lo == hi {
+        return result;
+    }
+    let mid = (lo + hi) / 2;
+    if x <= mid {
+        return max(result, li_chao_query(2 * node, lo, mid, x, seg_a, seg_b));
+    }
+    return max(result, li_chao_query(2 * node + 1, mid + 1, hi, x, seg_a, seg_b));
+}
+
+fn main() {
+    let n = read();
+    let k = read();
+    let heights = read_array(n);
+    let previous_smaller = array(n, 0);
+    let next_smaller = array(n, 0);
+    let stack = array(n, 0);
+    var stack_size = 0;
+    for i in 0..n {
+        while stack_size > 0 && heights[stack[stack_size - 1]] >= heights[i] {
+            stack_size -= 1;
+        }
+        previous_smaller[i] = if stack_size == 0 { -1 } else { stack[stack_size - 1] };
+        stack[stack_size] = i;
+        stack_size += 1;
+    }
+    stack_size = 0;
+    for i in 0..n {
+        let index = n - 1 - i;
+        while stack_size > 0 && heights[stack[stack_size - 1]] >= heights[index] {
+            stack_size -= 1;
+        }
+        next_smaller[index] = if stack_size == 0 { n } else { stack[stack_size - 1] };
+        stack[stack_size] = index;
+        stack_size += 1;
+    }
+    let m = n - k;
+    let seg_a = array(4 * (m + 1), 0);
+    let seg_b = array(4 * (m + 1), -9000000000000000000);
+    for i in 0..n {
+        let height = heights[i];
+        let a_span = previous_smaller[i] + 1;
+        let b_span = next_smaller[i] - 1;
+        var w_lo = i - k + 1;
+        if w_lo < 0 {
+            w_lo = 0;
+        }
+        var w_hi = i;
+        if w_hi > m {
+            w_hi = m;
+        }
+        if w_lo > w_hi {
+            continue;
+        }
+        let p2 = b_span - k + 1;
+        if a_span <= p2 {
+            if w_lo <= a_span - 1 {
+                li_chao_insert_segment(1, 0, m, w_lo, a_span - 1, height, height * (k - a_span), seg_a, seg_b);
+            }
+            if a_span <= p2 {
+                li_chao_insert_segment(1, 0, m, a_span, p2, 0, height * k, seg_a, seg_b);
+            }
+            if p2 + 1 <= w_hi {
+                li_chao_insert_segment(1, 0, m, p2 + 1, w_hi, 0 - height, height * (b_span + 1), seg_a, seg_b);
+            }
+        } else {
+            if w_lo <= p2 {
+                li_chao_insert_segment(1, 0, m, w_lo, p2, height, height * (k - a_span), seg_a, seg_b);
+            }
+            if p2 + 1 <= a_span - 1 {
+                li_chao_insert_segment(1, 0, m, p2 + 1, a_span - 1, 0, height * (b_span - a_span + 1), seg_a, seg_b);
+            }
+            if a_span <= w_hi {
+                li_chao_insert_segment(1, 0, m, a_span, w_hi, 0 - height, height * (b_span + 1), seg_a, seg_b);
+            }
+        }
+    }
+    for w in 0..=m {
+        if w != 0 {
+            print(" ");
+        }
+        print(li_chao_query(1, 0, m, w, seg_a, seg_b));
+    }
+    println();
+}

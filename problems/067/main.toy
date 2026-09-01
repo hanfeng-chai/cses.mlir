@@ -1,0 +1,40 @@
+fn main() {
+    let size = read();
+    let maximum = read();
+    let values = array(size, 0);
+    for index in 0..size {
+        values[index] = read();
+    }
+    let width = maximum + 2;
+    let ways = array(2 * width, 0);
+    if values[0] == 0 {
+        for value in 1..=maximum {
+            ways[value] = 1;
+        }
+    } else {
+        ways[values[0]] = 1;
+    }
+    let modulus = 1_000_000_007;
+    for index in 1..size {
+        let current = (index % 2) * width;
+        let previous = ((index - 1) % 2) * width;
+        for value in 0..width {
+            ways[current + value] = 0;
+        }
+        for value in 1..=maximum {
+            if values[index] == 0 || values[index] == value {
+                ways[current + value] = (
+                    ways[previous + value]
+                    + ways[previous + value - 1]
+                    + ways[previous + value + 1]
+                ) % modulus;
+            }
+        }
+    }
+    let final = ((size - 1) % 2) * width;
+    var answer = 0;
+    for value in 1..=maximum {
+        answer = (answer + ways[final + value]) % modulus;
+    }
+    println(answer);
+}

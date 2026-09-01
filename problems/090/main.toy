@@ -1,0 +1,41 @@
+fn main() {
+    let nodes = read();
+    let edges = read();
+    let head = array(nodes + 1, -1);
+    let to = array(edges, 0);
+    let weight = array(edges, 0);
+    let next = array(edges, 0);
+    for edge in 0..edges {
+        let source = read();
+        to[edge] = read();
+        weight[edge] = read();
+        next[edge] = head[source];
+        head[source] = edge;
+    }
+    let infinity = 9_223_372_036_854_775_807;
+    let distance = array(nodes + 1, infinity);
+    let queue = heap(edges + 1);
+    distance[1] = 0;
+    heap_push(queue, 0, 1);
+    while heap_size(queue) > 0 {
+        let current_distance = heap_first(queue);
+        let node = heap_second(queue);
+        heap_pop(queue);
+        if current_distance <= distance[node] {
+            var edge = head[node];
+            while edge != -1 {
+                let neighbor = to[edge];
+                let candidate = current_distance + weight[edge];
+                if candidate < distance[neighbor] {
+                    distance[neighbor] = candidate;
+                    heap_push(queue, candidate, neighbor);
+                }
+                edge = next[edge];
+            }
+        }
+    }
+    for node in 1..=nodes {
+        print(distance[node], " ");
+    }
+    println();
+}

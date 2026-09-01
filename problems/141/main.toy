@@ -1,0 +1,117 @@
+fn apply_progression(
+    sum: array<i64>, lazy_base: array<i64>, lazy_difference: array<i64>,
+    node: i64, left: i64, right: i64, base: i64, difference: i64
+) {
+    let length = right - left + 1;
+    sum[node] += base * length + difference * length * (length - 1) / 2;
+    lazy_base[node] += base;
+    lazy_difference[node] += difference;
+}
+
+fn build_progression(
+    values: array<i64>, sum: array<i64>, node: i64, left: i64, right: i64
+) {
+    if left == right {
+        sum[node] = values[left];
+    } else {
+        let middle = (left + right) / 2;
+        build_progression(values, sum, 2 * node, left, middle);
+        build_progression(values, sum, 2 * node + 1, middle + 1, right);
+        sum[node] = sum[2 * node] + sum[2 * node + 1];
+    }
+}
+
+fn push_progression(
+    sum: array<i64>, lazy_base: array<i64>, lazy_difference: array<i64>,
+    node: i64, left: i64, right: i64
+) {
+    if left != right && (lazy_base[node] != 0 || lazy_difference[node] != 0) {
+        let middle = (left + right) / 2;
+        apply_progression(
+            sum, lazy_base, lazy_difference, 2 * node, left, middle,
+            lazy_base[node], lazy_difference[node]
+        );
+        apply_progression(
+            sum, lazy_base, lazy_difference, 2 * node + 1, middle + 1, right,
+            lazy_base[node] + lazy_difference[node] * (middle - left + 1),
+            lazy_difference[node]
+        );
+        lazy_base[node] = 0;
+        lazy_difference[node] = 0;
+    }
+}
+
+fn update_progression(
+    sum: array<i64>, lazy_base: array<i64>, lazy_difference: array<i64>,
+    node: i64, left: i64, right: i64, query_left: i64, query_right: i64
+) {
+    if query_right >= left && right >= query_left {
+        if query_left <= left && right <= query_right {
+            apply_progression(
+                sum, lazy_base, lazy_difference, node, left, right,
+                left - query_left + 1, 1
+            );
+        } else {
+            push_progression(sum, lazy_base, lazy_difference, node, left, right);
+            let middle = (left + right) / 2;
+            update_progression(
+                sum, lazy_base, lazy_difference, 2 * node, left, middle,
+                query_left, query_right
+            );
+            update_progression(
+                sum, lazy_base, lazy_difference, 2 * node + 1, middle + 1, right,
+                query_left, query_right
+            );
+            sum[node] = sum[2 * node] + sum[2 * node + 1];
+        }
+    }
+}
+
+fn query_progression(
+    sum: array<i64>, lazy_base: array<i64>, lazy_difference: array<i64>,
+    node: i64, left: i64, right: i64, query_left: i64, query_right: i64
+) -> i64 {
+    var result = 0;
+    if query_right >= left && right >= query_left {
+        if query_left <= left && right <= query_right {
+            result = sum[node];
+        } else {
+            push_progression(sum, lazy_base, lazy_difference, node, left, right);
+            let middle = (left + right) / 2;
+            result = query_progression(
+                sum, lazy_base, lazy_difference, 2 * node, left, middle,
+                query_left, query_right
+            ) + query_progression(
+                sum, lazy_base, lazy_difference, 2 * node + 1, middle + 1, right,
+                query_left, query_right
+            );
+        }
+    }
+    return result;
+}
+
+fn main() {
+    let size = read();
+    let queries = read();
+    let tree_size = 4 * size + 4;
+    let values = array(size + 1, 0);
+    for index in 1..=size {
+        values[index] = read();
+    }
+    let sum = array(tree_size, 0);
+    let lazy_base = array(tree_size, 0);
+    let lazy_difference = array(tree_size, 0);
+    build_progression(values, sum, 1, 1, size);
+    for operation in 0..queries {
+        let kind = read();
+        let left = read();
+        let right = read();
+        if kind == 1 {
+            update_progression(sum, lazy_base, lazy_difference, 1, 1, size, left, right);
+        } else {
+            println(query_progression(
+                sum, lazy_base, lazy_difference, 1, 1, size, left, right
+            ));
+        }
+    }
+}

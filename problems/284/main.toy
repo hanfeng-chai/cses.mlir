@@ -1,0 +1,25 @@
+fn main() {
+    let n = read();
+    let k = read();
+    let b = read_array(n);
+    let d = n - k;
+    var length = n;
+    var t = 0;
+    while (1 << t) <= d {
+        if ((d >> t) & 1) == 1 {
+            let step = 1 << t;
+            for j in 0..length - step {
+                b[j] ^= b[j + step];
+            }
+            length -= step;
+        }
+        t += 1;
+    }
+    for j in 0..k {
+        if j != 0 {
+            print(" ");
+        }
+        print(b[j]);
+    }
+    println();
+}

@@ -1,0 +1,59 @@
+fn main() {
+    let n = read();
+    let values = read_array(n);
+    sort(values);
+    let inf = 1152921504606846976;
+
+    var weight = array(n + 1, 0);
+    var left = array(n + 1, 0);
+    var right = array(n + 1, 0);
+    var removed = array(n + 1, 0);
+    let queue = heap(2 * n + 10);
+
+    left[0] = 0;
+    right[0] = 1;
+    left[n] = n - 1;
+    right[n] = n;
+    weight[0] = inf;
+    weight[n] = inf;
+    for edge in 1..n {
+        weight[edge] = values[edge] - values[edge - 1];
+        left[edge] = edge - 1;
+        right[edge] = edge + 1;
+        heap_push(queue, weight[edge], edge);
+    }
+
+    var total = 0;
+    for pairs in 1..=n / 2 {
+        while removed[heap_second(queue)] == 1 {
+            heap_pop(queue);
+        }
+        let increment = heap_first(queue);
+        let edge = heap_second(queue);
+        heap_pop(queue);
+        total += increment;
+        if pairs > 1 {
+            print(" ");
+        }
+        print(total);
+
+        let previous = left[edge];
+        let next = right[edge];
+        var new_weight = weight[previous] + weight[next] - weight[edge];
+        if new_weight > inf {
+            new_weight = inf;
+        }
+        if new_weight < 0 {
+            new_weight = 0;
+        }
+        weight[edge] = new_weight;
+        removed[previous] = 1;
+        removed[next] = 1;
+        left[edge] = left[previous];
+        right[edge] = right[next];
+        right[left[edge]] = edge;
+        left[right[edge]] = edge;
+        heap_push(queue, weight[edge], edge);
+    }
+    print("\n");
+}

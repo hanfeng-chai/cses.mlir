@@ -1,0 +1,44 @@
+fn main() {
+    let n = read();
+    let k = read();
+    let x = read_array(n);
+    var base = 0;
+    for i in 0..n {
+        if x[i] < 0 {
+            base += x[i];
+        }
+    }
+    var y = array(n, 0);
+    for i in 0..n {
+        y[i] = absolute(x[i]);
+    }
+    sort(y);
+
+    let result = array(k, 0);
+    var count = 0;
+    result[count] = base;
+    count += 1;
+    if k > 1 && n > 0 {
+        let queue = heap(2 * k + 10);
+        heap_push(queue, y[0], 0);
+        while count < k && heap_size(queue) > 0 {
+            let s = heap_first(queue);
+            let idx = heap_second(queue);
+            heap_pop(queue);
+            result[count] = base + s;
+            count += 1;
+            if count >= k {
+                break;
+            }
+            if idx + 1 < n {
+                heap_push(queue, s + y[idx + 1], idx + 1);
+                heap_push(queue, s - y[idx] + y[idx + 1], idx + 1);
+            }
+        }
+    }
+    for i in 0..count {
+        print(result[i]);
+        print(" ");
+    }
+    print("\n");
+}

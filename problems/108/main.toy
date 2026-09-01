@@ -1,0 +1,57 @@
+fn literal(sign: i64, variable: i64) -> i64 {
+    var result = 2 * (variable - 1);
+    if sign == 45 {
+        result += 1;
+    }
+    return result;
+}
+
+fn main() {
+    let clauses = read();
+    let variables = read();
+    let nodes = 2 * variables;
+    let edges = 2 * clauses;
+    let head = array(nodes, -1);
+    let reverse_head = array(nodes, -1);
+    let from = array(edges, 0);
+    let to = array(edges, 0);
+    let next = array(edges, 0);
+    let reverse_next = array(edges, 0);
+    for clause in 0..clauses {
+        let first_sign = at(read_text(), 0);
+        let first = literal(first_sign, read());
+        let second_sign = at(read_text(), 0);
+        let second = literal(second_sign, read());
+        from[2 * clause] = first ^ 1;
+        to[2 * clause] = second;
+        from[2 * clause + 1] = second ^ 1;
+        to[2 * clause + 1] = first;
+        for offset in 0..2 {
+            let edge = 2 * clause + offset;
+            next[edge] = head[from[edge]];
+            head[from[edge]] = edge;
+            reverse_next[edge] = reverse_head[to[edge]];
+            reverse_head[to[edge]] = edge;
+        }
+    }
+    let component = array(nodes, -1);
+    kosaraju(nodes, head, to, next, reverse_head, from, reverse_next, component);
+    var possible = true;
+    for variable in 0..variables {
+        if component[2 * variable] == component[2 * variable + 1] {
+            possible = false;
+        }
+    }
+    if !possible {
+        println("IMPOSSIBLE");
+    } else {
+        for variable in 0..variables {
+            if component[2 * variable] > component[2 * variable + 1] {
+                print("+ ");
+            } else {
+                print("- ");
+            }
+        }
+        println();
+    }
+}

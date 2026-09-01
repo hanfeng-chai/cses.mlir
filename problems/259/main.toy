@@ -1,0 +1,25 @@
+fn main() {
+    let n = read();
+    let k = read();
+    let x = read();
+    let a = read();
+    let b = read();
+    let c = read();
+    let arr = array(n, 0);
+    var prev = x;
+    arr[0] = x;
+    for i in 1..n {
+        prev = (a * prev + b) % c;
+        arr[i] = prev;
+    }
+    var sum = 0;
+    for i in 0..k {
+        sum += arr[i];
+    }
+    var answer = sum;
+    for i in k..n {
+        sum += arr[i] - arr[i - k];
+        answer ^= sum;
+    }
+    println(answer);
+}

@@ -1,0 +1,44 @@
+fn ask(index: i64) -> i64 {
+    print("? ");
+    println(index);
+    flush();
+    let response = read_text();
+    return at(response, 0);
+}
+
+fn main() {
+    let n = read();
+    let first_color = ask(1);
+    let last_color = ask(n);
+    if first_color == last_color {
+        print("! ");
+        println(n);
+        flush();
+        return;
+    }
+    // m(i) = 1 if chair i deviates from a perfect alternation starting at chair 1
+    var lo = 1;
+    var hi = n;
+    while hi - lo > 1 {
+        let mid = (lo + hi) / 2;
+        let color = ask(mid);
+        var expected = first_color;
+        if mid % 2 == 0 {
+            if expected == 82 {
+                expected = 66;
+            } else {
+                expected = 82;
+            }
+        }
+        if color == expected {
+            lo = mid;
+        } else {
+            hi = mid;
+        }
+    }
+    // chair lo matches the alternation, chair hi (== lo+1) does not: they share
+    // the same color
+    print("! ");
+    println(lo);
+    flush();
+}

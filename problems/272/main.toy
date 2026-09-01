@@ -1,0 +1,57 @@
+fn ask(country: i64, index: i64) -> i64 {
+    if country == 1 {
+        print("F ");
+    } else {
+        print("S ");
+    }
+    println(index);
+    flush();
+    return read();
+}
+
+fn value_at(country: i64, index: i64) -> i64 {
+    if index < 1 {
+        return 2000000000;
+    }
+    return ask(country, index);
+}
+
+fn main() {
+    let n = read();
+    let k = read();
+    let infinity = 2000000000;
+    var lo = k - n;
+    if lo < 0 {
+        lo = 0;
+    }
+    var hi = n;
+    if hi > k {
+        hi = k;
+    }
+    while lo < hi {
+        let mid = (lo + hi) / 2;
+        var f_mid = value_at(1, mid);
+        let b = value_at(2, k - mid);
+        if b < f_mid {
+            f_mid = b;
+        }
+        var f_next = value_at(1, mid + 1);
+        let b2 = value_at(2, k - mid - 1);
+        if b2 < f_next {
+            f_next = b2;
+        }
+        if f_mid <= f_next {
+            lo = mid + 1;
+        } else {
+            hi = mid;
+        }
+    }
+    var answer = value_at(1, lo);
+    let b = value_at(2, k - lo);
+    if b < answer {
+        answer = b;
+    }
+    print("! ");
+    println(answer);
+    flush();
+}

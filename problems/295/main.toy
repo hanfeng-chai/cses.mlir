@@ -1,0 +1,86 @@
+fn main() {
+    let n = read();
+    let m = read();
+    let k = read();
+    let q_dist = array(3 * (2 * n + k) + 10, 0);
+    let q_node = array(3 * (2 * n + k) + 10, 0);
+    let q_root = array(3 * (2 * n + k) + 10, 0);
+    var q_head = 0;
+    var q_tail = 0;
+    for i in 0..k {
+        let shop = read();
+        q_dist[q_tail] = 0;
+        q_node[q_tail] = shop;
+        q_root[q_tail] = shop;
+        q_tail += 1;
+    }
+    let head = array(n + 1, -1);
+    let to = array(2 * m, 0);
+    let next = array(2 * m, 0);
+    for e in 0..m {
+        let a = read();
+        let b = read();
+        to[2 * e] = b;
+        next[2 * e] = head[a];
+        head[a] = 2 * e;
+        to[2 * e + 1] = a;
+        next[2 * e + 1] = head[b];
+        head[b] = 2 * e + 1;
+    }
+    let d0 = array(n + 1, 2000000000);
+    let d1 = array(n + 1, 2000000000);
+    let r0 = array(n + 1, 0);
+    let r1 = array(n + 1, 0);
+    while q_head < q_tail {
+        let dist = q_dist[q_head];
+        let u = q_node[q_head];
+        let root = q_root[q_head];
+        q_head += 1;
+        var labels = 0;
+        if d0[u] != 2000000000 {
+            labels += 1;
+        }
+        if d1[u] != 2000000000 {
+            labels += 1;
+        }
+        if labels == 2 {
+            continue;
+        }
+        if labels == 1 && r0[u] == root {
+            continue;
+        }
+        if labels == 0 {
+            d0[u] = dist;
+            r0[u] = root;
+        } else {
+            d1[u] = dist;
+            r1[u] = root;
+        }
+        var e = head[u];
+        while e != -1 {
+            let v = to[e];
+            if d1[v] == 2000000000 {
+                q_dist[q_tail] = dist + 1;
+                q_node[q_tail] = v;
+                q_root[q_tail] = root;
+                q_tail += 1;
+            }
+            e = next[e];
+        }
+    }
+    for v in 1..=n {
+        var answer = -1;
+        if d0[v] == 0 {
+            if d1[v] != 2000000000 {
+                answer = d1[v];
+            }
+        } else if d0[v] != 2000000000 {
+            answer = d0[v];
+        }
+        if v != 1 {
+            print(" ");
+        }
+        print(answer);
+    }
+    println();
+}

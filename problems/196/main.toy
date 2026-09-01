@@ -1,0 +1,18 @@
+fn main() {
+    let tests = read();
+    for test in 0..tests {
+        let n = read();
+        var odd = false;
+        for i in 0..n {
+            let value = read();
+            if value % 2 == 1 {
+                odd = true;
+            }
+        }
+        if odd {
+            println("first");
+        } else {
+            println("second");
+        }
+    }
+}

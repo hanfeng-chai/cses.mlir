@@ -1,0 +1,19 @@
+fn main() {
+    let x = read();
+    let n = read();
+    let queue = heap(2 * n + 10);
+    for i in 0..n {
+        heap_push(queue, read(), 0);
+    }
+    var total = 0;
+    while heap_size(queue) > 1 {
+        let a = heap_first(queue);
+        heap_pop(queue);
+        let b = heap_first(queue);
+        heap_pop(queue);
+        let merged = a + b;
+        total += merged;
+        heap_push(queue, merged, 0);
+    }
+    println(total);
+}

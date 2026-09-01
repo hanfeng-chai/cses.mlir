@@ -1,0 +1,44 @@
+fn search(
+    row: i64,
+    board: array<i64>,
+    columns: array<i64>,
+    descending: array<i64>,
+    ascending: array<i64>
+) -> i64 {
+    var solutions = 0;
+    if row == 8 {
+        solutions = 1;
+    } else {
+        for column in 0..8 {
+            let first_diagonal = row + column;
+            let second_diagonal = row - column + 7;
+            if board[row * 8 + column] != 42
+                && columns[column] == 0
+                && descending[first_diagonal] == 0
+                && ascending[second_diagonal] == 0 {
+                columns[column] = 1;
+                descending[first_diagonal] = 1;
+                ascending[second_diagonal] = 1;
+                solutions += search(row + 1, board, columns, descending, ascending);
+                columns[column] = 0;
+                descending[first_diagonal] = 0;
+                ascending[second_diagonal] = 0;
+            }
+        }
+    }
+    return solutions;
+}
+
+fn main() {
+    let board = array(64, 0);
+    for row in 0..8 {
+        let line = read_text();
+        for column in 0..8 {
+            board[row * 8 + column] = at(line, column);
+        }
+    }
+    let columns = array(8, 0);
+    let descending = array(15, 0);
+    let ascending = array(15, 0);
+    println(search(0, board, columns, descending, ascending));
+}

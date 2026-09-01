@@ -1,0 +1,22 @@
+fn main() {
+    let size = read();
+    let queries = read();
+    let values = array(size + 1, 0);
+    let difference = array(size + 2, 0);
+    for index in 1..=size {
+        values[index] = read();
+    }
+    for query in 0..queries {
+        let kind = read();
+        if kind == 1 {
+            let left = read();
+            let right = read();
+            let change = read();
+            fenwick_add(difference, left, change);
+            fenwick_add(difference, right + 1, 0 - change);
+        } else {
+            let index = read();
+            println(values[index] + fenwick_sum(difference, index));
+        }
+    }
+}

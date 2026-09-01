@@ -1,0 +1,28 @@
+fn main() {
+    let count = read();
+    let target = read();
+    let values = array(count, 0);
+    let indices = array(count, 0);
+    for index in 0..count {
+        values[index] = read();
+        indices[index] = index + 1;
+    }
+    sort_pairs(values, indices);
+    var left = 0;
+    var right = count - 1;
+    var found = false;
+    while left < right && !found {
+        let sum = values[left] + values[right];
+        if sum == target {
+            println(indices[left], " ", indices[right]);
+            found = true;
+        } else if sum < target {
+            left += 1;
+        } else {
+            right -= 1;
+        }
+    }
+    if !found {
+        println("IMPOSSIBLE");
+    }
+}

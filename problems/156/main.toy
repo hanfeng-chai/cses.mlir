@@ -1,0 +1,61 @@
+fn main() {
+    let nodes = read();
+    let color = array(nodes + 1, 0);
+    let sorted_colors = array(nodes, 0);
+    for node in 1..=nodes {
+        color[node] = read();
+        sorted_colors[node - 1] = color[node];
+    }
+    sort(sorted_colors);
+    for node in 1..=nodes {
+        color[node] = lower_bound(sorted_colors, color[node]) + 1;
+    }
+    let edge_count = nodes - 1;
+    let head = array(nodes + 1, -1);
+    let to = array(2 * edge_count, 0);
+    let next = array(2 * edge_count, 0);
+    for edge in 0..edge_count {
+        let first = read();
+        let second = read();
+        to[2 * edge] = second;
+        next[2 * edge] = head[first];
+        head[first] = 2 * edge;
+        to[2 * edge + 1] = first;
+        next[2 * edge + 1] = head[second];
+        head[second] = 2 * edge + 1;
+    }
+    let parent = array(nodes + 1, 0);
+    let entry = array(nodes + 1, 0);
+    let exit = array(nodes + 1, 0);
+    tree_euler(nodes, 1, head, to, next, parent, entry, exit);
+    let euler_color = array(nodes + 1, 0);
+    let sorted_exit = array(nodes, 0);
+    let order = array(nodes, 0);
+    for node in 1..=nodes {
+        euler_color[entry[node]] = color[node];
+        sorted_exit[node - 1] = exit[node];
+        order[node - 1] = node;
+    }
+    sort_pairs(sorted_exit, order);
+    let last = array(nodes + 1, 0);
+    let tree = array(nodes + 1, 0);
+    let answer = array(nodes + 1, 0);
+    var position = 1;
+    for order_index in 0..nodes {
+        let node = order[order_index];
+        while position <= exit[node] {
+            let current_color = euler_color[position];
+            if last[current_color] != 0 {
+                fenwick_add(tree, last[current_color], -1);
+            }
+            fenwick_add(tree, position, 1);
+            last[current_color] = position;
+            position += 1;
+        }
+        answer[node] = fenwick_sum(tree, exit[node]) - fenwick_sum(tree, entry[node] - 1);
+    }
+    for node in 1..=nodes {
+        print(answer[node], " ");
+    }
+    println();
+}

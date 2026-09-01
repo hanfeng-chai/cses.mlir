@@ -1,0 +1,59 @@
+fn main() {
+    let n = read();
+    let m = read();
+    let x = array(n, 0);
+    let y = array(n, 0);
+    for i in 0..n {
+        x[i] = read();
+        y[i] = read();
+    }
+    for query in 0..m {
+        let px = read();
+        let py = read();
+        var boundary = false;
+        var inside = false;
+        var i = 0;
+        while i < n && !boundary {
+            let j = (i + 1) % n;
+            let xi = x[i];
+            let yi = y[i];
+            let xj = x[j];
+            let yj = y[j];
+            let cr = (xj - xi) * (py - yi) - (yj - yi) * (px - xi);
+            if cr == 0 {
+                var low_x = xi;
+                if xj < low_x {
+                    low_x = xj;
+                }
+                var high_x = xi;
+                if xj > high_x {
+                    high_x = xj;
+                }
+                var low_y = yi;
+                if yj < low_y {
+                    low_y = yj;
+                }
+                var high_y = yi;
+                if yj > high_y {
+                    high_y = yj;
+                }
+                if low_x <= px && px <= high_x && low_y <= py && py <= high_y {
+                    boundary = true;
+                }
+            }
+            if !boundary && (yi > py) != (yj > py) {
+                if (cr > 0) == (yj > yi) {
+                    inside = !inside;
+                }
+            }
+            i += 1;
+        }
+        if boundary {
+            println("BOUNDARY");
+        } else if inside {
+            println("INSIDE");
+        } else {
+            println("OUTSIDE");
+        }
+    }
+}

@@ -1,0 +1,38 @@
+fn main() {
+    let n = read();
+    let x = read_array(n);
+    let copy = array(n, 0);
+    for i in 0..n {
+        copy[i] = x[i];
+    }
+    sort(copy);
+    var last = array(n, 0);
+    for i in 0..n {
+        last[i] = -1;
+    }
+    var dp = array(n + 1, 0);
+    var prefix = array(n + 1, 0);
+    dp[0] = 1;
+    prefix[0] = 1;
+    var low = 0;
+    for i in 0..n {
+        let rank = lower_bound(copy, x[i]);
+        if last[rank] != -1 {
+            if last[rank] + 1 > low {
+                low = last[rank] + 1;
+            }
+        }
+        last[rank] = i;
+        var sum = prefix[i];
+        if low > 0 {
+            sum -= prefix[low - 1];
+        }
+        sum = sum % 1000000007;
+        if sum < 0 {
+            sum += 1000000007;
+        }
+        dp[i + 1] = sum;
+        prefix[i + 1] = (prefix[i] + dp[i + 1]) % 1000000007;
+    }
+    println(dp[n]);
+}

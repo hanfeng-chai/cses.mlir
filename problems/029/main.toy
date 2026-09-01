@@ -1,0 +1,21 @@
+fn main() {
+    let customers = read();
+    let times = array(2 * customers, 0);
+    let changes = array(2 * customers, 0);
+    for customer in 0..customers {
+        times[2 * customer] = read();
+        changes[2 * customer] = 1;
+        times[2 * customer + 1] = read();
+        changes[2 * customer + 1] = -1;
+    }
+    sort_pairs(times, changes);
+    var current = 0;
+    var best = 0;
+    for event in 0..2 * customers {
+        current += changes[event];
+        if current > best {
+            best = current;
+        }
+    }
+    println(best);
+}

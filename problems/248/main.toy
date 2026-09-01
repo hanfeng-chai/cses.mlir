@@ -1,0 +1,53 @@
+fn cht_bad(a: i64, b: i64, c: i64, mm: array<i64>, bb: array<i64>) -> bool {
+    return i128(bb[c] - bb[a]) * i128(mm[a] - mm[b]) <= i128(bb[b] - bb[a]) * i128(mm[a] - mm[c]);
+}
+
+fn main() {
+    let n = read();
+    let k = read();
+    let pre = array(n + 1, 0);
+    for i in 1..=n {
+        pre[i] = pre[i - 1] + read();
+    }
+    let dp_prev = array(n + 1, 4000000000000000000);
+    let dp_cur = array(n + 1, 4000000000000000000);
+    dp_prev[0] = 0;
+    let mm = array(n + 2, 0);
+    let bb = array(n + 2, 0);
+    for j in 1..=k {
+        var size = 0;
+        var head = 0;
+        for i in 1..=n {
+            let p = i - 1;
+            if dp_prev[p] < 4000000000000000000 {
+                mm[size] = -2 * pre[p];
+                bb[size] = dp_prev[p] + pre[p] * pre[p];
+                size += 1;
+                while size >= 3 && cht_bad(size - 3, size - 2, size - 1, mm, bb) {
+                    mm[size - 2] = mm[size - 1];
+                    bb[size - 2] = bb[size - 1];
+                    size -= 1;
+                }
+                if head >= size {
+                    head = size - 1;
+                }
+            }
+            if size == 0 {
+                dp_cur[i] = 4000000000000000000;
+            } else {
+                if head >= size {
+                    head = size - 1;
+                }
+                while head + 1 < size && mm[head + 1] * pre[i] + bb[head + 1] <= mm[head] * pre[i] + bb[head] {
+                    head += 1;
+                }
+                dp_cur[i] = mm[head] * pre[i] + bb[head] + pre[i] * pre[i];
+            }
+        }
+        dp_cur[0] = 4000000000000000000;
+        for i in 0..=n {
+            dp_prev[i] = dp_cur[i];
+        }
+    }
+    println(dp_prev[n]);
+}

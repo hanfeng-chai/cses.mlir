@@ -1,0 +1,36 @@
+fn main() {
+    let n = read();
+    let rounds = read();
+    let values = read_array(n);
+    let sorted = array(n, 0);
+    for i in 0..n {
+        sorted[i] = values[i];
+    }
+    sort(sorted);
+
+    let reach = minimum(n, rounds + 1);
+    let bit = array(n + 1, 0);
+    for i in 0..reach {
+        let rank = lower_bound(sorted, values[i]) + 1;
+        fenwick_add(bit, rank, 1);
+    }
+    var total = reach;
+    for i in reach..n {
+        let min_rank = fenwick_find(bit, 1);
+        print(sorted[min_rank - 1]);
+        print(" ");
+        fenwick_add(bit, min_rank, -1);
+        let rank = lower_bound(sorted, values[i]) + 1;
+        fenwick_add(bit, rank, 1);
+        total += 1;
+        total -= 1;
+    }
+    while total > 0 {
+        let min_rank = fenwick_find(bit, 1);
+        print(sorted[min_rank - 1]);
+        print(" ");
+        fenwick_add(bit, min_rank, -1);
+        total -= 1;
+    }
+    print("\n");
+}

@@ -1,0 +1,16 @@
+fn main() {
+    let count = read();
+    let last_position = map(2 * count);
+    var left = 0;
+    var answer = 0;
+    for right in 0..count {
+        let value = read();
+        let previous = map_get(last_position, value, -1);
+        if previous >= left {
+            left = previous + 1;
+        }
+        map_set(last_position, value, right);
+        answer += right - left + 1;
+    }
+    println(answer);
+}

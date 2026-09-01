@@ -1,0 +1,16 @@
+fn main() {
+    let target = read();
+    let ways = array(target + 1, 0);
+    ways[0] = 1;
+    let modulus = 1_000_000_007;
+    for sum in 1..=target {
+        var total = 0;
+        for die in 1..=6 {
+            if die <= sum {
+                total += ways[sum - die];
+            }
+        }
+        ways[sum] = total % modulus;
+    }
+    println(ways[target]);
+}

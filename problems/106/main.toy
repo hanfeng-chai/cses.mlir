@@ -1,0 +1,70 @@
+fn visit(
+    start: i64,
+    nodes: i64,
+    head: array<i64>,
+    to: array<i64>,
+    next: array<i64>,
+    visited: array<i64>
+) {
+    let queue = array(nodes, 0);
+    var queue_head = 0;
+    var queue_tail = 1;
+    queue[0] = start;
+    visited[start] = 1;
+    while queue_head < queue_tail {
+        let node = queue[queue_head];
+        queue_head += 1;
+        var edge = head[node];
+        while edge != -1 {
+            let neighbor = to[edge];
+            if visited[neighbor] == 0 {
+                visited[neighbor] = 1;
+                queue[queue_tail] = neighbor;
+                queue_tail += 1;
+            }
+            edge = next[edge];
+        }
+    }
+}
+
+fn main() {
+    let nodes = read();
+    let edges = read();
+    let head = array(nodes + 1, -1);
+    let reverse_head = array(nodes + 1, -1);
+    let to = array(edges, 0);
+    let from = array(edges, 0);
+    let next = array(edges, 0);
+    let reverse_next = array(edges, 0);
+    for edge in 0..edges {
+        from[edge] = read();
+        to[edge] = read();
+        next[edge] = head[from[edge]];
+        head[from[edge]] = edge;
+        reverse_next[edge] = reverse_head[to[edge]];
+        reverse_head[to[edge]] = edge;
+    }
+    let forward = array(nodes + 1, 0);
+    let backward = array(nodes + 1, 0);
+    visit(1, nodes, head, to, next, forward);
+    visit(1, nodes, reverse_head, from, reverse_next, backward);
+    var missing_forward = 0;
+    var missing_backward = 0;
+    for node in 1..=nodes {
+        if forward[node] == 0 && missing_forward == 0 {
+            missing_forward = node;
+        }
+        if backward[node] == 0 && missing_backward == 0 {
+            missing_backward = node;
+        }
+    }
+    if missing_forward != 0 {
+        println("NO");
+        println(1, " ", missing_forward);
+    } else if missing_backward != 0 {
+        println("NO");
+        println(missing_backward, " ", 1);
+    } else {
+        println("YES");
+    }
+}

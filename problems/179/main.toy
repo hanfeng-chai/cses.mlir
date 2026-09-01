@@ -1,0 +1,12 @@
+fn main() {
+    let size = read();
+    let modulus = 1_000_000_007;
+    let squares = size * size;
+    let quarter_orbits = (squares + 3) / 4;
+    let half_orbits = (squares + 1) / 2;
+    let answer = (pow_mod(2, squares % (modulus - 1), modulus)
+        + 2 * pow_mod(2, quarter_orbits % (modulus - 1), modulus)
+        + pow_mod(2, half_orbits % (modulus - 1), modulus)) % modulus
+        * pow_mod(4, modulus - 2, modulus) % modulus;
+    println(answer);
+}

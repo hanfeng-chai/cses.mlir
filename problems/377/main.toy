@@ -1,0 +1,22 @@
+fn main() {
+    let n = read();
+    let a = read_array(n);
+    let b = read_array(n);
+    var p = array(n, 0);
+    var run = 0;
+    for i in 0..n {
+        run += a[i] - b[i];
+        p[i] = run;
+    }
+    let sorted = array(n, 0);
+    for i in 0..n {
+        sorted[i] = p[i];
+    }
+    sort(sorted);
+    let median = sorted[n / 2];
+    var cost = 0;
+    for i in 0..n {
+        cost += absolute(median - p[i]);
+    }
+    println(cost);
+}

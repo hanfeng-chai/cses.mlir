@@ -1,0 +1,13 @@
+fn main() {
+    let n = read();
+    let m = read();
+    for e in 0..m {
+        let a = read();
+        let b = read();
+        if a < b {
+            println(a, " ", b);
+        } else {
+            println(b, " ", a);
+        }
+    }
+}

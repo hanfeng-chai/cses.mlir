@@ -1,0 +1,26 @@
+fn main() {
+    let n = read();
+    let k = read();
+    let moves = array(k, 0);
+    for i in 0..k {
+        moves[i] = read();
+    }
+    let win = array(n + 1, 0);
+    for i in 1..=n {
+        var j = 0;
+        while j < k {
+            if moves[j] <= i && win[i - moves[j]] == 0 {
+                win[i] = 1;
+                j = k;
+            } else {
+                j += 1;
+            }
+        }
+        if win[i] == 1 {
+            put(87);
+        } else {
+            put(76);
+        }
+    }
+    put(10);
+}

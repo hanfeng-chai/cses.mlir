@@ -1,0 +1,35 @@
+fn main() {
+    let n = read();
+    let k = read();
+    let values = read_array(n);
+    let count = array(k + 2, 0);
+    let missing = ordered(k + 4);
+    for v in 0..=k {
+        ordered_insert(missing, v);
+    }
+    for i in 0..n {
+        let value = values[i];
+        if value <= k {
+            count[value] += 1;
+            if count[value] == 1 {
+                ordered_erase(missing, value);
+            }
+        }
+        if i >= k {
+            let old = values[i - k];
+            if old <= k {
+                count[old] -= 1;
+                if count[old] == 0 {
+                    ordered_insert(missing, old);
+                }
+            }
+        }
+        if i >= k - 1 {
+            if i != k - 1 {
+                print(" ");
+            }
+            print(ordered_first(missing));
+        }
+    }
+    println();
+}

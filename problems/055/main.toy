@@ -1,0 +1,13 @@
+fn main() {
+    let count = read();
+    let frequencies = array(count, 0);
+    frequencies[0] = 1;
+    var prefix = 0;
+    var answer = 0;
+    for index in 0..count {
+        prefix = ((prefix + read()) % count + count) % count;
+        answer += frequencies[prefix];
+        frequencies[prefix] += 1;
+    }
+    println(answer);
+}

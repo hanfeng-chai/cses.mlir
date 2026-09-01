@@ -1,0 +1,55 @@
+fn main() {
+    let n = read();
+    let m = read();
+    let key = array(m, 0);
+    let first = array(m, 0);
+    let second = array(m, 0);
+    let scale = m + 1;
+    for e in 0..m {
+        let a = read();
+        let b = read();
+        let w = read();
+        key[e] = w * scale + e;
+        first[e] = a;
+        second[e] = b;
+    }
+    sort_triples(key, first, second);
+    let parent = array(n + 1, 0);
+    for v in 1..=n {
+        parent[v] = v;
+    }
+    let answer = array(m, 0);
+    var i = 0;
+    while i < m {
+        let w = key[i] / scale;
+        var j = i;
+        while j < m && key[j] / scale == w {
+            j += 1;
+        }
+        var k = i;
+        while k < j {
+            let index = key[k] % scale;
+            if dsu_find(parent, first[k]) != dsu_find(parent, second[k]) {
+                answer[index] = 1;
+            }
+            k += 1;
+        }
+        var k2 = i;
+        while k2 < j {
+            let ra = dsu_find(parent, first[k2]);
+            let rb = dsu_find(parent, second[k2]);
+            if ra != rb {
+                parent[ra] = rb;
+            }
+            k2 += 1;
+        }
+        i = j;
+    }
+    for e in 0..m {
+        if answer[e] == 1 {
+            println("YES");
+        } else {
+            println("NO");
+        }
+    }
+}

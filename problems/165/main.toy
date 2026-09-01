@@ -1,0 +1,20 @@
+fn triangular(value: i64, modulus: i64) -> i64 {
+    let reduced = value % modulus;
+    return reduced * ((reduced + 1) % modulus) % modulus * ((modulus + 1) / 2) % modulus;
+}
+
+fn main() {
+    let limit = read();
+    let modulus = 1_000_000_007;
+    var answer = 0;
+    var divisor = 1;
+    while divisor <= limit {
+        let quotient = limit / divisor;
+        let last = limit / quotient;
+        let range_sum = (triangular(last, modulus)
+            - triangular(divisor - 1, modulus) + modulus) % modulus;
+        answer = (answer + (quotient % modulus) * range_sum) % modulus;
+        divisor = last + 1;
+    }
+    println(answer);
+}

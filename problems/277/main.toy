@@ -1,0 +1,47 @@
+fn main() {
+    let n = read();
+    let trie = array(2 * (n + 1) * 31 + 5, -1);
+    var node_count = 1;
+    // insert(0)
+    var u = 0;
+    for b in 0..30 {
+        let bit = 29 - b;
+        let child = trie[u * 2 + 0];
+        if child < 0 {
+            trie[u * 2 + 0] = node_count;
+            node_count += 1;
+        }
+        u = trie[u * 2 + 0];
+    }
+    var prefix = 0;
+    var answer = 0;
+    for i in 0..n {
+        prefix ^= read();
+        // query max xor
+        u = 0;
+        var best = 0;
+        for b in 0..30 {
+            let bit = 29 - b;
+            let desired = 1 - ((prefix >> bit) & 1);
+            if trie[u * 2 + desired] >= 0 {
+                best |= 1 << bit;
+                u = trie[u * 2 + desired];
+            } else {
+                u = trie[u * 2 + 1 - desired];
+            }
+        }
+        answer = max(answer, best);
+        // insert prefix
+        u = 0;
+        for b in 0..30 {
+            let bit = 29 - b;
+            let child = (prefix >> bit) & 1;
+            if trie[u * 2 + child] < 0 {
+                trie[u * 2 + child] = node_count;
+                node_count += 1;
+            }
+            u = trie[u * 2 + child];
+        }
+    }
+    println(answer);
+}

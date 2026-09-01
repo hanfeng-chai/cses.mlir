@@ -1,0 +1,75 @@
+fn main() {
+    let n = read();
+    let p = array(n + 1, 0);
+    for i in 1..=n {
+        p[i] = read();
+    }
+
+    // method 1: inversions
+    let bit = array(n + 1, 0);
+    var inversions = 0;
+    for i in n..=1 by -1 {
+        inversions += fenwick_sum(bit, p[i] - 1);
+        fenwick_add(bit, p[i], 1);
+    }
+
+    // method 2: n - cycles
+    var visited = array(n + 1, 0);
+    var cycles = 0;
+    for i in 1..=n {
+        if visited[i] == 1 {
+            continue;
+        }
+        cycles += 1;
+        var j = i;
+        while visited[j] == 0 {
+            visited[j] = 1;
+            j = p[j];
+        }
+    }
+
+    // method 3: n - LIS
+    var tails = array(n + 1, 0);
+    var tail_size = 0;
+    for i in 1..=n {
+        let v = p[i];
+        var lo = 0;
+        var hi = tail_size;
+        while lo < hi {
+            let mid = (lo + hi) / 2;
+            if tails[mid] < v {
+                lo = mid + 1;
+            } else {
+                hi = mid;
+            }
+        }
+        if lo == tail_size {
+            tails[tail_size] = v;
+            tail_size += 1;
+        } else {
+            tails[lo] = v;
+        }
+    }
+
+    // method 4: n - longest descending-value suffix with increasing positions
+    var pos = array(n + 1, 0);
+    for i in 1..=n {
+        pos[p[i]] = i;
+    }
+    var k = 1;
+    for v in n - 1..=1 by -1 {
+        if pos[v] < pos[v + 1] {
+            k += 1;
+        } else {
+            break;
+        }
+    }
+
+    print(inversions);
+    print(" ");
+    print(n - cycles);
+    print(" ");
+    print(n - tail_size);
+    print(" ");
+    println(n - k);
+}

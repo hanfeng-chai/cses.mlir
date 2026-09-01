@@ -1,0 +1,69 @@
+fn main() {
+    let n = read();
+    let a = read_array(n);
+    let b = read_array(n);
+
+    let key = array(n, 0);
+    let order = array(n, 0);
+    let filler = array(n, 0);
+    for i in 0..n {
+        key[i] = 0 - a[i];
+        order[i] = i;
+    }
+    sort_triples(key, order, filler);
+
+    var grid = array(n * n, 0);
+    let queue = heap(2 * n + 10);
+    for j in 0..n {
+        heap_push(queue, 0 - b[j], j);
+    }
+
+    var ok = true;
+    for idx in 0..n {
+        let r = order[idx];
+        let need = a[r];
+        var popped_b = array(n + 1, 0);
+        var popped_j = array(n + 1, 0);
+        var popped_count = 0;
+        for k in 0..need {
+            if heap_size(queue) == 0 || 0 - heap_first(queue) == 0 {
+                ok = false;
+                break;
+            }
+            popped_b[popped_count] = heap_first(queue);
+            popped_j[popped_count] = heap_second(queue);
+            popped_count += 1;
+            heap_pop(queue);
+        }
+        if !ok {
+            break;
+        }
+        for t in 0..popped_count {
+            grid[r * n + popped_j[t]] = 1;
+            heap_push(queue, popped_b[t] + 1, popped_j[t]);
+        }
+    }
+    if ok {
+        while heap_size(queue) > 0 {
+            if 0 - heap_first(queue) != 0 {
+                ok = false;
+                break;
+            }
+            heap_pop(queue);
+        }
+    }
+    if !ok {
+        println(-1);
+        return;
+    }
+    for r in 0..n {
+        for c in 0..n {
+            if grid[r * n + c] == 1 {
+                put(88);
+            } else {
+                put(46);
+            }
+        }
+        put(10);
+    }
+}

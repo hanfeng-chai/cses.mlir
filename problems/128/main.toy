@@ -1,0 +1,39 @@
+fn main() {
+    let employees = read();
+    let queries = read();
+    let salaries = array(employees + 1, 0);
+    let coordinates = array(employees + queries, 0);
+    for employee in 1..=employees {
+        salaries[employee] = read();
+        coordinates[employee - 1] = salaries[employee];
+    }
+    let kind = array(queries, 0);
+    let first = array(queries, 0);
+    let second = array(queries, 0);
+    for query in 0..queries {
+        let operation = read_text();
+        kind[query] = at(operation, 0);
+        first[query] = read();
+        second[query] = read();
+        if kind[query] == 33 {
+            coordinates[employees + query] = second[query];
+        }
+    }
+    sort(coordinates);
+    let tree = array(employees + queries + 1, 0);
+    for employee in 1..=employees {
+        fenwick_add(tree, lower_bound(coordinates, salaries[employee]) + 1, 1);
+    }
+    for query in 0..queries {
+        if kind[query] == 33 {
+            let employee = first[query];
+            fenwick_add(tree, lower_bound(coordinates, salaries[employee]) + 1, -1);
+            salaries[employee] = second[query];
+            fenwick_add(tree, lower_bound(coordinates, salaries[employee]) + 1, 1);
+        } else {
+            let below = lower_bound(coordinates, first[query]);
+            let at_most = upper_bound(coordinates, second[query]);
+            println(fenwick_sum(tree, at_most) - fenwick_sum(tree, below));
+        }
+    }
+}

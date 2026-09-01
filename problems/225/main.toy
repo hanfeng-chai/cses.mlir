@@ -1,0 +1,18 @@
+fn main() {
+    let n = read();
+    var max_u = -9000000000000000000;
+    var min_u = 9000000000000000000;
+    var max_v = -9000000000000000000;
+    var min_v = 9000000000000000000;
+    for i in 0..n {
+        let x = read();
+        let y = read();
+        let u = x + y;
+        let v = x - y;
+        max_u = max(max_u, u);
+        min_u = min(min_u, u);
+        max_v = max(max_v, v);
+        min_v = min(min_v, v);
+        println(max(max_u - min_u, max_v - min_v));
+    }
+}

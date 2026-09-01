@@ -1,0 +1,66 @@
+fn bit2d_add(tree: array<i64>, size: i64, row: i64, column: i64, value: i64) {
+    let stride = size + 1;
+    var current_row = row;
+    while current_row <= size {
+        var current_column = column;
+        while current_column <= size {
+            tree[current_row * stride + current_column] += value;
+            current_column += current_column & (0 - current_column);
+        }
+        current_row += current_row & (0 - current_row);
+    }
+}
+
+fn bit2d_sum(tree: array<i64>, size: i64, row: i64, column: i64) -> i64 {
+    let stride = size + 1;
+    var result = 0;
+    var current_row = row;
+    while current_row > 0 {
+        var current_column = column;
+        while current_column > 0 {
+            result += tree[current_row * stride + current_column];
+            current_column -= current_column & (0 - current_column);
+        }
+        current_row -= current_row & (0 - current_row);
+    }
+    return result;
+}
+
+fn main() {
+    let size = read();
+    let queries = read();
+    let stride = size + 1;
+    let current = array(stride * stride, 0);
+    let tree = array(stride * stride, 0);
+    for row in 1..=size {
+        let line = read_text();
+        for column in 1..=size {
+            if at(line, column - 1) == 42 {
+                current[row * stride + column] = 1;
+                bit2d_add(tree, size, row, column, 1);
+            }
+        }
+    }
+    for query in 0..queries {
+        let kind = read();
+        if kind == 1 {
+            let row = read();
+            let column = read();
+            let cell = row * stride + column;
+            let change = 1 - 2 * current[cell];
+            current[cell] = 1 - current[cell];
+            bit2d_add(tree, size, row, column, change);
+        } else {
+            let top = read();
+            let left = read();
+            let bottom = read();
+            let right = read();
+            println(
+                bit2d_sum(tree, size, bottom, right)
+                - bit2d_sum(tree, size, top - 1, right)
+                - bit2d_sum(tree, size, bottom, left - 1)
+                + bit2d_sum(tree, size, top - 1, left - 1)
+            );
+        }
+    }
+}

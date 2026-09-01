@@ -1,0 +1,47 @@
+fn remove_at(values: array<i64>, size: i64, position: i64) {
+    for index in position..size - 1 {
+        values[index] = values[index + 1];
+    }
+}
+
+fn main() {
+    let factorial = array(21, 1);
+    for value in 1..=20 {
+        factorial[value] = factorial[value - 1] * value;
+    }
+    let queries = read();
+    for query in 0..queries {
+        let kind = read();
+        let size = read();
+        let available = array(size, 0);
+        for index in 0..size {
+            available[index] = index + 1;
+        }
+        if kind == 1 {
+            var rank = read() - 1;
+            var remaining = size;
+            for index in 0..size {
+                let position = rank / factorial[size - 1 - index];
+                rank %= factorial[size - 1 - index];
+                print(available[position], " ");
+                remove_at(available, remaining, position);
+                remaining -= 1;
+            }
+            println();
+        } else {
+            var rank = 1;
+            var remaining = size;
+            for index in 0..size {
+                let value = read();
+                var position = 0;
+                while available[position] != value {
+                    position += 1;
+                }
+                rank += position * factorial[size - 1 - index];
+                remove_at(available, remaining, position);
+                remaining -= 1;
+            }
+            println(rank);
+        }
+    }
+}

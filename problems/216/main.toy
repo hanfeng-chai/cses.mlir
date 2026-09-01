@@ -1,0 +1,107 @@
+fn main() {
+    let s = read_text();
+    let n = length(s);
+    let k = read();
+    let max_nodes = 2 * n + 2;
+    let len = array(max_nodes, 0);
+    let link = array(max_nodes, 0);
+    let to = array(26 * max_nodes, 0);
+    let occ = array(max_nodes, 0);
+    var size = 1;
+    var last = 1;
+    for idx in 0..n {
+        let c = at(s, idx) - 97;
+        size += 1;
+        let cur = size;
+        len[cur] = len[last] + 1;
+        occ[cur] = 1;
+        var p = last;
+        while p != 0 && to[p * 26 + c] == 0 {
+            to[p * 26 + c] = cur;
+            p = link[p];
+        }
+        if p == 0 {
+            link[cur] = 1;
+        } else {
+            let q = to[p * 26 + c];
+            if len[q] == len[p] + 1 {
+                link[cur] = q;
+            } else {
+                size += 1;
+                let clone = size;
+                len[clone] = len[p] + 1;
+                link[clone] = link[q];
+                occ[clone] = 0;
+                for t in 0..26 {
+                    to[clone * 26 + t] = to[q * 26 + t];
+                }
+                while p != 0 && to[p * 26 + c] == q {
+                    to[p * 26 + c] = clone;
+                    p = link[p];
+                }
+                link[q] = clone;
+                link[cur] = clone;
+            }
+        }
+        last = cur;
+    }
+    let bucket = array(n + 2, 0);
+    let order = array(size + 1, 0);
+    for v in 1..=size {
+        bucket[len[v]] += 1;
+    }
+    for i in 1..=n {
+        bucket[i] += bucket[i - 1];
+    }
+    for v in 1..=size {
+        order[bucket[len[v]]] = v;
+        bucket[len[v]] -= 1;
+    }
+    for i in 1..=size {
+        let v = order[size + 1 - i];
+        if link[v] != 0 {
+            occ[link[v]] += occ[v];
+        }
+    }
+    let f = array(size + 1, 0);
+    for i in 1..=size {
+        let v = order[size + 1 - i];
+        for c in 0..26 {
+            if to[v * 26 + c] != 0 {
+                let u = to[v * 26 + c];
+                f[v] += occ[u] + f[u];
+            }
+        }
+    }
+    var remaining = k;
+    var v = 1;
+    var walking = true;
+    while walking {
+        var moved = false;
+        var c = 0;
+        while c < 26 && !moved {
+            if to[v * 26 + c] != 0 {
+                let u = to[v * 26 + c];
+                let block = occ[u] + f[u];
+                if remaining <= block {
+                    put(97 + c);
+                    if remaining <= occ[u] {
+                        walking = false;
+                        moved = true;
+                    } else {
+                        remaining -= occ[u];
+                        v = u;
+                        moved = true;
+                    }
+                } else {
+                    remaining -= block;
+                }
+            }
+            c += 1;
+        }
+        if !moved && walking {
+            walking = false;
+        }
+    }
+    put(10);
+}

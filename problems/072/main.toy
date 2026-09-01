@@ -1,0 +1,50 @@
+fn main() {
+    let size = read();
+    let grid = array(size * size, 0);
+    for row in 0..size {
+        let line = read_text();
+        for column in 0..size {
+            grid[row * size + column] = at(line, column);
+        }
+    }
+    let active = array(size, 0);
+    let candidates = array(size, 0);
+    let next = array(size, 0);
+    active[0] = 1;
+    put(grid[0]);
+    for diagonal in 1..2 * size - 1 {
+        for row in 0..size {
+            candidates[row] = 0;
+            next[row] = 0;
+        }
+        for row in 0..size {
+            if active[row] != 0 {
+                let column = diagonal - 1 - row;
+                if row + 1 < size {
+                    candidates[row + 1] = 1;
+                }
+                if column + 1 < size {
+                    candidates[row] = 1;
+                }
+            }
+        }
+        var best = 127;
+        for row in 0..size {
+            let column = diagonal - row;
+            if candidates[row] != 0 && column >= 0 && column < size
+                && grid[row * size + column] < best {
+                best = grid[row * size + column];
+            }
+        }
+        put(best);
+        for row in 0..size {
+            let column = diagonal - row;
+            if candidates[row] != 0 && column >= 0 && column < size
+                && grid[row * size + column] == best {
+                next[row] = 1;
+            }
+            active[row] = next[row];
+        }
+    }
+    println();
+}

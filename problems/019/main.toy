@@ -1,0 +1,9 @@
+fn main() {
+    let size = read();
+    for row in 0..size {
+        for column in 0..size {
+            print(row ^ column, " ");
+        }
+        println();
+    }
+}

@@ -1,0 +1,47 @@
+fn main() {
+    let n = read();
+    let k = read();
+    let x = read();
+    let a = read();
+    let b = read();
+    let c = read();
+    let arr = array(n, 0);
+    var prev = x;
+    arr[0] = x;
+    for i in 1..n {
+        prev = (a * prev + b) % c;
+        arr[i] = prev;
+    }
+    let in_val = array(n, 0);
+    let in_or = array(n, 0);
+    let out_val = array(n, 0);
+    let out_or = array(n, 0);
+    var in_top = 0;
+    var out_top = 0;
+    var answer = 0;
+    var left = 0;
+    for r in 0..n {
+        let value = arr[r];
+        in_val[in_top] = value;
+        in_or[in_top] = (if in_top > 0 { in_or[in_top - 1] } else { 0 }) | value;
+        in_top += 1;
+        if r - left + 1 > k {
+            if out_top == 0 {
+                while in_top > 0 {
+                    in_top -= 1;
+                    let vv = in_val[in_top];
+                    out_val[out_top] = vv;
+                    out_or[out_top] = (if out_top > 0 { out_or[out_top - 1] } else { 0 }) | vv;
+                    out_top += 1;
+                }
+            }
+            out_top -= 1;
+            left += 1;
+        }
+        if r - left + 1 == k {
+            let current = (if out_top > 0 { out_or[out_top - 1] } else { 0 }) | (if in_top > 0 { in_or[in_top - 1] } else { 0 });
+            answer ^= current;
+        }
+    }
+    println(answer);
+}

@@ -1,0 +1,5 @@
+fn main() {
+    let y = read();
+    let x = read();
+    println((y - 1) ^ (x - 1));
+}

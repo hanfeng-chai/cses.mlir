@@ -1,0 +1,23 @@
+fn eliminated(circle: i64, order: i64) -> i64 {
+    var result = 0;
+    if order <= circle / 2 {
+        result = 2 * order;
+    } else {
+        let remaining_order = order - circle / 2;
+        if circle % 2 == 0 {
+            result = 2 * eliminated(circle / 2, remaining_order) - 1;
+        } else if remaining_order == 1 {
+            result = 1;
+        } else {
+            result = 2 * eliminated((circle - 1) / 2, remaining_order - 1) + 1;
+        }
+    }
+    return result;
+}
+
+fn main() {
+    let queries = read();
+    for query in 0..queries {
+        println(eliminated(read(), read()));
+    }
+}

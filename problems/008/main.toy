@@ -1,0 +1,44 @@
+fn main() {
+    let n = read();
+    let sum = n * (n + 1) / 2;
+    if sum % 2 != 0 {
+        println("NO");
+    } else {
+        var target = sum / 2;
+        var candidate = n;
+        var first_size = 0;
+        while candidate >= 1 && target > 0 {
+            if target >= candidate {
+                target -= candidate;
+                first_size += 1;
+            }
+            candidate -= 1;
+        }
+
+        println("YES");
+        println(first_size);
+        target = sum / 2;
+        candidate = n;
+        while candidate >= 1 {
+            if target >= candidate {
+                print(candidate, " ");
+                target -= candidate;
+            }
+            candidate -= 1;
+        }
+        println();
+
+        println(n - first_size);
+        target = sum / 2;
+        candidate = n;
+        while candidate >= 1 {
+            if target >= candidate {
+                target -= candidate;
+            } else {
+                print(candidate, " ");
+            }
+            candidate -= 1;
+        }
+        println();
+    }
+}

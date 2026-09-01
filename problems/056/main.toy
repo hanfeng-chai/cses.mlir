@@ -1,0 +1,27 @@
+fn main() {
+    let count = read();
+    let distinct_limit = read();
+    let values = array(count, 0);
+    let frequencies = map(2 * count);
+    var distinct = 0;
+    var left = 0;
+    var answer = 0;
+    for right in 0..count {
+        values[right] = read();
+        let previous = map_get(frequencies, values[right], 0);
+        if previous == 0 {
+            distinct += 1;
+        }
+        map_set(frequencies, values[right], previous + 1);
+        while distinct > distinct_limit {
+            let next = map_get(frequencies, values[left], 0) - 1;
+            map_set(frequencies, values[left], next);
+            if next == 0 {
+                distinct -= 1;
+            }
+            left += 1;
+        }
+        answer += right - left + 1;
+    }
+    println(answer);
+}

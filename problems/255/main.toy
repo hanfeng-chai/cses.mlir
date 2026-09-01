@@ -1,0 +1,187 @@
+fn interval_add(node: i64, lo: i64, hi: i64, ql: i64, qr: i64, a: i64, b: i64, head: array<i64>, list_a: array<i64>, list_b: array<i64>, list_next: array<i64>, list_cursor: array<i64>) {
+    if qr < lo || hi < ql {
+        return;
+    }
+    if ql <= lo && hi <= qr {
+        let position = list_cursor[0];
+        list_cursor[0] += 1;
+        list_a[position] = a;
+        list_b[position] = b;
+        list_next[position] = head[node];
+        head[node] = position;
+        return;
+    }
+    let mid = (lo + hi) / 2;
+    interval_add(2 * node, lo, mid, ql, qr, a, b, head, list_a, list_b, list_next, list_cursor);
+    interval_add(2 * node + 1, mid + 1, hi, ql, qr, a, b, head, list_a, list_b, list_next, list_cursor);
+}
+
+fn connectivity_dfs(node: i64, lo: i64, hi: i64, n: i64, parent: array<i64>, rank: array<i64>, components: array<i64>, undo_b: array<i64>, undo_flag: array<i64>, undo_size: array<i64>, answers: array<i64>, head: array<i64>, list_a: array<i64>, list_b: array<i64>, list_next: array<i64>) {
+    var done = 0;
+    var e = head[node];
+    while e != -1 {
+        var ra = list_a[e];
+        while parent[ra] != ra {
+            ra = parent[ra];
+        }
+        var rb = list_b[e];
+        while parent[rb] != rb {
+            rb = parent[rb];
+        }
+        if ra == rb {
+            undo_b[undo_size[0]] = -1;
+            undo_flag[undo_size[0]] = 0;
+            undo_size[0] += 1;
+        } else {
+            if rank[ra] < rank[rb] {
+                let temp = ra;
+                ra = rb;
+                rb = temp;
+            }
+            var flag = 0;
+            if rank[ra] == rank[rb] {
+                rank[ra] += 1;
+                flag = 1;
+            }
+            parent[rb] = ra;
+            undo_b[undo_size[0]] = rb;
+            undo_flag[undo_size[0]] = flag;
+            undo_size[0] += 1;
+            components[0] -= 1;
+        }
+        done += 1;
+        e = list_next[e];
+    }
+    if lo == hi {
+        answers[lo] = components[0];
+    } else {
+        let mid = (lo + hi) / 2;
+        connectivity_dfs(2 * node, lo, mid, n, parent, rank, components, undo_b, undo_flag, undo_size, answers, head, list_a, list_b, list_next);
+        connectivity_dfs(2 * node + 1, mid + 1, hi, n, parent, rank, components, undo_b, undo_flag, undo_size, answers, head, list_a, list_b, list_next);
+    }
+    while done > 0 {
+        done -= 1;
+        undo_size[0] -= 1;
+        let b = undo_b[undo_size[0]];
+        if b != -1 {
+            let a = parent[b];
+            parent[b] = b;
+            if undo_flag[undo_size[0]] == 1 {
+                rank[a] -= 1;
+            }
+            components[0] += 1;
+        }
+    }
+}
+
+fn main() {
+    let n = read();
+    let m = read();
+    let k = read();
+    let active = map(2 * (m + k) + 8);
+    let key_base = n + 1;
+    let initial_a = array(m, 0);
+    let initial_b = array(m, 0);
+    for i in 0..m {
+        let a = read();
+        let b = read();
+        var first = a;
+        var second = b;
+        if first > second {
+            let temp = first;
+            first = second;
+            second = temp;
+        }
+        initial_a[i] = first;
+        initial_b[i] = second;
+        map_set(active, first * key_base + second, 0);
+    }
+    let created_a = array(k, 0);
+    let created_b = array(k, 0);
+    var created_count = 0;
+    let interval_a = array(m + k, 0);
+    let interval_b = array(m + k, 0);
+    let interval_lo = array(m + k, 0);
+    let interval_hi = array(m + k, 0);
+    var interval_count = 0;
+    for t in 1..=k {
+        let type = read();
+        let a = read();
+        let b = read();
+        var first = a;
+        var second = b;
+        if first > second {
+            let temp = first;
+            first = second;
+            second = temp;
+        }
+        let key = first * key_base + second;
+        if type == 1 {
+            map_set(active, key, t);
+            created_a[created_count] = first;
+            created_b[created_count] = second;
+            created_count += 1;
+        } else {
+            let start = map_get(active, key, -1);
+            map_set(active, key, -1);
+            if start != -1 {
+                interval_a[interval_count] = first;
+                interval_b[interval_count] = second;
+                interval_lo[interval_count] = start;
+                interval_hi[interval_count] = t - 1;
+                interval_count += 1;
+            }
+        }
+    }
+    for i in 0..m {
+        let key = initial_a[i] * key_base + initial_b[i];
+        let start = map_get(active, key, -1);
+        if start != -1 {
+            interval_a[interval_count] = initial_a[i];
+            interval_b[interval_count] = initial_b[i];
+            interval_lo[interval_count] = start;
+            interval_hi[interval_count] = k;
+            interval_count += 1;
+        }
+    }
+    for i in 0..created_count {
+        let key = created_a[i] * key_base + created_b[i];
+        let start = map_get(active, key, -1);
+        if start != -1 {
+            interval_a[interval_count] = created_a[i];
+            interval_b[interval_count] = created_b[i];
+            interval_lo[interval_count] = start;
+            interval_hi[interval_count] = k;
+            interval_count += 1;
+        }
+    }
+    let head = array(4 * (k + 1) + 5, -1);
+    let list_size = interval_count * 18 + 10;
+    let list_a = array(list_size, 0);
+    let list_b = array(list_size, 0);
+    let list_next = array(list_size, 0);
+    let list_cursor = array(1, 0);
+    for i in 0..interval_count {
+        if interval_lo[i] <= interval_hi[i] {
+            interval_add(1, 0, k, interval_lo[i], interval_hi[i], interval_a[i], interval_b[i], head, list_a, list_b, list_next, list_cursor);
+        }
+    }
+    let parent = array(n + 1, 0);
+    let rank = array(n + 1, 0);
+    for i in 1..=n {
+        parent[i] = i;
+    }
+    let components = array(1, n);
+    let undo_b = array(m + k + 5, 0);
+    let undo_flag = array(m + k + 5, 0);
+    let undo_size = array(1, 0);
+    let answers = array(k + 1, 0);
+    connectivity_dfs(1, 0, k, n, parent, rank, components, undo_b, undo_flag, undo_size, answers, head, list_a, list_b, list_next);
+    for t in 0..=k {
+        if t != 0 {
+            print(" ");
+        }
+        print(answers[t]);
+    }
+    println();
+}

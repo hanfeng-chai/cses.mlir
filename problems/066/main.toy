@@ -1,0 +1,24 @@
+fn main() {
+    let count = read();
+    let budget = read();
+    let prices = array(count, 0);
+    let pages = array(count, 0);
+    for book in 0..count {
+        prices[book] = read();
+    }
+    for book in 0..count {
+        pages[book] = read();
+    }
+    let best = array(budget + 1, 0);
+    for book in 0..count {
+        var price = budget + 1;
+        while price > prices[book] {
+            price -= 1;
+            let candidate = best[price - prices[book]] + pages[book];
+            if candidate > best[price] {
+                best[price] = candidate;
+            }
+        }
+    }
+    println(best[budget]);
+}

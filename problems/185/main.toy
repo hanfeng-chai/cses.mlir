@@ -1,0 +1,37 @@
+fn main() {
+    let limit = 10000001;
+    let two_a = array(limit, i16(-1));
+    let two_b = array(limit, i16(-1));
+    var i = 0;
+    while i * i < limit {
+        var j = i;
+        while i * i + j * j < limit {
+            let value = i * i + j * j;
+            if i64(two_a[value]) == -1 {
+                two_a[value] = i16(i);
+                two_b[value] = i16(j);
+            }
+            j += 1;
+        }
+        i += 1;
+    }
+    let tests = read();
+    for test in 0..tests {
+        let n = read();
+        var found = false;
+        var a = 0;
+        while !found && a * a <= n {
+            var b = a;
+            while !found && a * a + b * b <= n {
+                let remainder = n - a * a - b * b;
+                if i64(two_a[remainder]) != -1 {
+                    print(a, " ", b, " ", i64(two_a[remainder]), " ", i64(two_b[remainder]));
+                    println();
+                    found = true;
+                }
+                b += 1;
+            }
+            a += 1;
+        }
+    }
+}

@@ -1,0 +1,139 @@
+fn main() {
+    let n = read();
+    let m = read();
+    let head = array(n + 1, -1);
+    let to = array(m, 0);
+    let next = array(m, 0);
+    for e in 0..m {
+        let a = read();
+        let b = read();
+        to[e] = b;
+        next[e] = head[a];
+        head[a] = e;
+    }
+    let match_left = array(n + 1, 0);
+    let match_right = array(n + 1, 0);
+    let dist_a = array(n + 1, 0);
+    let cursor = array(n + 1, 0);
+    let bfs_queue = array(n + 1, 0);
+    let stack_u = array(n + 1, 0);
+    let stack_v = array(n + 1, 0);
+    var matching = 0;
+    var searching = true;
+    while searching {
+        var head_index = 0;
+        var tail_index = 0;
+        for u in 1..=n {
+            if match_left[u] == 0 {
+                dist_a[u] = 0;
+                bfs_queue[tail_index] = u;
+                tail_index += 1;
+            } else {
+                dist_a[u] = -1;
+            }
+        }
+        var found = false;
+        while head_index < tail_index {
+            let u = bfs_queue[head_index];
+            head_index += 1;
+            var e = head[u];
+            while e != -1 {
+                let v = to[e];
+                let w = match_right[v];
+                if w == 0 {
+                    found = true;
+                } else if dist_a[w] == -1 {
+                    dist_a[w] = dist_a[u] + 1;
+                    bfs_queue[tail_index] = w;
+                    tail_index += 1;
+                }
+                e = next[e];
+            }
+        }
+        if !found {
+            searching = false;
+            break;
+        }
+        for u in 1..=n {
+            cursor[u] = head[u];
+        }
+        for u in 1..=n {
+            if match_left[u] != 0 {
+                continue;
+            }
+            var stack_size = 1;
+            stack_u[0] = u;
+            var augmented = false;
+            var free_v = 0;
+            while stack_size > 0 && !augmented {
+                let current = stack_u[stack_size - 1];
+                var descended = false;
+                while cursor[current] != -1 && !descended {
+                    let e = cursor[current];
+                    cursor[current] = next[e];
+                    let v = to[e];
+                    let w = match_right[v];
+                    if w == 0 {
+                        free_v = v;
+                        augmented = true;
+                        descended = true;
+                    } else if dist_a[w] == dist_a[current] + 1 {
+                        stack_v[stack_size - 1] = v;
+                        stack_u[stack_size] = w;
+                        stack_size += 1;
+                        descended = true;
+                    }
+                }
+                if !descended {
+                    stack_size -= 1;
+                }
+            }
+            if augmented {
+                matching += 1;
+                var v = free_v;
+                var i = stack_size - 1;
+                while i >= 0 {
+                    match_left[stack_u[i]] = v;
+                    match_right[v] = stack_u[i];
+                    if i > 0 {
+                        v = stack_v[i - 1];
+                    }
+                    i -= 1;
+                }
+            }
+        }
+    }
+    let cover = n - matching;
+    if cover > 2 {
+        println("NO");
+        return;
+    }
+    println("YES");
+    let path = array(n, 0);
+    var printed_paths = 0;
+    for u in 1..=n {
+        if match_right[u] != 0 {
+            continue;
+        }
+        var path_size = 0;
+        var current = u;
+        while current != 0 {
+            path[path_size] = current;
+            path_size += 1;
+            current = match_left[current];
+        }
+        print(path_size);
+        for i in 0..path_size {
+            print(" ", path[i]);
+        }
+        println();
+        printed_paths += 1;
+        if printed_paths == 2 {
+            break;
+        }
+    }
+    while printed_paths < 2 {
+        println(0);
+        printed_paths += 1;
+    }
+}

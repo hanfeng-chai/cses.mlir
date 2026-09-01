@@ -1,0 +1,19 @@
+fn main() {
+    let queries = read();
+    let modulus = 1_000_000_007;
+    for query in 0..queries {
+        let base = read();
+        let first_exponent = read();
+        let second_exponent = read();
+        if base % modulus == 0 {
+            if first_exponent == 0 && second_exponent > 0 {
+                println(1);
+            } else {
+                println(0);
+            }
+        } else {
+            let exponent = pow_mod(first_exponent, second_exponent, modulus - 1);
+            println(pow_mod(base, exponent, modulus));
+        }
+    }
+}

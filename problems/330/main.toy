@@ -1,0 +1,54 @@
+fn main() {
+    let s = read_text();
+    let n = length(s);
+    let p = n / 2;
+    let comb_off = array(p + 2, 0);
+    for i in 0..=p {
+        comb_off[i + 1] = comb_off[i] + i + 1;
+    }
+    let comb = array(comb_off[p + 1], 0);
+    for i in 0..=p {
+        comb[comb_off[i]] = 1;
+        for j in 1..=i {
+            var value = 0;
+            if j <= i - 1 {
+                value += comb[comb_off[i - 1] + j];
+            }
+            if j - 1 >= 0 {
+                value += comb[comb_off[i - 1] + j - 1];
+            }
+            comb[comb_off[i] + j] = value % 1000000007;
+        }
+    }
+    let stride = n + 1;
+    let dp = array(n * stride, 0);
+    var length = 2;
+    while length <= n {
+        for i in 0..n - length + 1 {
+            let j = i + length - 1;
+            var value = 0;
+            var k = i + 1;
+            while k <= j {
+                if at(s, k) == at(s, i) {
+                    var inside = 1;
+                    if i + 1 <= k - 1 {
+                        inside = dp[(i + 1) * stride + k - 1];
+                    }
+                    var rest = 1;
+                    if k + 1 <= j {
+                        rest = dp[(k + 1) * stride + j];
+                    }
+                    if inside != 0 && rest != 0 {
+                        let right_count = (j - k) / 2;
+                        let total_count = length / 2;
+                        value = (value + inside * rest % 1000000007 * comb[comb_off[total_count] + right_count]) % 1000000007;
+                    }
+                }
+                k += 2;
+            }
+            dp[i * stride + j] = value;
+        }
+        length += 2;
+    }
+    println(dp[n - 1]);
+}

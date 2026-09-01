@@ -1,0 +1,27 @@
+fn main() {
+    let n = read();
+    var m = 1;
+    while m < n {
+        m <<= 1;
+    }
+    let g = array(m, 0);
+    for i in 0..n {
+        g[i] = read();
+    }
+    var bit = 0;
+    while (1 << bit) < m {
+        for mask in 0..m {
+            if ((mask >> bit) & 1) == 1 {
+                g[mask] ^= g[mask ^ (1 << bit)];
+            }
+        }
+        bit += 1;
+    }
+    for r in 0..n {
+        if r != 0 {
+            print(" ");
+        }
+        print(g[r]);
+    }
+    println();
+}

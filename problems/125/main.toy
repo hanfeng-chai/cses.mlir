@@ -1,0 +1,30 @@
+fn main() {
+    let size = read();
+    let queries = read();
+    let stride = size + 1;
+    let prefix = array(stride * stride, 0);
+    for row in 1..=size {
+        let line = read_text();
+        for column in 1..=size {
+            var tree = 0;
+            if at(line, column - 1) == 42 {
+                tree = 1;
+            }
+            prefix[row * stride + column] = prefix[(row - 1) * stride + column]
+                + prefix[row * stride + column - 1]
+                - prefix[(row - 1) * stride + column - 1] + tree;
+        }
+    }
+    for query in 0..queries {
+        let top = read();
+        let left = read();
+        let bottom = read();
+        let right = read();
+        println(
+            prefix[bottom * stride + right]
+            - prefix[(top - 1) * stride + right]
+            - prefix[bottom * stride + left - 1]
+            + prefix[(top - 1) * stride + left - 1]
+        );
+    }
+}

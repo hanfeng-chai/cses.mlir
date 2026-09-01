@@ -1,0 +1,144 @@
+fn main() {
+    let a = read();
+    let b = read();
+    let x = read();
+    if x > a {
+        println(-1);
+        return;
+    }
+    let stride = b + 1;
+    let ns = (a + 1) * stride;
+    let dist = array(ns, 0);
+    for i in 0..ns {
+        dist[i] = -1;
+    }
+    let parent_state = array(ns, 0);
+    let parent_move = array(ns, 0);
+    let queue = heap(2 * ns);
+
+    dist[0] = 0;
+    heap_push(queue, 0, 0);
+
+    while heap_size(queue) > 0 {
+        let s = heap_second(queue);
+        let d = heap_first(queue);
+        heap_pop(queue);
+        if d != dist[s] {
+            continue;
+        }
+        let ca = s / stride;
+        let cb = s % stride;
+
+        if ca < a {
+            let ns2 = a * stride + cb;
+            let nd = d + (a - ca);
+            if dist[ns2] == -1 || nd < dist[ns2] {
+                dist[ns2] = nd;
+                parent_state[ns2] = s;
+                parent_move[ns2] = 0;
+                heap_push(queue, nd, ns2);
+            }
+        }
+        if cb < b {
+            let ns2 = ca * stride + b;
+            let nd = d + (b - cb);
+            if dist[ns2] == -1 || nd < dist[ns2] {
+                dist[ns2] = nd;
+                parent_state[ns2] = s;
+                parent_move[ns2] = 1;
+                heap_push(queue, nd, ns2);
+            }
+        }
+        if ca > 0 {
+            let ns2 = cb;
+            let nd = d + ca;
+            if dist[ns2] == -1 || nd < dist[ns2] {
+                dist[ns2] = nd;
+                parent_state[ns2] = s;
+                parent_move[ns2] = 2;
+                heap_push(queue, nd, ns2);
+            }
+        }
+        if cb > 0 {
+            let ns2 = ca * stride;
+            let nd = d + cb;
+            if dist[ns2] == -1 || nd < dist[ns2] {
+                dist[ns2] = nd;
+                parent_state[ns2] = s;
+                parent_move[ns2] = 3;
+                heap_push(queue, nd, ns2);
+            }
+        }
+        var amount = ca;
+        if b - cb < amount {
+            amount = b - cb;
+        }
+        if amount > 0 {
+            let ns2 = (ca - amount) * stride + cb + amount;
+            let nd = d + amount;
+            if dist[ns2] == -1 || nd < dist[ns2] {
+                dist[ns2] = nd;
+                parent_state[ns2] = s;
+                parent_move[ns2] = 4;
+                heap_push(queue, nd, ns2);
+            }
+        }
+        amount = cb;
+        if a - ca < amount {
+            amount = a - ca;
+        }
+        if amount > 0 {
+            let ns2 = (ca + amount) * stride + cb - amount;
+            let nd = d + amount;
+            if dist[ns2] == -1 || nd < dist[ns2] {
+                dist[ns2] = nd;
+                parent_state[ns2] = s;
+                parent_move[ns2] = 5;
+                heap_push(queue, nd, ns2);
+            }
+        }
+    }
+
+    var best = -1;
+    var best_state = -1;
+    for cb in 0..=b {
+        let s = x * stride + cb;
+        if dist[s] != -1 && (best == -1 || dist[s] < best) {
+            best = dist[s];
+            best_state = s;
+        }
+    }
+    if best_state == -1 {
+        println(-1);
+        return;
+    }
+
+    let moves = array(ns, 0);
+    var count = 0;
+    var current = best_state;
+    while current != 0 {
+        moves[count] = parent_move[current];
+        count += 1;
+        current = parent_state[current];
+    }
+
+    print(count);
+    print(" ");
+    println(best);
+    for i in count - 1..=0 by -1 {
+        let mv = moves[i];
+        if mv == 0 {
+            print("FILL A\n");
+        } else if mv == 1 {
+            print("FILL B\n");
+        } else if mv == 2 {
+            print("EMPTY A\n");
+        } else if mv == 3 {
+            print("EMPTY B\n");
+        } else if mv == 4 {
+            print("MOVE A B\n");
+        } else {
+            print("MOVE B A\n");
+        }
+    }
+}

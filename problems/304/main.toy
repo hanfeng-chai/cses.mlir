@@ -1,0 +1,30 @@
+fn main() {
+    let n = read();
+    let weight = array(n - 1, 0);
+    let first = array(n - 1, 0);
+    let second = array(n - 1, 0);
+    for e in 0..n - 1 {
+        let a = read();
+        let b = read();
+        let w = read();
+        weight[e] = 0 - w;
+        first[e] = a;
+        second[e] = b;
+    }
+    sort_triples(weight, first, second);
+    let parent = array(n + 1, 0);
+    let size = array(n + 1, 0);
+    for v in 1..=n {
+        parent[v] = v;
+        size[v] = 1;
+    }
+    var answer = 0;
+    for e in 0..n - 1 {
+        let ra = dsu_find(parent, first[e]);
+        let rb = dsu_find(parent, second[e]);
+        answer += size[ra] * size[rb] * (0 - weight[e]);
+        parent[ra] = rb;
+        size[rb] += size[ra];
+    }
+    println(answer);
+}

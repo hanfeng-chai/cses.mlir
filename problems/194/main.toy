@@ -1,0 +1,18 @@
+fn main() {
+    let tests = read();
+    for test in 0..tests {
+        let n = read();
+        var x = 0;
+        for i in 1..=n {
+            let value = read();
+            if i % 2 == 0 {
+                x ^= value;
+            }
+        }
+        if x != 0 {
+            println("first");
+        } else {
+            println("second");
+        }
+    }
+}

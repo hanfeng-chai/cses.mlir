@@ -1,0 +1,29 @@
+fn main() {
+    let count = read();
+    let target = read();
+    let times = array(count, 0);
+    var fastest = 9_223_372_036_854_775_807;
+    for machine in 0..count {
+        times[machine] = read();
+        if times[machine] < fastest {
+            fastest = times[machine];
+        }
+    }
+    var left = 1;
+    var right = fastest * target;
+    while left < right {
+        let middle = left + (right - left) / 2;
+        var produced = 0;
+        var machine = 0;
+        while machine < count && produced < target {
+            produced += middle / times[machine];
+            machine += 1;
+        }
+        if produced >= target {
+            right = middle;
+        } else {
+            left = middle + 1;
+        }
+    }
+    println(left);
+}

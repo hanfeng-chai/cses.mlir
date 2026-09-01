@@ -1,0 +1,27 @@
+fn main() {
+    let tests = read();
+    for test in 0..tests {
+        let row = read();
+        let column = read();
+        var side = row;
+        if column > side {
+            side = column;
+        }
+        let base = (side - 1) * (side - 1);
+        var answer = 0;
+        if side % 2 == 0 {
+            if column == side {
+                answer = base + row;
+            } else {
+                answer = base + 2 * side - column;
+            }
+        } else {
+            if row == side {
+                answer = base + column;
+            } else {
+                answer = base + 2 * side - row;
+            }
+        }
+        println(answer);
+    }
+}

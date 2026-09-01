@@ -1,0 +1,18 @@
+fn main() {
+    let count = read();
+    let skip = read();
+    let tree = array(count + 1, 0);
+    for value in 1..=count {
+        fenwick_add(tree, value, 1);
+    }
+    var remaining = count;
+    var position = 0;
+    for turn in 0..count {
+        position = (position + skip) % remaining;
+        let child = fenwick_find(tree, position + 1);
+        print(child, " ");
+        fenwick_add(tree, child, -1);
+        remaining -= 1;
+    }
+    println();
+}

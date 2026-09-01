@@ -1,0 +1,31 @@
+fn available(parent: array<i64>, index: i64) -> i64 {
+    var result = index;
+    if index >= 0 && parent[index] != index {
+        parent[index] = available(parent, parent[index]);
+        result = parent[index];
+    }
+    return result;
+}
+
+fn main() {
+    let ticket_count = read();
+    let customer_count = read();
+    let tickets = array(ticket_count, 0);
+    let parent = array(ticket_count, 0);
+    for index in 0..ticket_count {
+        tickets[index] = read();
+        parent[index] = index;
+    }
+    sort(tickets);
+
+    for customer in 0..customer_count {
+        let budget = read();
+        let index = available(parent, upper_bound(tickets, budget) - 1);
+        if index < 0 {
+            println(-1);
+        } else {
+            println(tickets[index]);
+            parent[index] = available(parent, index - 1);
+        }
+    }
+}

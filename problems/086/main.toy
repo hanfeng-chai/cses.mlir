@@ -1,0 +1,57 @@
+fn main() {
+    let nodes = read();
+    let edges = read();
+    let head = array(nodes + 1, -1);
+    let to = array(2 * edges, 0);
+    let next = array(2 * edges, 0);
+    for edge in 0..edges {
+        let first = read();
+        let second = read();
+        to[2 * edge] = second;
+        next[2 * edge] = head[first];
+        head[first] = 2 * edge;
+        to[2 * edge + 1] = first;
+        next[2 * edge + 1] = head[second];
+        head[second] = 2 * edge + 1;
+    }
+    let distance = array(nodes + 1, -1);
+    let parent = array(nodes + 1, 0);
+    let queue = array(nodes, 0);
+    var queue_head = 0;
+    var queue_tail = 1;
+    queue[0] = 1;
+    distance[1] = 0;
+    while queue_head < queue_tail {
+        let node = queue[queue_head];
+        queue_head += 1;
+        var edge = head[node];
+        while edge != -1 {
+            let neighbor = to[edge];
+            if distance[neighbor] == -1 {
+                distance[neighbor] = distance[node] + 1;
+                parent[neighbor] = node;
+                queue[queue_tail] = neighbor;
+                queue_tail += 1;
+            }
+            edge = next[edge];
+        }
+    }
+    if distance[nodes] == -1 {
+        println("IMPOSSIBLE");
+    } else {
+        let path = array(distance[nodes] + 1, 0);
+        var size = 0;
+        var node = nodes;
+        while node != 0 {
+            path[size] = node;
+            size += 1;
+            node = parent[node];
+        }
+        println(size);
+        while size > 0 {
+            size -= 1;
+            print(path[size], " ");
+        }
+        println();
+    }
+}

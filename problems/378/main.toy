@@ -1,0 +1,102 @@
+fn main() {
+    let n = read();
+    let p = array(n + 1, 0);
+    for i in 1..=n {
+        p[i] = read();
+    }
+    var cur = array(n + 1, 0);
+    for i in 1..=n {
+        cur[i] = p[i];
+    }
+    var visited = array(n + 1, 0);
+    var r1_a = array(n, 0);
+    var r1_b = array(n, 0);
+    var r2_a = array(n, 0);
+    var r2_b = array(n, 0);
+    var c1 = 0;
+    var c2 = 0;
+    var pos_in_cycle = array(n + 1, 0);
+    var indices = array(n + 1, 0);
+    var done = array(n + 1, 0);
+
+    for start in 1..=n {
+        if visited[start] == 1 {
+            continue;
+        }
+        var length = 0;
+        var x = start;
+        while true {
+            indices[length] = x;
+            length += 1;
+            visited[x] = 1;
+            x = cur[x];
+            if x == start {
+                break;
+            }
+        }
+        if length <= 1 {
+            continue;
+        }
+        if length == 2 {
+            r1_a[c1] = indices[0];
+            r1_b[c1] = indices[1];
+            c1 += 1;
+            continue;
+        }
+        for i in 0..length {
+            pos_in_cycle[indices[i]] = i;
+        }
+        var i = 0;
+        while i < length - 1 - i {
+            let a = indices[i];
+            let b = indices[length - 1 - i];
+            r1_a[c1] = a;
+            r1_b[c1] = b;
+            c1 += 1;
+            let tmp = cur[a];
+            cur[a] = cur[b];
+            cur[b] = tmp;
+            i += 1;
+        }
+        for i in 0..length {
+            done[i] = 0;
+        }
+        for i in 0..length {
+            let pos = indices[i];
+            if done[i] == 1 || cur[pos] == pos {
+                continue;
+            }
+            let target = cur[pos];
+            r2_a[c2] = pos;
+            r2_b[c2] = target;
+            c2 += 1;
+            done[i] = 1;
+            done[pos_in_cycle[target]] = 1;
+        }
+    }
+
+    var rounds = 0;
+    if c1 > 0 {
+        rounds += 1;
+    }
+    if c2 > 0 {
+        rounds += 1;
+    }
+    println(rounds);
+    if c1 > 0 {
+        println(c1);
+        for i in 0..c1 {
+            print(r1_a[i]);
+            print(" ");
+            println(r1_b[i]);
+        }
+    }
+    if c2 > 0 {
+        println(c2);
+        for i in 0..c2 {
+            print(r2_a[i]);
+            print(" ");
+            println(r2_b[i]);
+        }
+    }
+}

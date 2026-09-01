@@ -1,0 +1,69 @@
+fn main() {
+    let s = read_text();
+    let n = length(s);
+    let max_nodes = 2 * n + 2;
+    let len = array(max_nodes, 0);
+    let link = array(max_nodes, 0);
+    let to = array(26 * max_nodes, 0);
+    let firstpos = array(max_nodes, 0);
+    var size = 1;
+    var last = 1;
+    for idx in 0..n {
+        let c = at(s, idx) - 97;
+        size += 1;
+        let cur = size;
+        len[cur] = len[last] + 1;
+        firstpos[cur] = len[cur] - 1;
+        var p = last;
+        while p != 0 && to[p * 26 + c] == 0 {
+            to[p * 26 + c] = cur;
+            p = link[p];
+        }
+        if p == 0 {
+            link[cur] = 1;
+        } else {
+            let q = to[p * 26 + c];
+            if len[q] == len[p] + 1 {
+                link[cur] = q;
+            } else {
+                size += 1;
+                let clone = size;
+                len[clone] = len[p] + 1;
+                link[clone] = link[q];
+                firstpos[clone] = firstpos[q];
+                for t in 0..26 {
+                    to[clone * 26 + t] = to[q * 26 + t];
+                }
+                while p != 0 && to[p * 26 + c] == q {
+                    to[p * 26 + c] = clone;
+                    p = link[p];
+                }
+                link[q] = clone;
+                link[cur] = clone;
+            }
+        }
+        last = cur;
+    }
+    let k = read();
+    for query in 0..k {
+        let pattern = read_text();
+        let pattern_length = length(pattern);
+        var u = 1;
+        var ok = true;
+        var j = 0;
+        while ok && j < pattern_length {
+            let c = at(pattern, j) - 97;
+            if to[u * 26 + c] == 0 {
+                ok = false;
+            } else {
+                u = to[u * 26 + c];
+                j += 1;
+            }
+        }
+        if ok {
+            println(firstpos[u] - pattern_length + 2);
+        } else {
+            println(-1);
+        }
+    }
+}

@@ -1,0 +1,19 @@
+fn main() {
+    let count = read();
+    let ending = array(count, 0);
+    let starting = array(count, 0);
+    for movie in 0..count {
+        starting[movie] = read();
+        ending[movie] = read();
+    }
+    sort_pairs(ending, starting);
+    var watched = 0;
+    var available_at = 0;
+    for movie in 0..count {
+        if starting[movie] >= available_at {
+            watched += 1;
+            available_at = ending[movie];
+        }
+    }
+    println(watched);
+}

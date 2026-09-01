@@ -1,0 +1,33 @@
+fn main() {
+    let n = read();
+    let x = array(n + 1, 0);
+    for i in 1..=n {
+        x[i] = read();
+    }
+    let sorted = array(n, 0);
+    for i in 0..n {
+        sorted[i] = x[i + 1];
+    }
+    sort(sorted);
+    var rank = array(n + 1, 0);
+    for i in 1..=n {
+        rank[i] = lower_bound(sorted, x[i]) + 1;
+    }
+    var pos = array(n + 1, 0);
+    for i in 1..=n {
+        pos[rank[i]] = i;
+    }
+    let bit = array(n + 2, 0);
+    fenwick_add(bit, pos[n], 1);
+    var total = 1;
+    var ans = 0;
+    for v in n - 1..=1 by -1 {
+        let p = pos[v];
+        let cost_left = fenwick_sum(bit, p);
+        let cost_right = total - cost_left;
+        ans += minimum(cost_left, cost_right);
+        fenwick_add(bit, p, 1);
+        total += 1;
+    }
+    println(ans);
+}

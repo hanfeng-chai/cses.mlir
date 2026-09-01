@@ -1,0 +1,45 @@
+fn main() {
+    let n = read();
+    let x = array(n, 0);
+    let y = array(n, 0);
+    for i in 0..n {
+        x[i] = read();
+        y[i] = read();
+    }
+    var area_twice = i128(0);
+    var boundary = 0;
+    for i in 0..n {
+        let j = (i + 1) % n;
+        area_twice += i128(x[i]) * i128(y[j]) - i128(x[j]) * i128(y[i]);
+        var dx = x[i] - x[j];
+        if dx < 0 {
+            dx = 0 - dx;
+        }
+        var dy = y[i] - y[j];
+        if dy < 0 {
+            dy = 0 - dy;
+        }
+        boundary += gcd(dx, dy);
+    }
+    if area_twice < i128(0) {
+        area_twice = i128(0) - area_twice;
+    }
+    var inside = (area_twice - i128(boundary) + i128(2)) / i128(2);
+    let digits = array(30, 0);
+    var count = 0;
+    if inside == i128(0) {
+        digits[0] = 0;
+        count = 1;
+    } else {
+        while inside > i128(0) {
+            digits[count] = i64(inside % i128(10));
+            count += 1;
+            inside = inside / i128(10);
+        }
+    }
+    for i in 0..count {
+        put(48 + digits[count - 1 - i]);
+    }
+    print(" ", boundary);
+    put(10);
+}

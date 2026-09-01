@@ -1,0 +1,45 @@
+fn count_paths(row: i64, column: i64, step: i64, walls: array<i64>, path: string) -> i64 {
+    var answer = 0;
+    if row == 7 && column == 1 {
+        if step == 48 {
+            answer = 1;
+        }
+    } else {
+        let up = walls[(row - 1) * 9 + column] != 0;
+        let down = walls[(row + 1) * 9 + column] != 0;
+        let left = walls[row * 9 + column - 1] != 0;
+        let right = walls[row * 9 + column + 1] != 0;
+        let split = (up && down && !left && !right) || (left && right && !up && !down);
+        if !split {
+            walls[row * 9 + column] = 1;
+            let direction = at(path, step);
+            if (direction == 85 || direction == 63) && !up {
+                answer += count_paths(row - 1, column, step + 1, walls, path);
+            }
+            if (direction == 68 || direction == 63) && !down {
+                answer += count_paths(row + 1, column, step + 1, walls, path);
+            }
+            if (direction == 76 || direction == 63) && !left {
+                answer += count_paths(row, column - 1, step + 1, walls, path);
+            }
+            if (direction == 82 || direction == 63) && !right {
+                answer += count_paths(row, column + 1, step + 1, walls, path);
+            }
+            walls[row * 9 + column] = 0;
+        }
+    }
+    return answer;
+}
+
+fn main() {
+    let path = read_text();
+    let walls = array(81, 0);
+    for row in 0..9 {
+        for column in 0..9 {
+            if row == 0 || row == 8 || column == 0 || column == 8 {
+                walls[row * 9 + column] = 1;
+            }
+        }
+    }
+    println(count_paths(1, 1, 0, walls, path));
+}

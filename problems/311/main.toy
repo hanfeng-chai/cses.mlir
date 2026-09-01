@@ -1,0 +1,143 @@
+fn sift_slice(values: array<i64>, start: i64, count: i64) {
+    var index = start;
+    while 2 * index + 1 < count {
+        var child = 2 * index + 1;
+        if child + 1 < count && values[child + 1] > values[child] {
+            child += 1;
+        }
+        if values[child] <= values[index] {
+            return;
+        }
+        let temporary = values[index];
+        values[index] = values[child];
+        values[child] = temporary;
+        index = child;
+    }
+}
+
+fn heap_sort_slice(values: array<i64>, count: i64) {
+    var begin = count / 2;
+    while begin > 0 {
+        begin -= 1;
+        sift_slice(values, begin, count);
+    }
+    var end = count;
+    while end > 1 {
+        end -= 1;
+        let temporary = values[0];
+        values[0] = values[end];
+        values[end] = temporary;
+        sift_slice(values, 0, end);
+    }
+}
+
+fn canonical_form(n: i64, head: array<i64>, to: array<i64>, next: array<i64>, canon: map, canon_count: array<i64>) -> i64 {
+    let parent = array(n + 1, 0);
+    let order = array(n, 0);
+    let visited = array(n + 1, 0);
+    let stack = array(n, 0);
+    var order_size = 0;
+    visited[1] = 1;
+    var stack_size = 1;
+    stack[0] = 1;
+    while stack_size > 0 {
+        stack_size -= 1;
+        let u = stack[stack_size];
+        order[order_size] = u;
+        order_size += 1;
+        var e = head[u];
+        while e != -1 {
+            let v = to[e];
+            if visited[v] == 0 {
+                visited[v] = 1;
+                parent[v] = u;
+                stack[stack_size] = v;
+                stack_size += 1;
+            }
+            e = next[e];
+        }
+    }
+    let child_head = array(n + 1, -1);
+    let child_next = array(n + 1, -1);
+    let child_val = array(n + 1, 0);
+    let scratch = array(n, 0);
+    var root_id = 0;
+    var index = order_size - 1;
+    while index >= 0 {
+        let u = order[index];
+        var count = 0;
+        var c = child_head[u];
+        while c != -1 {
+            scratch[count] = child_val[c];
+            count += 1;
+            c = child_next[c];
+        }
+        heap_sort_slice(scratch, count);
+        var h1 = 0;
+        var h2 = 0;
+        var j = 0;
+        while j < count {
+            h1 = (h1 * 1000003 + scratch[j] + 7) % 1000000007;
+            h2 = (h2 * 1000003 + scratch[j] + 11) % 1000000009;
+            j += 1;
+        }
+        let key = h1 * 1000000010 + h2;
+        var id = map_get(canon, key, -1);
+        if id == -1 {
+            id = canon_count[0];
+            canon_count[0] += 1;
+            map_set(canon, key, id);
+        }
+        if parent[u] != 0 {
+            child_val[u] = id;
+            child_next[u] = child_head[parent[u]];
+            child_head[parent[u]] = u;
+        } else {
+            root_id = id;
+        }
+        index -= 1;
+    }
+    return root_id;
+}
+
+fn main() {
+    let tests = read();
+    for test in 0..tests {
+        let n = read();
+        let head_a = array(n + 1, -1);
+        let to_a = array(2 * n, 0);
+        let next_a = array(2 * n, 0);
+        for e in 0..n - 1 {
+            let a = read();
+            let b = read();
+            to_a[2 * e] = b;
+            next_a[2 * e] = head_a[a];
+            head_a[a] = 2 * e;
+            to_a[2 * e + 1] = a;
+            next_a[2 * e + 1] = head_a[b];
+            head_a[b] = 2 * e + 1;
+        }
+        let head_b = array(n + 1, -1);
+        let to_b = array(2 * n, 0);
+        let next_b = array(2 * n, 0);
+        for e in 0..n - 1 {
+            let a = read();
+            let b = read();
+            to_b[2 * e] = b;
+            next_b[2 * e] = head_b[a];
+            head_b[a] = 2 * e;
+            to_b[2 * e + 1] = a;
+            next_b[2 * e + 1] = head_b[b];
+            head_b[b] = 2 * e + 1;
+        }
+        let canon = map(2 * n);
+        let canon_count = array(1, 0);
+        let first_id = canonical_form(n, head_a, to_a, next_a, canon, canon_count);
+        let second_id = canonical_form(n, head_b, to_b, next_b, canon, canon_count);
+        if first_id == second_id {
+            println("YES");
+        } else {
+            println("NO");
+        }
+    }
+}

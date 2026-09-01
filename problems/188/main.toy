@@ -1,0 +1,62 @@
+fn main() {
+    let k = read();
+    let delta_row = array(4, 0);
+    let delta_column = array(4, 0);
+    delta_row[0] = -1;
+    delta_row[1] = 1;
+    delta_row[2] = 0;
+    delta_row[3] = 0;
+    delta_column[0] = 0;
+    delta_column[1] = 0;
+    delta_column[2] = -1;
+    delta_column[3] = 1;
+    let degree = array(64, 0);
+    let neighbor = array(64 * 4, -1);
+    for row in 0..8 {
+        for column in 0..8 {
+            let cell = row * 8 + column;
+            var count = 0;
+            for direction in 0..4 {
+                let next_row = row + delta_row[direction];
+                let next_column = column + delta_column[direction];
+                if next_row >= 0 && next_row < 8 && next_column >= 0 && next_column < 8 {
+                    neighbor[cell * 4 + count] = next_row * 8 + next_column;
+                    count += 1;
+                }
+            }
+            degree[cell] = count;
+        }
+    }
+    let probability = array(64 * 64, f64(0));
+    for robot in 0..64 {
+        let dp = array(64, f64(0));
+        dp[robot] = f64(1);
+        for step in 0..k {
+            let next = array(64, f64(0));
+            for cell in 0..64 {
+                if dp[cell] > f64(0) {
+                    let share = dp[cell] / f64(degree[cell]);
+                    for t in 0..degree[cell] {
+                        next[neighbor[cell * 4 + t]] += share;
+                    }
+                }
+            }
+            for cell in 0..64 {
+                dp[cell] = next[cell];
+            }
+        }
+        for square in 0..64 {
+            probability[robot * 64 + square] = dp[square];
+        }
+    }
+    var answer = f64(0);
+    for square in 0..64 {
+        var empty = f64(1);
+        for robot in 0..64 {
+            empty *= f64(1) - probability[robot * 64 + square];
+        }
+        answer += empty;
+    }
+    print_fixed(answer, 6);
+    println();
+}

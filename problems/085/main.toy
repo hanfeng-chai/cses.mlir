@@ -1,0 +1,24 @@
+fn main() {
+    let cities = read();
+    let roads = read();
+    let parent = array(cities + 1, 0);
+    let size = array(cities + 1, 1);
+    for city in 1..=cities {
+        parent[city] = city;
+    }
+    for road in 0..roads {
+        dsu_union(parent, size, read(), read());
+    }
+    let representatives = array(cities, 0);
+    var count = 0;
+    for city in 1..=cities {
+        if dsu_find(parent, city) == city {
+            representatives[count] = city;
+            count += 1;
+        }
+    }
+    println(count - 1);
+    for index in 1..count {
+        println(representatives[0], " ", representatives[index]);
+    }
+}

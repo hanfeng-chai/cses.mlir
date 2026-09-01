@@ -1,0 +1,14 @@
+fn main() {
+    let count = read();
+    let tails = array(count, 0);
+    var size = 0;
+    for index in 0..count {
+        let value = read();
+        let position = lower_bound_prefix(tails, size, value);
+        tails[position] = value;
+        if position == size {
+            size += 1;
+        }
+    }
+    println(size);
+}

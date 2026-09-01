@@ -1,0 +1,109 @@
+fn persistent_build(
+    values: array<i64>, sum: array<i64>, left_child: array<i64>, right_child: array<i64>,
+    next_node: array<i64>, left: i64, right: i64
+) -> i64 {
+    let node = next_node[0];
+    next_node[0] += 1;
+    if left == right {
+        sum[node] = values[left];
+    } else {
+        let middle = (left + right) / 2;
+        left_child[node] = persistent_build(
+            values, sum, left_child, right_child, next_node, left, middle
+        );
+        right_child[node] = persistent_build(
+            values, sum, left_child, right_child, next_node, middle + 1, right
+        );
+        sum[node] = sum[left_child[node]] + sum[right_child[node]];
+    }
+    return node;
+}
+
+fn persistent_set(
+    previous: i64, position: i64, value: i64, left: i64, right: i64,
+    sum: array<i64>, left_child: array<i64>, right_child: array<i64>, next_node: array<i64>
+) -> i64 {
+    let node = next_node[0];
+    next_node[0] += 1;
+    sum[node] = sum[previous];
+    left_child[node] = left_child[previous];
+    right_child[node] = right_child[previous];
+    if left == right {
+        sum[node] = value;
+    } else {
+        let middle = (left + right) / 2;
+        if position <= middle {
+            left_child[node] = persistent_set(
+                left_child[previous], position, value, left, middle,
+                sum, left_child, right_child, next_node
+            );
+        } else {
+            right_child[node] = persistent_set(
+                right_child[previous], position, value, middle + 1, right,
+                sum, left_child, right_child, next_node
+            );
+        }
+        sum[node] = sum[left_child[node]] + sum[right_child[node]];
+    }
+    return node;
+}
+
+fn persistent_sum(
+    node: i64, left: i64, right: i64, query_left: i64, query_right: i64,
+    sum: array<i64>, left_child: array<i64>, right_child: array<i64>
+) -> i64 {
+    var result = 0;
+    if query_right >= left && right >= query_left {
+        if query_left <= left && right <= query_right {
+            result = sum[node];
+        } else {
+            let middle = (left + right) / 2;
+            result = persistent_sum(
+                left_child[node], left, middle, query_left, query_right,
+                sum, left_child, right_child
+            ) + persistent_sum(
+                right_child[node], middle + 1, right, query_left, query_right,
+                sum, left_child, right_child
+            );
+        }
+    }
+    return result;
+}
+
+fn main() {
+    let size = read();
+    let queries = read();
+    let values = array(size + 1, 0);
+    for index in 1..=size {
+        values[index] = read();
+    }
+    let capacity = (size + queries + 2) * 22;
+    let sum = array(capacity, 0);
+    let left_child = array(capacity, 0);
+    let right_child = array(capacity, 0);
+    let next_node = array(1, 1);
+    let roots = array(queries + 1, 0);
+    var versions = 1;
+    roots[0] = persistent_build(values, sum, left_child, right_child, next_node, 1, size);
+    for query in 0..queries {
+        let kind = read();
+        let version = read() - 1;
+        if kind == 1 {
+            let position = read();
+            let value = read();
+            roots[version] = persistent_set(
+                roots[version], position, value, 1, size,
+                sum, left_child, right_child, next_node
+            );
+        } else if kind == 2 {
+            let left = read();
+            let right = read();
+            println(persistent_sum(
+                roots[version], 1, size, left, right, sum, left_child, right_child
+            ));
+        } else {
+            roots[versions] = roots[version];
+            versions += 1;
+        }
+    }
+}

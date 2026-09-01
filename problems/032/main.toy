@@ -1,0 +1,15 @@
+fn main() {
+    let count = read();
+    var best = -9_223_372_036_854_775_807;
+    var current = 0;
+    for index in 0..count {
+        current += read();
+        if current > best {
+            best = current;
+        }
+        if current < 0 {
+            current = 0;
+        }
+    }
+    println(best);
+}

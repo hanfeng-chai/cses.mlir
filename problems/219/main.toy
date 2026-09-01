@@ -1,0 +1,69 @@
+fn cross(ox: i64, oy: i64, ax: i64, ay: i64, bx: i64, yy: i64) -> i64 {
+    return (ax - ox) * (yy - oy) - (ay - oy) * (bx - ox);
+}
+
+fn sign(value: i64) -> i64 {
+    var result = 0;
+    if value > 0 {
+        result = 1;
+    }
+    if value < 0 {
+        result = -1;
+    }
+    return result;
+}
+
+fn on_segment(px: i64, py: i64, qx: i64, qy: i64, rx: i64, ry: i64) -> bool {
+    var low_x = px;
+    if qx < low_x {
+        low_x = qx;
+    }
+    var high_x = px;
+    if qx > high_x {
+        high_x = qx;
+    }
+    var low_y = py;
+    if qy < low_y {
+        low_y = qy;
+    }
+    var high_y = py;
+    if qy > high_y {
+        high_y = qy;
+    }
+    return low_x <= rx && rx <= high_x && low_y <= ry && ry <= high_y;
+}
+
+fn main() {
+    let tests = read();
+    for test in 0..tests {
+        let x1 = read();
+        let y1 = read();
+        let x2 = read();
+        let y2 = read();
+        let x3 = read();
+        let y3 = read();
+        let x4 = read();
+        let y4 = read();
+        let d1 = sign(cross(x3, y3, x4, y4, x1, y1));
+        let d2 = sign(cross(x3, y3, x4, y4, x2, y2));
+        let d3 = sign(cross(x1, y1, x2, y2, x3, y3));
+        let d4 = sign(cross(x1, y1, x2, y2, x4, y4));
+        var intersects = false;
+        if d1 != d2 && d3 != d4 {
+            intersects = true;
+        } else if d1 == 0 && on_segment(x3, y3, x4, y4, x1, y1) {
+            intersects = true;
+        } else if d2 == 0 && on_segment(x3, y3, x4, y4, x2, y2) {
+            intersects = true;
+        } else if d3 == 0 && on_segment(x1, y1, x2, y2, x3, y3) {
+            intersects = true;
+        } else if d4 == 0 && on_segment(x1, y1, x2, y2, x4, y4) {
+            intersects = true;
+        }
+        if intersects {
+            println("YES");
+        } else {
+            println("NO");
+        }
+    }
+}

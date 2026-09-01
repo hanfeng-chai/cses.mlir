@@ -1,0 +1,222 @@
+fn big_norm(value: array<i64>) {
+    var i = value[12] - 1;
+    while i > 0 && value[i] == 0 {
+        i -= 1;
+    }
+    value[12] = i + 1;
+}
+
+fn big_from(value: i64, out: array<i64>) {
+    out[0] = value & 4294967295;
+    out[1] = value >> 32;
+    out[12] = 2;
+    big_norm(out);
+}
+
+fn big_assign(source: array<i64>, destination: array<i64>) {
+    for i in 0..=12 {
+        destination[i] = source[i];
+    }
+}
+
+fn big_mul_small(a: array<i64>, x: i64, out: array<i64>) {
+    let mask = i128(4294967295);
+    var carry = i128(0);
+    var i = 0;
+    while i < a[12] {
+        let current = i128(a[i]) * i128(x) + carry;
+        out[i] = i64(current & mask);
+        carry = current >> i128(32);
+        i += 1;
+    }
+    while carry != i128(0) && i < 12 {
+        out[i] = i64(carry & mask);
+        carry = carry >> i128(32);
+        i += 1;
+    }
+    out[12] = i;
+    big_norm(out);
+}
+
+fn big_add(a: array<i64>, b: array<i64>, out: array<i64>) {
+    let mask = i128(4294967295);
+    var carry = i128(0);
+    var i = 0;
+    while i < 12 {
+        var current = carry;
+        if i < a[12] {
+            current += i128(a[i]);
+        }
+        if i < b[12] {
+            current += i128(b[i]);
+        }
+        out[i] = i64(current & mask);
+        carry = current >> i128(32);
+        i += 1;
+    }
+    out[12] = 12;
+    big_norm(out);
+}
+
+fn big_compare(a: array<i64>, b: array<i64>) -> i64 {
+    var result = 0;
+    if a[12] != b[12] {
+        if a[12] < b[12] {
+            result = -1;
+        } else {
+            result = 1;
+        }
+    } else {
+        var i = a[12] - 1;
+        while i >= 0 && result == 0 {
+            if a[i] != b[i] {
+                if a[i] < b[i] {
+                    result = -1;
+                } else {
+                    result = 1;
+                }
+            }
+            i -= 1;
+        }
+    }
+    return result;
+}
+
+fn big_sub(a: array<i64>, b: array<i64>, out: array<i64>) {
+    var borrow = 0;
+    var i = 0;
+    while i < a[12] {
+        var current = a[i] - borrow;
+        if i < b[12] {
+            current -= b[i];
+        }
+        if current < 0 {
+            current += 4294967296;
+            borrow = 1;
+        } else {
+            borrow = 0;
+        }
+        out[i] = current;
+        i += 1;
+    }
+    out[12] = a[12];
+    big_norm(out);
+}
+
+fn big_div_small(a: array<i64>, d: i64, out: array<i64>) {
+    var i = a[12] - 1;
+    var current = i128(0);
+    while i >= 0 {
+        current = (current << i128(32)) | i128(a[i]);
+        out[i] = i64(current / i128(d));
+        current = current % i128(d);
+        i -= 1;
+    }
+    out[12] = a[12];
+    big_norm(out);
+}
+
+fn main() {
+    let n = read();
+    let ranges = array(n, 0);
+    for i in 0..n {
+        ranges[i] = read();
+    }
+    let big_d = array(13, 0);
+    let temp_a = array(13, 0);
+    big_from(1, big_d);
+    for e in 0..12 {
+        big_mul_small(big_d, 2, temp_a);
+        big_assign(temp_a, big_d);
+    }
+    for e in 0..8 {
+        big_mul_small(big_d, 3, temp_a);
+        big_assign(temp_a, big_d);
+    }
+    for e in 0..4 {
+        big_mul_small(big_d, 5, temp_a);
+        big_assign(temp_a, big_d);
+    }
+    for e in 0..4 {
+        big_mul_small(big_d, 7, temp_a);
+        big_assign(temp_a, big_d);
+    }
+    for p in 11..98 {
+        var prime = true;
+        var j = 2;
+        while j * j <= p {
+            if p % j == 0 {
+                prime = false;
+            }
+            j += 1;
+        }
+        if prime {
+            for e in 0..2 {
+                big_mul_small(big_d, p, temp_a);
+                big_assign(temp_a, big_d);
+            }
+        }
+    }
+    let big_n = array(13, 0);
+    let temp_b = array(13, 0);
+    let temp_c = array(13, 0);
+    big_from(0, big_n);
+    for a in 0..n {
+        for b in a + 1..n {
+            let m = ranges[a];
+            let q = ranges[b];
+            var s = 0;
+            if m - 1 <= q {
+                s = (m - 1) * m / 2;
+            } else {
+                s = q * (q + 1) / 2 + (m - q - 1) * q;
+            }
+            if s != 0 {
+                big_div_small(big_d, m * q, temp_a);
+                big_mul_small(temp_a, s, temp_b);
+                big_add(big_n, temp_b, temp_c);
+                big_assign(temp_c, big_n);
+            }
+        }
+    }
+    let big_value = array(13, 0);
+    big_mul_small(big_n, 1000000, big_value);
+    var lo = 0;
+    var hi = 200000000000;
+    while lo < hi {
+        let mid = lo + (hi - lo + 1) / 2;
+        big_mul_small(big_d, mid, temp_a);
+        if big_compare(temp_a, big_value) <= 0 {
+            lo = mid;
+        } else {
+            hi = mid - 1;
+        }
+    }
+    var t = lo;
+    big_mul_small(big_d, t, temp_a);
+    big_sub(big_value, temp_a, temp_b);
+    big_mul_small(temp_b, 2, temp_c);
+    let comparison = big_compare(temp_c, big_d);
+    if comparison > 0 || (comparison == 0 && t % 2 == 1) {
+        t += 1;
+    }
+    let fraction = t % 1000000;
+    print(t / 1000000, ".");
+    if fraction < 100000 {
+        print(0);
+    }
+    if fraction < 10000 {
+        print(0);
+    }
+    if fraction < 1000 {
+        print(0);
+    }
+    if fraction < 100 {
+        print(0);
+    }
+    if fraction < 10 {
+        print(0);
+    }
+    print(fraction);
+    println();
+}

@@ -1,0 +1,12 @@
+fn main() {
+    let n = read();
+    let values = read_array(n);
+    let mask = n - 1;
+    var answer = 0;
+    for i in 0..n {
+        if (i & mask) == i {
+            answer ^= values[i];
+        }
+    }
+    println(answer);
+}

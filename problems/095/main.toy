@@ -1,0 +1,44 @@
+fn main() {
+    let nodes = read();
+    let edges = read();
+    let required = read();
+    let head = array(nodes + 1, -1);
+    let to = array(edges, 0);
+    let weight = array(edges, 0);
+    let next = array(edges, 0);
+    for edge in 0..edges {
+        let source = read();
+        to[edge] = read();
+        weight[edge] = read();
+        next[edge] = head[source];
+        head[source] = edge;
+    }
+    let visits = array(nodes + 1, 0);
+    let answers = array(required, 0);
+    var answer_count = 0;
+    let queue = heap(edges + 1);
+    heap_push(queue, 0, 1);
+    while heap_size(queue) > 0 && answer_count < required {
+        let distance = heap_first(queue);
+        let node = heap_second(queue);
+        heap_pop(queue);
+        if visits[node] < required {
+            visits[node] += 1;
+            if node == nodes {
+                answers[answer_count] = distance;
+                answer_count += 1;
+            }
+            var edge = head[node];
+            while edge != -1 {
+                if visits[to[edge]] < required {
+                    heap_push(queue, distance + weight[edge], to[edge]);
+                }
+                edge = next[edge];
+            }
+        }
+    }
+    for index in 0..required {
+        print(answers[index], " ");
+    }
+    println();
+}

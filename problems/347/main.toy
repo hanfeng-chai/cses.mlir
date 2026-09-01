@@ -1,0 +1,20 @@
+fn main() {
+    let n = read();
+    let x = read_array(n);
+    let sorted = array(n, 0);
+    for i in 0..n {
+        sorted[i] = x[i];
+    }
+    sort(sorted);
+    let bit = array(n + 1, 0);
+    var ans = 0;
+    for i in 0..n {
+        let rank = lower_bound(sorted, x[i]) + 1;
+        let count_greater = i - fenwick_sum(bit, rank);
+        if count_greater > ans {
+            ans = count_greater;
+        }
+        fenwick_add(bit, rank, 1);
+    }
+    println(ans);
+}

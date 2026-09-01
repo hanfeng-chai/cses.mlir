@@ -1,0 +1,95 @@
+fn main() {
+    let nodes = read();
+    let target = read();
+    let edge_count = nodes - 1;
+    let head = array(nodes + 1, -1);
+    let to = array(2 * edge_count, 0);
+    let next = array(2 * edge_count, 0);
+    for edge in 0..edge_count {
+        let first = read();
+        let second = read();
+        to[2 * edge] = second;
+        next[2 * edge] = head[first];
+        head[first] = 2 * edge;
+        to[2 * edge + 1] = first;
+        next[2 * edge + 1] = head[second];
+        head[second] = 2 * edge + 1;
+    }
+    let removed = array(nodes + 1, 0);
+    let parent = array(nodes + 1, 0);
+    let subtree = array(nodes + 1, 0);
+    let order = array(nodes, 0);
+    let depth = array(nodes + 1, 0);
+    let distance_count = array(nodes + 1, 0);
+    let component_stack = array(nodes, 0);
+    var component_count = 1;
+    component_stack[0] = 1;
+    var answer = 0;
+    while component_count > 0 {
+        component_count -= 1;
+        let start = component_stack[component_count];
+        if removed[start] == 0 {
+            let centroid = centroid_find(
+                start, head, to, next, removed, parent, subtree, order
+            );
+            distance_count[0] = 1;
+            var maximum_depth = 0;
+            var edge = head[centroid];
+            while edge != -1 {
+                let child = to[edge];
+                if removed[child] == 0 {
+                    var order_size = 1;
+                    var index = 0;
+                    order[0] = child;
+                    parent[child] = centroid;
+                    depth[child] = 1;
+                    while index < order_size {
+                        let node = order[index];
+                        var child_edge = head[node];
+                        while child_edge != -1 {
+                            let neighbor = to[child_edge];
+                            if removed[neighbor] == 0 && neighbor != parent[node] {
+                                parent[neighbor] = node;
+                                depth[neighbor] = depth[node] + 1;
+                                order[order_size] = neighbor;
+                                order_size += 1;
+                            }
+                            child_edge = next[child_edge];
+                        }
+                        index += 1;
+                    }
+                    for order_index in 0..order_size {
+                        let distance = depth[order[order_index]];
+                        if distance <= target {
+                            answer += distance_count[target - distance];
+                        }
+                    }
+                    for order_index in 0..order_size {
+                        let distance = depth[order[order_index]];
+                        if distance <= target {
+                            distance_count[distance] += 1;
+                            if distance > maximum_depth {
+                                maximum_depth = distance;
+                            }
+                        }
+                    }
+                }
+                edge = next[edge];
+            }
+            for distance in 0..=maximum_depth {
+                distance_count[distance] = 0;
+            }
+            removed[centroid] = 1;
+            edge = head[centroid];
+            while edge != -1 {
+                let child = to[edge];
+                if removed[child] == 0 {
+                    component_stack[component_count] = child;
+                    component_count += 1;
+                }
+                edge = next[edge];
+            }
+        }
+    }
+    println(answer);
+}

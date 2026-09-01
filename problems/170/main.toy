@@ -1,0 +1,26 @@
+fn main() {
+    let maximum = 1_000_000;
+    let modulus = 1_000_000_007;
+    let factorial = array(maximum + 1, 1);
+    let inverse_factorial = array(maximum + 1, 1);
+    for value in 1..=maximum {
+        factorial[value] = factorial[value - 1] * value % modulus;
+    }
+    inverse_factorial[maximum] = pow_mod(factorial[maximum], modulus - 2, modulus);
+    var value = maximum;
+    while value > 0 {
+        inverse_factorial[value - 1] = inverse_factorial[value] * value % modulus;
+        value -= 1;
+    }
+    let queries = read();
+    for query in 0..queries {
+        let total = read();
+        let chosen = read();
+        if chosen < 0 || chosen > total {
+            println(0);
+        } else {
+            println(factorial[total] * inverse_factorial[chosen] % modulus
+                * inverse_factorial[total - chosen] % modulus);
+        }
+    }
+}

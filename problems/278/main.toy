@@ -1,0 +1,25 @@
+fn main() {
+    let n = read();
+    let basis = array(31, 0);
+    for i in 0..n {
+        var x = read();
+        for b in 0..30 {
+            let bit = 29 - b;
+            if ((x >> bit) & 1) == 1 {
+                if basis[bit] == 0 {
+                    basis[bit] = x;
+                    break;
+                }
+                x ^= basis[bit];
+            }
+        }
+    }
+    var answer = 0;
+    for b in 0..30 {
+        let bit = 29 - b;
+        if (answer ^ basis[bit]) > answer {
+            answer ^= basis[bit];
+        }
+    }
+    println(answer);
+}

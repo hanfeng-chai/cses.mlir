@@ -1,0 +1,30 @@
+fn main() {
+    let count = read();
+    let maximum = 1_000_000;
+    let frequencies = array(maximum + 1, 0);
+    var largest = 0;
+    for index in 0..count {
+        let value = read();
+        frequencies[value] += 1;
+        if value > largest {
+            largest = value;
+        }
+    }
+    var answer = 1;
+    var divisor = largest + 1;
+    var found = false;
+    while divisor > 1 && !found {
+        divisor -= 1;
+        var occurrences = 0;
+        var multiple = divisor;
+        while multiple <= largest && occurrences < 2 {
+            occurrences += frequencies[multiple];
+            multiple += divisor;
+        }
+        if occurrences >= 2 {
+            answer = divisor;
+            found = true;
+        }
+    }
+    println(answer);
+}

@@ -1,0 +1,21 @@
+fn main() {
+    let count = read();
+    let stack_values = array(count, 0);
+    let stack_indices = array(count, 0);
+    var size = 0;
+    for index in 1..=count {
+        let value = read();
+        while size > 0 && stack_values[size - 1] >= value {
+            size -= 1;
+        }
+        if size == 0 {
+            print(0, " ");
+        } else {
+            print(stack_indices[size - 1], " ");
+        }
+        stack_values[size] = value;
+        stack_indices[size] = index;
+        size += 1;
+    }
+    println();
+}

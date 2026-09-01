@@ -1,0 +1,54 @@
+fn main() {
+    let n = read();
+    let k = read();
+    let values = read_array(n);
+    let lower = ordered(n + 5);
+    let upper = ordered(n + 5);
+    var lower_sum = 0;
+    var upper_sum = 0;
+    for i in 0..n {
+        let value = values[i];
+        if ordered_size(lower) == 0 || value <= ordered_last(lower) {
+            ordered_insert(lower, value);
+            lower_sum += value;
+        } else {
+            ordered_insert(upper, value);
+            upper_sum += value;
+        }
+        if i >= k {
+            let old = values[i - k];
+            if ordered_ceiling(lower, old, -1) == old {
+                ordered_erase(lower, old);
+                lower_sum -= old;
+            } else {
+                ordered_erase(upper, old);
+                upper_sum -= old;
+            }
+        }
+        let window = min(i + 1, k);
+        let target = (window + 1) / 2;
+        while ordered_size(lower) > target {
+            let value = ordered_last(lower);
+            ordered_erase(lower, value);
+            lower_sum -= value;
+            ordered_insert(upper, value);
+            upper_sum += value;
+        }
+        while ordered_size(lower) < target {
+            let value = ordered_first(upper);
+            ordered_erase(upper, value);
+            upper_sum -= value;
+            ordered_insert(lower, value);
+            lower_sum += value;
+        }
+        if i >= k - 1 {
+            let median = ordered_last(lower);
+            let cost = median * ordered_size(lower) - lower_sum + upper_sum - median * ordered_size(upper);
+            if i != k - 1 {
+                print(" ");
+            }
+            print(cost);
+        }
+    }
+    println();
+}

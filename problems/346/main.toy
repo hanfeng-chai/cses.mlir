@@ -1,0 +1,19 @@
+fn main() {
+    let n = read();
+    let target = (n * n + 1) / 2;
+    var low = 1;
+    var high = n * n;
+    while low < high {
+        let mid = low + (high - low) / 2;
+        var count = 0;
+        for i in 1..=n {
+            count += minimum(n, mid / i);
+        }
+        if count >= target {
+            high = mid;
+        } else {
+            low = mid + 1;
+        }
+    }
+    println(low);
+}

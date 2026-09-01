@@ -1,0 +1,30 @@
+fn main() {
+    let employees = read();
+    let queries = read();
+    let levels = 20;
+    let stride = employees + 1;
+    let up = array(levels * stride, 0);
+    for employee in 2..=employees {
+        up[employee] = read();
+    }
+    for level in 1..levels {
+        for employee in 1..=employees {
+            up[level * stride + employee] = up[(level - 1) * stride
+                + up[(level - 1) * stride + employee]];
+        }
+    }
+    for query in 0..queries {
+        var employee = read();
+        let steps = read();
+        for level in 0..levels {
+            if ((steps >> level) & 1) != 0 {
+                employee = up[level * stride + employee];
+            }
+        }
+        if employee == 0 {
+            println(-1);
+        } else {
+            println(employee);
+        }
+    }
+}

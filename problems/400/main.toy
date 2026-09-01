@@ -1,0 +1,327 @@
+fn tree_set(tree_value: array<i64>, tree_pos: array<i64>, tree_size: i64, pos: i64, value: i64) {
+    var node = tree_size + pos;
+    tree_value[node] = value;
+    tree_pos[node] = pos;
+    node = node / 2;
+    while node >= 1 {
+        let l = 2 * node;
+        let r = 2 * node + 1;
+        if tree_value[l] <= tree_value[r] {
+            tree_value[node] = tree_value[l];
+            tree_pos[node] = tree_pos[l];
+        } else {
+            tree_value[node] = tree_value[r];
+            tree_pos[node] = tree_pos[r];
+        }
+        node = node / 2;
+    }
+}
+
+fn dsu_find_local(parent: array<i64>, value: i64) -> i64 {
+    var root = value;
+    if parent[value] != value {
+        parent[value] = dsu_find_local(parent, parent[value]);
+        root = parent[value];
+    }
+    return root;
+}
+
+fn main() {
+    let n = read();
+    let permutation = read_array(n);
+
+    var suffix_min = array(n + 1, 0);
+    suffix_min[n] = n + 1;
+    for i in n - 1..=0 by -1 {
+        var smaller = suffix_min[i + 1];
+        if permutation[i] < smaller {
+            smaller = permutation[i];
+        }
+        suffix_min[i] = smaller;
+    }
+
+    // expires[j]: list of i that stop conflicting at j
+    let expires_head = array(n + 1, 0);
+    for i in 0..=n {
+        expires_head[i] = -1;
+    }
+    let expires_to = array(n, 0);
+    let expires_next = array(n, 0);
+    for i in 0..n {
+        var low = i + 1;
+        var high = n - 1;
+        var last = i;
+        while low <= high {
+            let middle = (low + high) / 2;
+            if suffix_min[middle] < permutation[i] {
+                last = middle;
+                low = middle + 1;
+            } else {
+                high = middle - 1;
+            }
+        }
+        expires_to[i] = last + 1;
+        expires_next[i] = expires_head[last + 1];
+        expires_head[last + 1] = i;
+    }
+
+    // RMQ segtree over positions: (value, pos)
+    var tree_size = 1;
+    while tree_size < n {
+        tree_size *= 2;
+    }
+    let inf_value = n + 2;
+    var tree_value = array(2 * tree_size, 0);
+    var tree_pos = array(2 * tree_size, 0);
+    for i in 0..2 * tree_size {
+        tree_value[i] = inf_value;
+        tree_pos[i] = -1;
+    }
+
+    // DSU
+    let total_nodes = 2 * n;
+    var parent = array(total_nodes, 0);
+    for i in 0..total_nodes {
+        parent[i] = i;
+    }
+    var root_rep = array(total_nodes, 0);
+    var root_size = array(total_nodes, 0);
+    for i in 0..total_nodes {
+        root_rep[i] = -1;
+    }
+
+    let global_set = ordered(4 * n + 100);
+    let key_scale = 262144; // 2^18
+    var conflicts = array(n, 0);
+
+    for j in 0..n {
+        // erase expired
+        var edge = expires_head[j];
+        while edge != -1 {
+            let i = edge;
+            let root = dsu_find_local(parent, i);
+            // hide root
+            let rep = root_rep[root];
+            if rep != -1 {
+                tree_set(tree_value, tree_pos, tree_size, rep, inf_value);
+            }
+            let key = (root << 36) + (permutation[i] << 18) + i;
+            ordered_erase(global_set, key);
+            root_size[root] -= 1;
+            // refresh root
+            let base = root << 36;
+            let min_key = ordered_ceiling(global_set, base, -1);
+            var new_rep = -1;
+            if min_key >= base && min_key < base + key_scale * key_scale {
+                new_rep = min_key & (key_scale - 1);
+            }
+            root_rep[root] = new_rep;
+            if new_rep != -1 {
+                tree_set(tree_value, tree_pos, tree_size, new_rep, permutation[new_rep]);
+            }
+            edge = expires_next[edge];
+        }
+
+        // collect conflicts: range min over [0, j-1]
+        var conflict_count = 0;
+        while true {
+            // query min in [0, j-1]
+            var l = tree_size;
+            var r = tree_size + j;
+            var best_value = inf_value;
+            var best_pos = -1;
+            while l < r {
+                if (l & 1) == 1 {
+                    if tree_value[l] < best_value {
+                        best_value = tree_value[l];
+                        best_pos = tree_pos[l];
+                    }
+                    l += 1;
+                }
+                if (r & 1) == 1 {
+                    r -= 1;
+                    if tree_value[r] < best_value {
+                        best_value = tree_value[r];
+                        best_pos = tree_pos[r];
+                    }
+                }
+                l = l / 2;
+                r = r / 2;
+            }
+            if best_pos == -1 || best_value >= permutation[j] {
+                break;
+            }
+            conflicts[conflict_count] = best_pos;
+            conflict_count += 1;
+            tree_set(tree_value, tree_pos, tree_size, best_pos, inf_value);
+        }
+
+        // insert j into its root
+        var root_j = dsu_find_local(parent, j);
+        var rep_j = root_rep[root_j];
+        if rep_j != -1 {
+            tree_set(tree_value, tree_pos, tree_size, rep_j, inf_value);
+        }
+        let key_j = (root_j << 36) + (permutation[j] << 18) + j;
+        ordered_insert(global_set, key_j);
+        root_size[root_j] += 1;
+        if rep_j == -1 || permutation[j] < permutation[rep_j] {
+            root_rep[root_j] = j;
+            tree_set(tree_value, tree_pos, tree_size, j, permutation[j]);
+        } else {
+            root_rep[root_j] = rep_j;
+            tree_set(tree_value, tree_pos, tree_size, rep_j, permutation[rep_j]);
+        }
+
+        // merge with conflicts
+        for idx in 0..conflict_count {
+            let i = conflicts[idx];
+            var root_a = dsu_find_local(parent, j + n);
+            var root_b = dsu_find_local(parent, i);
+            if root_a != root_b {
+                if root_size[root_a] < root_size[root_b] {
+                    let tmp_root = root_a;
+                    root_a = root_b;
+                    root_b = tmp_root;
+                }
+                // hide both
+                var rep_a = root_rep[root_a];
+                if rep_a != -1 {
+                    tree_set(tree_value, tree_pos, tree_size, rep_a, inf_value);
+                }
+                var rep_b = root_rep[root_b];
+                if rep_b != -1 {
+                    tree_set(tree_value, tree_pos, tree_size, rep_b, inf_value);
+                }
+                // move all elements of b into a
+                let base_b = root_b << 36;
+                let limit_b = (root_b + 1) << 36;
+                var cur_key = ordered_ceiling(global_set, base_b, -1);
+                while cur_key >= base_b && cur_key < limit_b {
+                    ordered_erase(global_set, cur_key);
+                    let rest = cur_key - base_b;
+                    let new_key = (root_a << 36) + rest;
+                    ordered_insert(global_set, new_key);
+                    cur_key = ordered_higher(global_set, cur_key, -1);
+                }
+                parent[root_b] = root_a;
+                root_rep[root_b] = -1;
+                root_size[root_a] += root_size[root_b];
+                // refresh root_a rep
+                let base_a = root_a << 36;
+                let min_key = ordered_ceiling(global_set, base_a, -1);
+                var new_rep = -1;
+                if min_key >= base_a && min_key < base_a + key_scale * key_scale {
+                    new_rep = min_key & (key_scale - 1);
+                }
+                root_rep[root_a] = new_rep;
+                if new_rep != -1 {
+                    tree_set(tree_value, tree_pos, tree_size, new_rep, permutation[new_rep]);
+                }
+            }
+            var root_c = dsu_find_local(parent, j);
+            var root_d = dsu_find_local(parent, i + n);
+            if root_c != root_d {
+                if root_size[root_c] < root_size[root_d] {
+                    let tmp_root = root_c;
+                    root_c = root_d;
+                    root_d = tmp_root;
+                }
+                var rep_c = root_rep[root_c];
+                if rep_c != -1 {
+                    tree_set(tree_value, tree_pos, tree_size, rep_c, inf_value);
+                }
+                var rep_d = root_rep[root_d];
+                if rep_d != -1 {
+                    tree_set(tree_value, tree_pos, tree_size, rep_d, inf_value);
+                }
+                let base_d = root_d << 36;
+                let limit_d = (root_d + 1) << 36;
+                var cur_key = ordered_ceiling(global_set, base_d, -1);
+                while cur_key >= base_d && cur_key < limit_d {
+                    ordered_erase(global_set, cur_key);
+                    let rest = cur_key - base_d;
+                    let new_key = (root_c << 36) + rest;
+                    ordered_insert(global_set, new_key);
+                    cur_key = ordered_higher(global_set, cur_key, -1);
+                }
+                parent[root_d] = root_c;
+                root_rep[root_d] = -1;
+                root_size[root_c] += root_size[root_d];
+                let base_c = root_c << 36;
+                let min_key = ordered_ceiling(global_set, base_c, -1);
+                var new_rep = -1;
+                if min_key >= base_c && min_key < base_c + key_scale * key_scale {
+                    new_rep = min_key & (key_scale - 1);
+                }
+                root_rep[root_c] = new_rep;
+                if new_rep != -1 {
+                    tree_set(tree_value, tree_pos, tree_size, new_rep, permutation[new_rep]);
+                }
+            }
+        }
+    }
+
+    var ok = true;
+    for i in 0..n {
+        if dsu_find_local(parent, i) == dsu_find_local(parent, i + n) {
+            ok = false;
+            break;
+        }
+    }
+    if !ok {
+        print("IMPOSSIBLE\n");
+        return;
+    }
+
+    var root_color = array(total_nodes, 0);
+    var color = array(n, 0);
+    for i in 0..n {
+        let root = dsu_find_local(parent, i);
+        let opposite = dsu_find_local(parent, i + n);
+        if root_color[root] == 0 {
+            root_color[root] = 1;
+            root_color[opposite] = 2;
+        }
+        color[i] = root_color[root];
+    }
+
+    // simulate
+    var stack0 = array(n + 1, 0);
+    var stack1 = array(n + 1, 0);
+    var top0 = 0;
+    var top1 = 0;
+    var expected = 1;
+    var possible = true;
+    for i in 0..n {
+        if color[i] == 1 {
+            stack0[top0] = permutation[i];
+            top0 += 1;
+        } else {
+            stack1[top1] = permutation[i];
+            top1 += 1;
+        }
+        while true {
+            if top0 > 0 && stack0[top0 - 1] == expected {
+                top0 -= 1;
+                expected += 1;
+            } else if top1 > 0 && stack1[top1 - 1] == expected {
+                top1 -= 1;
+                expected += 1;
+            } else {
+                break;
+            }
+        }
+    }
+    if expected != n + 1 {
+        print("IMPOSSIBLE\n");
+        return;
+    }
+    for i in 0..n {
+        if i > 0 {
+            print(" ");
+        }
+        print(color[i]);
+    }
+    print("\n");
+}

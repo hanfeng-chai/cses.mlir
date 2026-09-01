@@ -1,0 +1,32 @@
+fn main() {
+    let limit = read();
+    let prime_count = read();
+    let primes = array(prime_count, 0);
+    for index in 0..prime_count {
+        primes[index] = read();
+    }
+    var answer = 0;
+    for mask in 1..(1 << prime_count) {
+        var product = i128(1);
+        var bits = 0;
+        var overflow = false;
+        for index in 0..prime_count {
+            if !overflow && ((mask >> index) & 1) != 0 {
+                product *= i128(primes[index]);
+                bits += 1;
+                if product > i128(limit) {
+                    overflow = true;
+                }
+            }
+        }
+        if !overflow {
+            let term = limit / i64(product);
+            if (bits & 1) != 0 {
+                answer += term;
+            } else {
+                answer -= term;
+            }
+        }
+    }
+    println(answer);
+}

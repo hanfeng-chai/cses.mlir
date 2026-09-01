@@ -1,0 +1,68 @@
+fn main() {
+    let n = read();
+    let m = read();
+    let k = read();
+    let edge_a = array(m, 0);
+    let edge_b = array(m, 0);
+    let lookup = map(m * 2);
+    let scale = 100001;
+    for e in 0..m {
+        let a = read();
+        let b = read();
+        if a > b {
+            edge_a[e] = b;
+            edge_b[e] = a;
+        } else {
+            edge_a[e] = a;
+            edge_b[e] = b;
+        }
+        map_set(lookup, edge_a[e] * scale + edge_b[e], e);
+    }
+    let broken = array(m, 0);
+    let breakdown_edge = array(k, 0);
+    for i in 0..k {
+        let a = read();
+        let b = read();
+        var low = a;
+        var high = b;
+        if a > b {
+            low = b;
+            high = a;
+        }
+        let id = map_get(lookup, low * scale + high, -1);
+        breakdown_edge[i] = id;
+        broken[id] = 1;
+    }
+    let parent = array(n + 1, 0);
+    for v in 1..=n {
+        parent[v] = v;
+    }
+    var components = n;
+    for e in 0..m {
+        if broken[e] == 0 {
+            let ra = dsu_find(parent, edge_a[e]);
+            let rb = dsu_find(parent, edge_b[e]);
+            if ra != rb {
+                parent[ra] = rb;
+                components -= 1;
+            }
+        }
+    }
+    let result = array(k, 0);
+    var i = k - 1;
+    while i >= 0 {
+        result[i] = components;
+        let id = breakdown_edge[i];
+        let ra = dsu_find(parent, edge_a[id]);
+        let rb = dsu_find(parent, edge_b[id]);
+        if ra != rb {
+            parent[ra] = rb;
+            components -= 1;
+        }
+        i -= 1;
+    }
+    for i in 0..k {
+        print(result[i], " ");
+    }
+    println();
+}

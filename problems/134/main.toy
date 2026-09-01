@@ -1,0 +1,117 @@
+fn merge_node(
+    sum: array<i64>, prefix: array<i64>, suffix: array<i64>, best: array<i64>,
+    node: i64
+) {
+    let left = 2 * node;
+    let right = left + 1;
+    sum[node] = sum[left] + sum[right];
+    prefix[node] = prefix[left];
+    if sum[left] + prefix[right] > prefix[node] {
+        prefix[node] = sum[left] + prefix[right];
+    }
+    suffix[node] = suffix[right];
+    if sum[right] + suffix[left] > suffix[node] {
+        suffix[node] = sum[right] + suffix[left];
+    }
+    best[node] = best[left];
+    if best[right] > best[node] {
+        best[node] = best[right];
+    }
+    if suffix[left] + prefix[right] > best[node] {
+        best[node] = suffix[left] + prefix[right];
+    }
+}
+
+fn main() {
+    let size = read();
+    let queries = read();
+    var base = 1;
+    while base < size {
+        base *= 2;
+    }
+    let sum = array(2 * base, 0);
+    let prefix = array(2 * base, 0);
+    let suffix = array(2 * base, 0);
+    let best = array(2 * base, 0);
+    for index in 0..size {
+        let value = read();
+        let node = base + index;
+        sum[node] = value;
+        if value > 0 {
+            prefix[node] = value;
+            suffix[node] = value;
+            best[node] = value;
+        }
+    }
+    var node = base;
+    while node > 1 {
+        node -= 1;
+        merge_node(sum, prefix, suffix, best, node);
+    }
+    for query in 0..queries {
+        var left = base + read() - 1;
+        var right = base + read();
+        var left_sum = 0;
+        var left_prefix = 0;
+        var left_suffix = 0;
+        var left_best = 0;
+        var right_sum = 0;
+        var right_prefix = 0;
+        var right_suffix = 0;
+        var right_best = 0;
+        while left < right {
+            if (left & 1) != 0 {
+                let node_sum = sum[left];
+                let node_prefix = prefix[left];
+                let node_suffix = suffix[left];
+                let node_best = best[left];
+                let previous_suffix = left_suffix;
+                if left_sum + node_prefix > left_prefix {
+                    left_prefix = left_sum + node_prefix;
+                }
+                if node_suffix > node_sum + previous_suffix {
+                    left_suffix = node_suffix;
+                } else {
+                    left_suffix = node_sum + previous_suffix;
+                }
+                left_sum += node_sum;
+                if node_best > left_best {
+                    left_best = node_best;
+                }
+                if previous_suffix + node_prefix > left_best {
+                    left_best = previous_suffix + node_prefix;
+                }
+                left += 1;
+            }
+            if (right & 1) != 0 {
+                right -= 1;
+                let old_right_prefix = right_prefix;
+                if prefix[right] > sum[right] + right_prefix {
+                    right_prefix = prefix[right];
+                } else {
+                    right_prefix = sum[right] + right_prefix;
+                }
+                if right_sum + suffix[right] > right_suffix {
+                    right_suffix = right_sum + suffix[right];
+                }
+                if best[right] > right_best {
+                    right_best = best[right];
+                }
+                if suffix[right] + old_right_prefix > right_best {
+                    right_best = suffix[right] + old_right_prefix;
+                }
+                right_sum = sum[right] + right_sum;
+            }
+            left /= 2;
+            right /= 2;
+        }
+        var answer = left_best;
+        if right_best > answer {
+            answer = right_best;
+        }
+        if left_suffix + right_prefix > answer {
+            answer = left_suffix + right_prefix;
+        }
+        println(answer);
+    }
+}

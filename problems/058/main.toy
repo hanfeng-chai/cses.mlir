@@ -1,0 +1,25 @@
+fn main() {
+    let count = read();
+    let viewers = read();
+    let ending = array(count, 0);
+    let starting = array(count, 0);
+    for movie in 0..count {
+        starting[movie] = read();
+        ending[movie] = read();
+    }
+    sort_pairs(ending, starting);
+    let available = ordered(viewers);
+    for viewer in 0..viewers {
+        ordered_insert(available, 0);
+    }
+    var watched = 0;
+    for movie in 0..count {
+        let previous_end = ordered_floor(available, starting[movie], -1);
+        if previous_end != -1 {
+            ordered_erase(available, previous_end);
+            ordered_insert(available, ending[movie]);
+            watched += 1;
+        }
+    }
+    println(watched);
+}

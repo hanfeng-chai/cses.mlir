@@ -1,0 +1,15 @@
+fn main() {
+    let nodes = read();
+    let edges = read();
+    let head = array(nodes + 1, -1);
+    let to = array(2 * edges, 0);
+    let next = array(2 * edges, 0);
+    let capacity = array(2 * edges, 0);
+    for edge in 0..edges {
+        let source = read();
+        let destination = read();
+        let value = read();
+        flow_add(head, to, next, capacity, 2 * edge, source, destination, value);
+    }
+    println(max_flow(nodes + 1, 1, nodes, head, to, next, capacity));
+}

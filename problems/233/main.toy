@@ -1,0 +1,174 @@
+fn seg_insert(node: i64, lo: i64, hi: i64, ql: i64, qr: i64, value: i64, handles: array<i64>) {
+    if qr < lo || hi < ql {
+        return;
+    }
+    if ql <= lo && hi <= qr {
+        ordered_insert(handles[node], value);
+        return;
+    }
+    let mid = (lo + hi) / 2;
+    seg_insert(2 * node, lo, mid, ql, qr, value, handles);
+    seg_insert(2 * node + 1, mid + 1, hi, ql, qr, value, handles);
+}
+
+fn seg_nearest(node: i64, lo: i64, hi: i64, pos: i64, c: i64, lim: i64, up: bool, handles: array<i64>) -> i64 {
+    var result = 4000000000000000000;
+    if up {
+        let value = ordered_ceiling(handles[node], c + 1, 4000000000000000000);
+        if value <= lim {
+            result = min(result, value - c);
+        }
+    } else {
+        let value = ordered_floor(handles[node], c - 1, -4000000000000000000);
+        if value >= lim {
+            result = min(result, c - value);
+        }
+    }
+    if lo == hi {
+        return result;
+    }
+    let mid = (lo + hi) / 2;
+    if pos <= mid {
+        return min(result, seg_nearest(2 * node, lo, mid, pos, c, lim, up, handles));
+    }
+    return min(result, seg_nearest(2 * node + 1, mid + 1, hi, pos, c, lim, up, handles));
+}
+
+fn lines_add(key: i64, a: i64, b: i64, intervals: map, keys: ordered) {
+    let base = (key + 200000000) * 4294967296;
+    var lo = a;
+    var hi = b;
+    let previous = ordered_floor(keys, base + lo + 200000000, -1);
+    if previous != -1 && previous >= base && previous < base + 4294967296 && map_get(intervals, previous, -4000000000000000000) >= lo {
+        lo = previous - base - 200000000;
+        hi = max(hi, map_get(intervals, previous, 0));
+        ordered_erase(keys, previous);
+    }
+    var current = ordered_ceiling(keys, base + lo + 200000000, -1);
+    while current != -1 && current < base + 4294967296 && current - base - 200000000 <= hi {
+        hi = max(hi, map_get(intervals, current, 0));
+        ordered_erase(keys, current);
+        current = ordered_ceiling(keys, base + lo + 200000000, -1);
+    }
+    ordered_insert(keys, base + lo + 200000000);
+    map_set(intervals, base + lo + 200000000, hi);
+}
+
+fn lines_nearest(key: i64, c: i64, lim: i64, up: bool, intervals: map, keys: ordered) -> i64 {
+    let base = (key + 200000000) * 4294967296;
+    if up {
+        let previous = ordered_floor(keys, base + c + 200000000, -1);
+        if previous != -1 && previous >= base && previous < base + 4294967296 && map_get(intervals, previous, -4000000000000000000) > c {
+            return 0;
+        }
+        let current = ordered_ceiling(keys, base + c + 200000001, -1);
+        if current != -1 && current < base + 4294967296 {
+            let start = current - base - 200000000;
+            if start <= lim {
+                return start - c;
+            }
+        }
+        return 4000000000000000000;
+    }
+    let previous = ordered_floor(keys, base + c + 200000000, -1);
+    if previous != -1 && previous >= base && previous < base + 4294967296 {
+        let start = previous - base - 200000000;
+        let end = map_get(intervals, previous, -4000000000000000000);
+        if start < c && end >= c {
+            return 0;
+        }
+        if end < c && end >= lim {
+            return c - end;
+        }
+    }
+    return 4000000000000000000;
+}
+
+fn main() {
+    let n = read();
+    let px = array(n + 1, 0);
+    let py = array(n + 1, 0);
+    let steps = array(n, 0);
+    let direction = array(n, 0);
+    for i in 0..n {
+        let token = read_text();
+        direction[i] = at(token, 0);
+        steps[i] = read();
+        if direction[i] == 85 {
+            py[i + 1] = py[i] + steps[i];
+            px[i + 1] = px[i];
+        } else if direction[i] == 68 {
+            py[i + 1] = py[i] - steps[i];
+            px[i + 1] = px[i];
+        } else if direction[i] == 82 {
+            px[i + 1] = px[i] + steps[i];
+            py[i + 1] = py[i];
+        } else {
+            px[i + 1] = px[i] - steps[i];
+            py[i + 1] = py[i];
+        }
+    }
+    let xs = array(n + 1, 0);
+    let ys = array(n + 1, 0);
+    for i in 0..=n {
+        xs[i] = px[i];
+        ys[i] = py[i];
+    }
+    sort(xs);
+    sort(ys);
+    let nx = unique_sorted(xs, n + 1);
+    let ny = unique_sorted(ys, n + 1);
+    let seg_x = array(4 * (nx + 1), 0);
+    for node in 1..4 * (nx + 1) {
+        seg_x[node] = i64(ordered(8));
+    }
+    let seg_y = array(4 * (ny + 1), 0);
+    for node in 1..4 * (ny + 1) {
+        seg_y[node] = i64(ordered(8));
+    }
+    let vertical_map = map(2 * n + 8);
+    let vertical_keys = ordered(2 * n + 8);
+    let horizontal_map = map(2 * n + 8);
+    let horizontal_keys = ordered(2 * n + 8);
+    var total = 0;
+    for i in 0..n {
+        let sx = px[i];
+        let sy = py[i];
+        let ex = px[i + 1];
+        let ey = py[i + 1];
+        let len = steps[i];
+        var stop = 4000000000000000000;
+        if sx == ex {
+            let up = ey > sy;
+            let pos = lower_bound_prefix(xs, nx, sx);
+            stop = min(stop, seg_nearest(1, 0, nx - 1, pos, sy, ey, up, seg_x));
+            stop = min(stop, lines_nearest(sx, sy, ey, up, vertical_map, vertical_keys));
+        } else {
+            let up = ex > sx;
+            let pos = lower_bound_prefix(ys, ny, sy);
+            stop = min(stop, seg_nearest(1, 0, ny - 1, pos, sx, ex, up, seg_y));
+            stop = min(stop, lines_nearest(sy, sx, ex, up, horizontal_map, horizontal_keys));
+        }
+        if stop <= len {
+            total += stop;
+            break;
+        }
+        total += len;
+        if sx == ex {
+            let a = min(sy, ey);
+            let b = max(sy, ey);
+            let la = lower_bound_prefix(ys, ny, a);
+            let lb = lower_bound_prefix(ys, ny, b);
+            seg_insert(1, 0, ny - 1, la, lb, sx, seg_y);
+            lines_add(sx, a, b, vertical_map, vertical_keys);
+        } else {
+            let a = min(sx, ex);
+            let b = max(sx, ex);
+            let la = lower_bound_prefix(xs, nx, a);
+            let lb = lower_bound_prefix(xs, nx, b);
+            seg_insert(1, 0, nx - 1, la, lb, sy, seg_x);
+            lines_add(sy, a, b, horizontal_map, horizontal_keys);
+        }
+    }
+    println(total);
+}

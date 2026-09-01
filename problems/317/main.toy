@@ -1,0 +1,57 @@
+fn main() {
+    let n = read();
+    let m = read();
+    let total_nodes = n + m;
+    let head = array(total_nodes + 1, -1);
+    let to = array(400000, 0);
+    let next = array(400000, 0);
+    let weight = array(400000, 0);
+    let cost = array(m + 1, 0);
+    for j in 1..=m {
+        cost[j] = read();
+    }
+    var edge_count = 0;
+    for j in 1..=m {
+        let k = read();
+        let company = n + j;
+        for t in 0..k {
+            let a = read();
+            to[edge_count] = company;
+            weight[edge_count] = 0;
+            next[edge_count] = head[a];
+            head[a] = edge_count;
+            edge_count += 1;
+            to[edge_count] = a;
+            weight[edge_count] = cost[j];
+            next[edge_count] = head[company];
+            head[company] = edge_count;
+            edge_count += 1;
+        }
+    }
+    let infinity = 9223372036854775807;
+    let distance = array(total_nodes + 1, infinity);
+    let queue = heap(2 * edge_count + 1);
+    distance[1] = 0;
+    heap_push(queue, 0, 1);
+    while heap_size(queue) > 0 {
+        let current_distance = heap_first(queue);
+        let node = heap_second(queue);
+        heap_pop(queue);
+        if current_distance <= distance[node] {
+            var e = head[node];
+            while e != -1 {
+                let v = to[e];
+                let candidate = current_distance + weight[e];
+                if candidate < distance[v] {
+                    distance[v] = candidate;
+                    heap_push(queue, candidate, v);
+                }
+                e = next[e];
+            }
+        }
+    }
+    for v in 1..=n {
+        print(distance[v], " ");
+    }
+    println();
+}

@@ -1,0 +1,31 @@
+fn main() {
+    let count = read();
+    let capacity = read();
+    let weights = array(count, 0);
+    for person in 0..count {
+        weights[person] = read();
+    }
+    let states = 1 << count;
+    let rides = array(states, count + 1);
+    let last_weight = array(states, 0);
+    rides[0] = 1;
+    for mask in 1..states {
+        for person in 0..count {
+            if ((mask >> person) & 1) != 0 {
+                let previous = mask ^ (1 << person);
+                var candidate_rides = rides[previous];
+                var candidate_weight = last_weight[previous] + weights[person];
+                if candidate_weight > capacity {
+                    candidate_rides += 1;
+                    candidate_weight = weights[person];
+                }
+                if candidate_rides < rides[mask]
+                    || (candidate_rides == rides[mask] && candidate_weight < last_weight[mask]) {
+                    rides[mask] = candidate_rides;
+                    last_weight[mask] = candidate_weight;
+                }
+            }
+        }
+    }
+    println(rides[states - 1]);
+}

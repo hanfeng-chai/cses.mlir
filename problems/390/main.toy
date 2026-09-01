@@ -1,0 +1,176 @@
+fn treap_size(sizes: array<i64>, t: i64) -> i64 {
+    if t == 0 {
+        return 0;
+    }
+    return sizes[t];
+}
+
+fn treap_push(rev: array<i64>, left: array<i64>, right: array<i64>, t: i64) {
+    if t != 0 && rev[t] == 1 {
+        rev[t] = 0;
+        let tmp = left[t];
+        left[t] = right[t];
+        right[t] = tmp;
+        if left[t] != 0 {
+            rev[left[t]] = 1 - rev[left[t]];
+        }
+        if right[t] != 0 {
+            rev[right[t]] = 1 - rev[right[t]];
+        }
+    }
+}
+
+fn treap_update(sizes: array<i64>, left: array<i64>, right: array<i64>, t: i64) {
+    if t != 0 {
+        sizes[t] = 1 + treap_size(sizes, left[t]) + treap_size(sizes, right[t]);
+    }
+}
+
+fn treap_split(out: array<i64>, sizes: array<i64>, left: array<i64>, right: array<i64>, parent: array<i64>, rev: array<i64>, t: i64, k: i64) {
+    if t == 0 {
+        out[0] = 0;
+        out[1] = 0;
+        return;
+    }
+    treap_push(rev, left, right, t);
+    let left_size = treap_size(sizes, left[t]);
+    if left_size < k {
+        treap_split(out, sizes, left, right, parent, rev, right[t], k - left_size - 1);
+        let sub_l = out[0];
+        let sub_r = out[1];
+        right[t] = sub_l;
+        if sub_l != 0 {
+            parent[sub_l] = t;
+        }
+        if sub_r != 0 {
+            parent[sub_r] = 0;
+        }
+        treap_update(sizes, left, right, t);
+        out[0] = t;
+        out[1] = sub_r;
+    } else {
+        treap_split(out, sizes, left, right, parent, rev, left[t], k);
+        let sub_l = out[0];
+        let sub_r = out[1];
+        left[t] = sub_r;
+        if sub_r != 0 {
+            parent[sub_r] = t;
+        }
+        if sub_l != 0 {
+            parent[sub_l] = 0;
+        }
+        treap_update(sizes, left, right, t);
+        out[0] = sub_l;
+        out[1] = t;
+    }
+}
+
+fn treap_merge(sizes: array<i64>, left: array<i64>, right: array<i64>, parent: array<i64>, rev: array<i64>, priorities: array<i64>, l: i64, r: i64) -> i64 {
+    if l == 0 {
+        return r;
+    }
+    if r == 0 {
+        return l;
+    }
+    treap_push(rev, left, right, l);
+    treap_push(rev, left, right, r);
+    if priorities[l] > priorities[r] {
+        let merged = treap_merge(sizes, left, right, parent, rev, priorities, right[l], r);
+        right[l] = merged;
+        if merged != 0 {
+            parent[merged] = l;
+        }
+        treap_update(sizes, left, right, l);
+        return l;
+    } else {
+        let merged = treap_merge(sizes, left, right, parent, rev, priorities, l, left[r]);
+        left[r] = merged;
+        if merged != 0 {
+            parent[merged] = r;
+        }
+        treap_update(sizes, left, right, r);
+        return r;
+    }
+}
+
+fn main() {
+    let n = read();
+    var values = array(n + 1, 0);
+    for i in 1..=n {
+        values[i] = read();
+    }
+    var node_of = array(n + 1, 0);
+    var left = array(n + 1, 0);
+    var right = array(n + 1, 0);
+    var parent = array(n + 1, 0);
+    var sizes = array(n + 1, 0);
+    var rev = array(n + 1, 0);
+    var priorities = array(n + 1, 0);
+    var seed = 12345;
+    for v in 1..=n {
+        node_of[v] = v;
+        sizes[v] = 1;
+        seed = (seed * 1103515245 + 12345) & 2147483647;
+        priorities[v] = seed % 1000000007;
+    }
+    var root = 0;
+    for i in 1..=n {
+        let nd = node_of[values[i]];
+        root = treap_merge(sizes, left, right, parent, rev, priorities, root, nd);
+        parent[root] = 0;
+    }
+
+    var ops_a = array(n + 1, 0);
+    var ops_b = array(n + 1, 0);
+    var ops_count = 0;
+    let out = array(2, 0);
+    var path = array(n + 1, 0);
+
+    for i in 1..=n {
+        let x = node_of[i];
+        // rankOf: collect path, pushdown top-down
+        var path_len = 0;
+        var cur = x;
+        while cur != 0 {
+            path[path_len] = cur;
+            path_len += 1;
+            cur = parent[cur];
+        }
+        for idx in path_len - 1..=0 by -1 {
+            treap_push(rev, left, right, path[idx]);
+        }
+        var r = treap_size(sizes, left[x]);
+        cur = x;
+        while parent[cur] != 0 {
+            let p = parent[cur];
+            if cur == right[p] {
+                r += treap_size(sizes, left[p]) + 1;
+            }
+            cur = p;
+        }
+        let pos = r + 1;
+        if pos == i {
+            continue;
+        }
+        treap_split(out, sizes, left, right, parent, rev, root, i - 1);
+        let part_a = out[0];
+        let part_b = out[1];
+        treap_split(out, sizes, left, right, parent, rev, part_b, pos - i + 1);
+        let part_mid = out[0];
+        let part_c = out[1];
+        rev[part_mid] = 1 - rev[part_mid];
+        let merged_ab = treap_merge(sizes, left, right, parent, rev, priorities, part_a, part_mid);
+        root = treap_merge(sizes, left, right, parent, rev, priorities, merged_ab, part_c);
+        parent[root] = 0;
+        ops_a[ops_count] = i;
+        ops_b[ops_count] = pos;
+        ops_count += 1;
+    }
+
+    println(ops_count);
+    for i in 0..ops_count {
+        print(ops_a[i]);
+        print(" ");
+        println(ops_b[i]);
+    }
+}

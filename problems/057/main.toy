@@ -1,0 +1,33 @@
+fn main() {
+    let count = read();
+    let maximum_parts = read();
+    let values = array(count, 0);
+    var left = 0;
+    var right = 0;
+    for index in 0..count {
+        values[index] = read();
+        right += values[index];
+        if values[index] > left {
+            left = values[index];
+        }
+    }
+    while left < right {
+        let middle = left + (right - left) / 2;
+        var parts = 1;
+        var sum = 0;
+        for index in 0..count {
+            if sum + values[index] > middle {
+                parts += 1;
+                sum = values[index];
+            } else {
+                sum += values[index];
+            }
+        }
+        if parts <= maximum_parts {
+            right = middle;
+        } else {
+            left = middle + 1;
+        }
+    }
+    println(left);
+}

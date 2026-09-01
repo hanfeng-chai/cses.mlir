@@ -1,0 +1,81 @@
+fn tree_add(tree: array<i64>, index: i64, delta: i64, size: i64, mod: i64) {
+    var position = index;
+    while position <= size {
+        tree[position] = (tree[position] + delta) % mod;
+        position += position & (0 - position);
+    }
+}
+
+fn tree_sum(tree: array<i64>, index: i64, mod: i64) -> i64 {
+    var sum = 0;
+    var position = index;
+    while position > 0 {
+        sum = (sum + tree[position]) % mod;
+        position -= position & (0 - position);
+    }
+    return sum;
+}
+
+fn main() {
+    let n = read();
+    let m = read();
+    let s = read_text();
+    let forward_a = array(n + 1, 0);
+    let forward_b = array(n + 1, 0);
+    let reverse_a = array(n + 1, 0);
+    let reverse_b = array(n + 1, 0);
+    let pw_a = array(n, 0);
+    let pw_b = array(n, 0);
+    let ipw_a = array(n, 0);
+    let ipw_b = array(n, 0);
+    pw_a[0] = 1;
+    pw_b[0] = 1;
+    for i in 1..n {
+        pw_a[i] = pw_a[i - 1] * 131 % 1000000007;
+        pw_b[i] = pw_b[i - 1] * 131 % 998244353;
+    }
+    let inv_a = pow_mod(131, 1000000005, 1000000007);
+    let inv_b = pow_mod(131, 998244351, 998244353);
+    ipw_a[0] = 1;
+    ipw_b[0] = 1;
+    for i in 1..n {
+        ipw_a[i] = ipw_a[i - 1] * inv_a % 1000000007;
+        ipw_b[i] = ipw_b[i - 1] * inv_b % 998244353;
+    }
+    let values = array(n, 0);
+    for i in 0..n {
+        values[i] = at(s, i) - 96;
+        tree_add(forward_a, i + 1, values[i] * pw_a[i] % 1000000007, n, 1000000007);
+        tree_add(forward_b, i + 1, values[i] * pw_b[i] % 998244353, n, 998244353);
+        tree_add(reverse_a, i + 1, values[i] * pw_a[n - 1 - i] % 1000000007, n, 1000000007);
+        tree_add(reverse_b, i + 1, values[i] * pw_b[n - 1 - i] % 998244353, n, 998244353);
+    }
+    for query in 0..m {
+        let type = read();
+        if type == 1 {
+            let k = read() - 1;
+            let x = read_text();
+            let new_value = at(x, 0) - 96;
+            let delta = new_value - values[k];
+            if delta != 0 {
+                tree_add(forward_a, k + 1, ((delta * pw_a[k]) % 1000000007 + 1000000007) % 1000000007, n, 1000000007);
+                tree_add(forward_b, k + 1, ((delta * pw_b[k]) % 998244353 + 998244353) % 998244353, n, 998244353);
+                tree_add(reverse_a, k + 1, ((delta * pw_a[n - 1 - k]) % 1000000007 + 1000000007) % 1000000007, n, 1000000007);
+                tree_add(reverse_b, k + 1, ((delta * pw_b[n - 1 - k]) % 998244353 + 998244353) % 998244353, n, 998244353);
+                values[k] = new_value;
+            }
+        } else {
+            let a = read() - 1;
+            let b = read() - 1;
+            let f_a = ((tree_sum(forward_a, b + 1, 1000000007) - tree_sum(forward_a, a, 1000000007)) % 1000000007 + 1000000007) % 1000000007 * ipw_a[a] % 1000000007;
+            let f_b = ((tree_sum(forward_b, b + 1, 998244353) - tree_sum(forward_b, a, 998244353)) % 998244353 + 998244353) % 998244353 * ipw_b[a] % 998244353;
+            let r_a = ((tree_sum(reverse_a, b + 1, 1000000007) - tree_sum(reverse_a, a, 1000000007)) % 1000000007 + 1000000007) % 1000000007 * ipw_a[n - 1 - b] % 1000000007;
+            let r_b = ((tree_sum(reverse_b, b + 1, 998244353) - tree_sum(reverse_b, a, 998244353)) % 998244353 + 998244353) % 998244353 * ipw_b[n - 1 - b] % 998244353;
+            if f_a == r_a && f_b == r_b {
+                println("YES");
+            } else {
+                println("NO");
+            }
+        }
+    }
+}

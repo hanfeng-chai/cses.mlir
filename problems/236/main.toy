@@ -1,0 +1,92 @@
+fn main() {
+    let n = read();
+    let k = read();
+    let codes = array(n * n, i16(0));
+    let count_by_letter = array(k, 0);
+    for r in 0..n {
+        let line = read_text();
+        for j in 0..n {
+            let code = at(line, j) - 65;
+            codes[r * n + j] = i16(code);
+            count_by_letter[code] += 1;
+        }
+    }
+    let start = array(k + 1, 0);
+    for c in 0..k {
+        start[c + 1] = start[c] + count_by_letter[c];
+    }
+    let cells = array(n * n, i32(0));
+    let fill_position = array(k, 0);
+    for c in 0..k {
+        fill_position[c] = start[c];
+    }
+    for r in 0..n {
+        for j in 0..n {
+            let code = i64(codes[r * n + j]);
+            cells[fill_position[code]] = i32(r * n + j);
+            fill_position[code] += 1;
+        }
+    }
+    let words = (n + 63) / 64;
+    let prev = array(n * words, 0);
+    let ver = array(n, -1);
+    let rowmask = array(words, 0);
+    let cols = array(n, 0);
+    for c in 0..k {
+        var found = false;
+        var index = start[c];
+        while index < start[c + 1] && !found {
+            let r = i64(cells[index]) / n;
+            for w in 0..words {
+                rowmask[w] = 0;
+            }
+            var count = 0;
+            while index < start[c + 1] && i64(cells[index]) / n == r {
+                let col = i64(cells[index]) % n;
+                cols[count] = col;
+                count += 1;
+                rowmask[col >> 6] |= 1 << (col & 63);
+                index += 1;
+            }
+            var t = 0;
+            while t < count && !found {
+                let col = cols[t];
+                if ver[col] == c {
+                    let cw = col >> 6;
+                    let cb = 1 << (col & 63);
+                    var w = 0;
+                    while w < words && !found {
+                        var x = prev[col * words + w] & rowmask[w];
+                        if w == cw {
+                            x &= (0 - 1) ^ cb;
+                        }
+                        if x != 0 {
+                            found = true;
+                        }
+                        w += 1;
+                    }
+                }
+                t += 1;
+            }
+            if !found {
+                for t in 0..count {
+                    let col = cols[t];
+                    if ver[col] != c {
+                        for w in 0..words {
+                            prev[col * words + w] = 0;
+                        }
+                        ver[col] = c;
+                    }
+                    for w in 0..words {
+                        prev[col * words + w] |= rowmask[w];
+                    }
+                }
+            }
+        }
+        if found {
+            println("YES");
+        } else {
+            println("NO");
+        }
+    }
+}

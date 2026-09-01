@@ -1,0 +1,85 @@
+fn bit_add(tree: array<i64>, index: i64, value: i64) {
+    var position = index;
+    while position < length(tree) {
+        tree[position] += value;
+        position += position & (0 - position);
+    }
+}
+
+fn bit_sum(tree: array<i64>, index: i64) -> i64 {
+    var position = index;
+    var result = 0;
+    while position > 0 {
+        result += tree[position];
+        position -= position & (0 - position);
+    }
+    return result;
+}
+
+fn range_add(first: array<i64>, second: array<i64>, left: i64, right: i64, value: i64) {
+    bit_add(first, left, value);
+    bit_add(first, right + 1, 0 - value);
+    bit_add(second, left, value * (left - 1));
+    bit_add(second, right + 1, 0 - value * right);
+}
+
+fn prefix_sum(first: array<i64>, second: array<i64>, index: i64) -> i64 {
+    return bit_sum(first, index) * index - bit_sum(second, index);
+}
+
+fn main() {
+    let size = read();
+    let queries = read();
+    let values = array(size + 1, 0);
+    let original_prefix = array(size + 1, 0);
+    for index in 1..=size {
+        values[index] = read();
+        original_prefix[index] = original_prefix[index - 1] + values[index];
+    }
+    let left = array(queries, 0);
+    let right = array(queries, 0);
+    let owner = array(queries, 0);
+    for query in 0..queries {
+        left[query] = 0 - read();
+        right[query] = read();
+        owner[query] = query;
+    }
+    sort_triples(left, right, owner);
+    let first_tree = array(size + 2, 0);
+    let second_tree = array(size + 2, 0);
+    let stack_value = array(size, 0);
+    let stack_left = array(size, 0);
+    let stack_right = array(size, 0);
+    var stack_size = 0;
+    let answer = array(queries, 0);
+    var query = 0;
+    var position = size + 1;
+    while position > 1 {
+        position -= 1;
+        var segment_right = position;
+        while stack_size > 0 && stack_value[stack_size - 1] <= values[position] {
+            stack_size -= 1;
+            range_add(
+                first_tree, second_tree,
+                stack_left[stack_size], stack_right[stack_size],
+                values[position] - stack_value[stack_size]
+            );
+            segment_right = stack_right[stack_size];
+        }
+        range_add(first_tree, second_tree, position, position, values[position]);
+        stack_value[stack_size] = values[position];
+        stack_left[stack_size] = position;
+        stack_right[stack_size] = segment_right;
+        stack_size += 1;
+        while query < queries && 0 - left[query] == position {
+            let query_right = right[query];
+            answer[owner[query]] = prefix_sum(first_tree, second_tree, query_right)
+                - prefix_sum(first_tree, second_tree, position - 1)
+                - (original_prefix[query_right] - original_prefix[position - 1]);
+            query += 1;
+        }
+    }
+    for index in 0..queries {
+        println(answer[index]);
+    }
+}

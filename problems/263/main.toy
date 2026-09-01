@@ -1,0 +1,35 @@
+fn main() {
+    let n = read();
+    let k = read();
+    let values = read_array(n);
+    let sorted = array(n, 0);
+    for i in 0..n {
+        sorted[i] = values[i];
+    }
+    sort(sorted);
+    let size = unique_sorted(sorted, n);
+    for i in 0..n {
+        values[i] = lower_bound_prefix(sorted, size, values[i]);
+    }
+    let count = array(size, 0);
+    var distinct = 0;
+    for i in 0..n {
+        count[values[i]] += 1;
+        if count[values[i]] == 1 {
+            distinct += 1;
+        }
+        if i >= k {
+            count[values[i - k]] -= 1;
+            if count[values[i - k]] == 0 {
+                distinct -= 1;
+            }
+        }
+        if i >= k - 1 {
+            if i != k - 1 {
+                print(" ");
+            }
+            print(distinct);
+        }
+    }
+    println();
+}

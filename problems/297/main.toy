@@ -1,0 +1,57 @@
+fn main() {
+    let n = read();
+    let preorder = read_array(n);
+    let inorder = read_array(n);
+    let left_child = array(n + 1, 0);
+    let right_child = array(n + 1, 0);
+    let stack = array(n, 0);
+    var stack_size = 0;
+    stack[stack_size] = preorder[0];
+    stack_size += 1;
+    var in_index = 0;
+    for i in 1..n {
+        let node = preorder[i];
+        var last = -1;
+        if stack[stack_size - 1] != inorder[in_index] {
+            left_child[stack[stack_size - 1]] = node;
+        } else {
+            while stack_size > 0 && stack[stack_size - 1] == inorder[in_index] {
+                last = stack[stack_size - 1];
+                stack_size -= 1;
+                in_index += 1;
+            }
+            right_child[last] = node;
+        }
+        stack[stack_size] = node;
+        stack_size += 1;
+    }
+    let state = array(n, 0);
+    var state_size = 0;
+    stack[0] = preorder[0];
+    stack_size = 1;
+    state[0] = 0;
+    state_size = 1;
+    while state_size > 0 {
+        let u = stack[state_size - 1];
+        let s = state[state_size - 1];
+        if s == 0 {
+            state[state_size - 1] = 1;
+            if left_child[u] != 0 {
+                stack[state_size] = left_child[u];
+                state[state_size] = 0;
+                state_size += 1;
+            }
+        } else if s == 1 {
+            state[state_size - 1] = 2;
+            if right_child[u] != 0 {
+                stack[state_size] = right_child[u];
+                state[state_size] = 0;
+                state_size += 1;
+            }
+        } else {
+            print(u, " ");
+            state_size -= 1;
+        }
+    }
+    println();
+}

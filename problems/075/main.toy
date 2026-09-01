@@ -1,0 +1,21 @@
+fn main() {
+    let count = read();
+    let total = count * (count + 1) / 2;
+    if (total & 1) != 0 {
+        println(0);
+    } else {
+        let target = total / 2;
+        let ways = array(target + 1, 0);
+        ways[0] = 1;
+        let modulus = 1_000_000_007;
+        for value in 1..=count {
+            var sum = target + 1;
+            while sum > value {
+                sum -= 1;
+                ways[sum] = (ways[sum] + ways[sum - value]) % modulus;
+            }
+        }
+        let inverse_two = (modulus + 1) / 2;
+        println(ways[target] * inverse_two % modulus);
+    }
+}

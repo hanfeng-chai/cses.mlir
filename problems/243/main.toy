@@ -1,0 +1,81 @@
+fn main() {
+    let n = read();
+    let m = read();
+    let head = array(n + 1, -1);
+    let to = array(2 * m, 0);
+    let next = array(2 * m, 0);
+    let edge_id = array(2 * m, 0);
+    let edge_a = array(m, 0);
+    let edge_b = array(m, 0);
+    for e in 0..m {
+        let a = read();
+        let b = read();
+        edge_a[e] = a;
+        edge_b[e] = b;
+        to[2 * e] = b;
+        next[2 * e] = head[a];
+        head[a] = 2 * e;
+        edge_id[2 * e] = e;
+        to[2 * e + 1] = a;
+        next[2 * e + 1] = head[b];
+        head[b] = 2 * e + 1;
+        edge_id[2 * e + 1] = e;
+    }
+    let disc = array(n + 1, 0);
+    let low = array(n + 1, 0);
+    let cursor = array(n + 1, 0);
+    let parent_edge = array(n + 1, -1);
+    let stack = array(n, 0);
+    let bridge_list = array(m, 0);
+    var bridge_count = 0;
+    var timer = 0;
+    for s in 1..=n {
+        if disc[s] == 0 {
+            timer += 1;
+            disc[s] = timer;
+            low[s] = timer;
+            parent_edge[s] = -1;
+            var stack_size = 1;
+            stack[0] = s;
+            cursor[s] = head[s];
+            while stack_size > 0 {
+                let u = stack[stack_size - 1];
+                let e = cursor[u];
+                if e == -1 {
+                    stack_size -= 1;
+                    if stack_size > 0 {
+                        let p = stack[stack_size - 1];
+                        if low[u] < low[p] {
+                            low[p] = low[u];
+                        }
+                        if low[u] > disc[p] {
+                            bridge_list[bridge_count] = parent_edge[u];
+                            bridge_count += 1;
+                        }
+                    }
+                } else {
+                    cursor[u] = next[e];
+                    let v = to[e];
+                    if edge_id[e] != parent_edge[u] {
+                        if disc[v] == 0 {
+                            timer += 1;
+                            disc[v] = timer;
+                            low[v] = timer;
+                            parent_edge[v] = edge_id[e];
+                            stack[stack_size] = v;
+                            stack_size += 1;
+                            cursor[v] = head[v];
+                        } else if disc[v] < low[u] {
+                            low[u] = disc[v];
+                        }
+                    }
+                }
+            }
+        }
+    }
+    println(bridge_count);
+    for i in 0..bridge_count {
+        let e = bridge_list[i];
+        println(edge_a[e], " ", edge_b[e]);
+    }
+}

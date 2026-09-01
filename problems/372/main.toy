@@ -1,0 +1,144 @@
+fn count_in_range(n_value: i64, m: i64, rem: i64) -> i64 {
+    if n_value <= 0 {
+        return 0;
+    }
+    let r = rem % m;
+    if r == 0 {
+        return n_value / m;
+    }
+    if r > n_value {
+        return 0;
+    }
+    return (n_value - r) / m + 1;
+}
+
+fn count_same_residue(a: i64, b: i64, m: i64) -> i64 {
+    if a <= 0 || b <= 0 {
+        return 0;
+    }
+    let cost1 = m;
+    let cost2 = (a + b) / m + 3;
+    var total = 0;
+    if cost1 <= cost2 {
+        for rem in 0..m {
+            total += count_in_range(a, m, rem) * count_in_range(b, m, rem);
+        }
+    } else {
+        let tmin = 0 - b / m - 2;
+        let tmax = a / m + 2;
+        for t in tmin..=tmax {
+            var lo = t * m + 1;
+            if lo < 1 {
+                lo = 1;
+            }
+            var hi = t * m + b;
+            if hi > a {
+                hi = a;
+            }
+            if hi >= lo {
+                total += hi - lo + 1;
+            }
+        }
+    }
+    return total;
+}
+
+fn count_neg_residue(a: i64, b: i64, m: i64) -> i64 {
+    if a <= 0 || b <= 0 {
+        return 0;
+    }
+    let cost1 = m;
+    let cost2 = (a + b) / m + 3;
+    var total = 0;
+    if cost1 <= cost2 {
+        for rem in 0..m {
+            let rem2 = (m - rem) % m;
+            total += count_in_range(a, m, rem) * count_in_range(b, m, rem2);
+        }
+    } else {
+        let smin = -2;
+        let smax = (a + b) / m + 2;
+        for s in smin..=smax {
+            var lo = s * m - b;
+            if lo < 1 {
+                lo = 1;
+            }
+            var hi = s * m - 1;
+            if hi > a {
+                hi = a;
+            }
+            if hi >= lo {
+                total += hi - lo + 1;
+            }
+        }
+    }
+    return total;
+}
+
+fn boundary_total_count(u: i64, b: i64, g: i64) -> i64 {
+    let tg = 2 * g;
+    let ru = u % tg;
+    let bp = b / g;
+    let w0 = ru / g;
+    if w0 == 0 {
+        return 1 + bp / 2;
+    }
+    return (bp + 1) / 2;
+}
+
+fn main() {
+    let t = read();
+    for test in 0..t {
+        let n = read();
+        let m = read();
+        let a = n - 1;
+        let b = m - 1;
+        let g = gcd(a, b);
+        let period = 2 * (a / g) * b;
+
+        let big_m = 2 * g;
+        let big_a = a - 1;
+        let big_b = b - 1;
+        let na = count_same_residue(big_a, big_b, big_m);
+        let nb = count_neg_residue(big_a, big_b, big_m);
+        var nab = count_in_range(big_a, big_m, 0) * count_in_range(big_b, big_m, 0);
+        if big_m % 2 == 0 {
+            nab += count_in_range(big_a, big_m, big_m / 2) * count_in_range(big_b, big_m, big_m / 2);
+        }
+        let interior = na + nb - nab;
+
+        let tg = 2 * g;
+        let cols_r0 = boundary_total_count(0, b, g);
+        let cols_ra = boundary_total_count(a, b, g);
+        let rows_total_c0 = boundary_total_count(0, a, g);
+        let rows_total_cb = boundary_total_count(b, a, g);
+        var ra_in_c0 = false;
+        if (0 % tg) == (a % tg) {
+            ra_in_c0 = true;
+        }
+        var r0_in_cb = false;
+        if (b % tg) == (0 % tg) {
+            r0_in_cb = true;
+        }
+        var ra_in_cb = false;
+        if (b % tg) == (a % tg) {
+            ra_in_cb = true;
+        }
+        var rows_c0_interior = rows_total_c0 - 1;
+        if ra_in_c0 {
+            rows_c0_interior -= 1;
+        }
+        var rows_cb_interior = rows_total_cb;
+        if r0_in_cb {
+            rows_cb_interior -= 1;
+        }
+        if ra_in_cb {
+            rows_cb_interior -= 1;
+        }
+
+        let distinct = interior + cols_r0 + cols_ra + rows_c0_interior + rows_cb_interior;
+        print(period);
+        print(" ");
+        println(distinct);
+    }
+}

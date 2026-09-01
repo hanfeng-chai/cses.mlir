@@ -1,0 +1,463 @@
+fn append_segment(out: array<i64>, out_len: array<i64>, start: i64, count: i64) {
+    for i in 0..count {
+        out[out_len[0]] = out[start + i];
+        out_len[0] += 1;
+    }
+}
+
+fn compact(out: array<i64>, out_len: array<i64>, base: i64, result_start: i64) {
+    let count = out_len[0] - result_start;
+    for i in 0..count {
+        out[base + i] = out[result_start + i];
+    }
+    out_len[0] = base + count;
+}
+
+fn append_repeat(out: array<i64>, out_len: array<i64>, code: i64, count: i64) -> i64 {
+    let start = out_len[0];
+    for i in 0..count {
+        out[out_len[0]] = code;
+        out_len[0] += 1;
+    }
+    return start;
+}
+
+fn append_transform(out: array<i64>, out_len: array<i64>, start: i64, mode: i64) -> i64 {
+    let result = out_len[0];
+    for i in start..out_len[0] {
+        let c = out[i];
+        var mapped = c;
+        if mode == 0 {
+            if c == 'D' {
+                mapped = 'L';
+            } else if c == 'R' {
+                mapped = 'D';
+            } else if c == 'U' {
+                mapped = 'R';
+            } else {
+                mapped = 'U';
+            }
+        } else if mode == 1 {
+            if c == 'L' {
+                mapped = 'R';
+            } else if c == 'R' {
+                mapped = 'L';
+            }
+        } else {
+            if c == 'U' {
+                mapped = 'D';
+            } else if c == 'D' {
+                mapped = 'U';
+            }
+        }
+        out[out_len[0]] = mapped;
+        out_len[0] += 1;
+    }
+    return result;
+}
+
+fn feasible(n: i64, m: i64, sy: i64, sx: i64, ty: i64, tx: i64) -> i64 {
+    if n == 1 && m == 1 {
+        return 1;
+    }
+    if sy == ty && sx == tx {
+        return 0;
+    }
+    var nn = n;
+    var mm = m;
+    var ay = sy;
+    var ax = sx;
+    var b2y = ty;
+    var b2x = tx;
+    if nn > mm {
+        let tn = nn;
+        nn = mm;
+        mm = tn;
+        let t = ay;
+        ay = ax;
+        ax = t;
+        let t2 = b2y;
+        b2y = b2x;
+        b2x = t2;
+    }
+    if ax > b2x {
+        let t = ax;
+        ax = b2x;
+        b2x = t;
+        let t2 = ay;
+        ay = b2y;
+        b2y = t2;
+    }
+    if nn == 1 {
+        if ax == 0 && b2x == mm - 1 {
+            return 1;
+        }
+        return 0;
+    }
+    if nn == 2 {
+        if ax == b2x {
+            if ax == 0 || ax == mm - 1 {
+                return 1;
+            }
+            return 0;
+        }
+        if ((ay + ax) & 1) != ((b2y + b2x) & 1) {
+            return 1;
+        }
+        return 0;
+    }
+    if ((nn * mm) & 1) == 1 {
+        if ((ay + ax) & 1) == 0 && ((b2y + b2x) & 1) == 0 {
+            return 1;
+        }
+        return 0;
+    }
+    if nn == 3 {
+        if ((ay + ax) & 1) == ((b2y + b2x) & 1) {
+            return 0;
+        }
+        if ((ay + ax) & 1) == 1 {
+            if ax < b2x - 1 || (ay == 1 && ax < b2x) {
+                return 0;
+            }
+        }
+        if ((b2y + b2x) & 1) == 1 {
+            if b2x < ax - 1 || (b2y == 1 && b2x < ax) {
+                return 0;
+            }
+        }
+        return 1;
+    }
+    if ((ay + ax) & 1) != ((b2y + b2x) & 1) {
+        return 1;
+    }
+    return 0;
+}
+
+fn tiny_degree(head: array<i64>, to: array<i64>, next: array<i64>, used: array<i64>, v: i64) -> i64 {
+    var degree = 0;
+    var e = head[v];
+    while e != -1 {
+        if used[to[e]] == 0 {
+            degree += 1;
+        }
+        e = next[e];
+    }
+    return degree;
+}
+
+fn tiny_connected(head: array<i64>, to: array<i64>, next: array<i64>, used: array<i64>, seen: array<i64>, queue: array<i64>, cells: i64, current: i64, used_count: i64) -> i64 {
+    if used_count == cells {
+        return 1;
+    }
+    var first = 0;
+    while used[first] != 0 {
+        first += 1;
+    }
+    var queue_size = 1;
+    queue[0] = first;
+    seen[first] = 1;
+    var q_head = 0;
+    while q_head < queue_size {
+        let u = queue[q_head];
+        q_head += 1;
+        var e = head[u];
+        while e != -1 {
+            let v = to[e];
+            if used[v] == 0 && seen[v] == 0 {
+                seen[v] = 1;
+                queue[queue_size] = v;
+                queue_size += 1;
+            }
+            e = next[e];
+        }
+    }
+    for i in 0..queue_size {
+        seen[queue[i]] = 0;
+    }
+    if queue_size != cells - used_count {
+        return 0;
+    }
+    var e2 = head[current];
+    while e2 != -1 {
+        if used[to[e2]] == 0 {
+            return 1;
+        }
+        e2 = next[e2];
+    }
+    return 0;
+}
+
+fn tiny_dfs(head: array<i64>, to: array<i64>, dir_step: array<i64>, next: array<i64>, used: array<i64>, seen: array<i64>, queue: array<i64>, path: array<i64>, path_len: array<i64>, cand_degree: array<i64>, cand_to: array<i64>, cand_step: array<i64>, cand_base: i64, cells: i64, target: i64, current: i64, used_count: i64) -> i64 {
+    if used_count == cells {
+        if current == target {
+            return 1;
+        }
+        return 0;
+    }
+    if current == target {
+        return 0;
+    }
+    if tiny_connected(head, to, next, used, seen, queue, cells, current, used_count) == 0 {
+        return 0;
+    }
+    var cand_size = 0;
+    var e = head[current];
+    while e != -1 {
+        let v = to[e];
+        if used[v] == 0 {
+            let degree = tiny_degree(head, to, next, used, v);
+            var pos = cand_size;
+            while pos > 0 && cand_degree[cand_base + pos - 1] > degree {
+                cand_degree[cand_base + pos] = cand_degree[cand_base + pos - 1];
+                cand_to[cand_base + pos] = cand_to[cand_base + pos - 1];
+                cand_step[cand_base + pos] = cand_step[cand_base + pos - 1];
+                pos -= 1;
+            }
+            cand_degree[cand_base + pos] = degree;
+            cand_to[cand_base + pos] = v;
+            cand_step[cand_base + pos] = dir_step[e];
+            cand_size += 1;
+        }
+        e = next[e];
+    }
+    for i in 0..cand_size {
+        let v = cand_to[cand_base + i];
+        used[v] = 1;
+        path[path_len[0]] = cand_step[cand_base + i];
+        path_len[0] += 1;
+        if tiny_dfs(head, to, dir_step, next, used, seen, queue, path, path_len, cand_degree, cand_to, cand_step, cand_base + cand_size, cells, target, v, used_count + 1) == 1 {
+            return 1;
+        }
+        path_len[0] -= 1;
+        used[v] = 0;
+    }
+    return 0;
+}
+
+fn tiny_solve(n: i64, m: i64, sy: i64, sx: i64, ty: i64, tx: i64, out: array<i64>, out_len: array<i64>) -> i64 {
+    let cells = n * m;
+    let source = sy * m + sx;
+    let target = ty * m + tx;
+    let head = array(cells, -1);
+    let to = array(4 * cells, 0);
+    let dir_step = array(4 * cells, 0);
+    let next = array(4 * cells, 0);
+    let dy = [1, 0, -1, 0];
+    let dx = [0, 1, 0, -1];
+    let step_code = ['D', 'R', 'U', 'L'];
+    var edge_count = 0;
+    for y in 0..n {
+        for x in 0..m {
+            let u = y * m + x;
+            for d in 0..4 {
+                let ny = y + dy[d];
+                let nx = x + dx[d];
+                if 0 <= ny && ny < n && 0 <= nx && nx < m {
+                    to[edge_count] = ny * m + nx;
+                    dir_step[edge_count] = step_code[d];
+                    next[edge_count] = head[u];
+                    head[u] = edge_count;
+                    edge_count += 1;
+                }
+            }
+        }
+    }
+    let used = array(cells, 0);
+    let seen = array(cells, 0);
+    let queue = array(cells, 0);
+    let path = array(cells, 0);
+    let path_len = array(1, 0);
+    let cand_degree = array(4 * cells + 4, 0);
+    let cand_to = array(4 * cells + 4, 0);
+    let cand_step = array(4 * cells + 4, 0);
+    used[source] = 1;
+    tiny_dfs(head, to, dir_step, next, used, seen, queue, path, path_len, cand_degree, cand_to, cand_step, 0, cells, target, source, 1);
+    let start = out_len[0];
+    for i in 0..path_len[0] {
+        out[out_len[0]] = path[i];
+        out_len[0] += 1;
+    }
+    return start;
+}
+
+fn construct_path(n: i64, m: i64, sy: i64, sx: i64, ty: i64, tx: i64, out: array<i64>, out_len: array<i64>) -> i64 {
+    let base = out_len[0];
+    if n > m {
+        let inner = construct_path(m, n, m - sx - 1, sy, m - tx - 1, ty, out, out_len);
+        let transformed = append_transform(out, out_len, inner, 0);
+        compact(out, out_len, base, transformed);
+        return base;
+    }
+    if sx > tx {
+        let inner = construct_path(n, m, sy, m - sx - 1, ty, m - tx - 1, out, out_len);
+        let transformed = append_transform(out, out_len, inner, 1);
+        compact(out, out_len, base, transformed);
+        return base;
+    }
+    if sy > ty {
+        let inner = construct_path(n, m, n - sy - 1, sx, n - ty - 1, tx, out, out_len);
+        let transformed = append_transform(out, out_len, inner, 2);
+        compact(out, out_len, base, transformed);
+        return base;
+    }
+    if n == 1 {
+        append_repeat(out, out_len, 'R', m - 1);
+        return base;
+    }
+    if n == 2 && sy == ty && sx + 1 == tx {
+        for i in 0..sx {
+            out[out_len[0]] = 'L';
+            out_len[0] += 1;
+        }
+        if sy == 0 {
+            out[out_len[0]] = 'D';
+        } else {
+            out[out_len[0]] = 'U';
+        }
+        out_len[0] += 1;
+        for i in 0..m - 1 {
+            out[out_len[0]] = 'R';
+            out_len[0] += 1;
+        }
+        if sy == 0 {
+            out[out_len[0]] = 'U';
+        } else {
+            out[out_len[0]] = 'D';
+        }
+        out_len[0] += 1;
+        for i in 0..m - 1 - tx {
+            out[out_len[0]] = 'L';
+            out_len[0] += 1;
+        }
+        return base;
+    }
+    if n <= 4 && m <= 5 {
+        return tiny_solve(n, m, sy, sx, ty, tx, out, out_len);
+    }
+    if sx >= 2 && feasible(n, m - 2, sy, sx - 2, ty, tx - 2) == 1 {
+        let core_start = construct_path(n, m - 2, sy, sx - 2, ty, tx - 2, out, out_len);
+        let core_end = out_len[0];
+        var y = sy;
+        var x = sx - 2;
+        var i = 0;
+        while i < core_end - core_start {
+            let c = out[core_start + i];
+            var ny = y;
+            var nx = x;
+            if c == 'D' {
+                ny += 1;
+            } else if c == 'R' {
+                nx += 1;
+            } else if c == 'U' {
+                ny -= 1;
+            } else {
+                nx -= 1;
+            }
+            if x == 0 && nx == 0 {
+                let result = out_len[0];
+                append_segment(out, out_len, core_start, i);
+                out[out_len[0]] = 'L';
+                out_len[0] += 1;
+                construct_path(n, 2, y, 1, ny, 1, out, out_len);
+                out[out_len[0]] = 'R';
+                out_len[0] += 1;
+                append_segment(out, out_len, core_start + i + 1, core_end - core_start - i - 1);
+                compact(out, out_len, base, result);
+                return base;
+            }
+            y = ny;
+            x = nx;
+            i += 1;
+        }
+    }
+    if tx <= m - 3 && feasible(n, m - 2, sy, sx, ty, tx) == 1 {
+        let core_start = construct_path(n, m - 2, sy, sx, ty, tx, out, out_len);
+        let core_end = out_len[0];
+        var y = sy;
+        var x = sx;
+        var i = 0;
+        while i < core_end - core_start {
+            let c = out[core_start + i];
+            var ny = y;
+            var nx = x;
+            if c == 'D' {
+                ny += 1;
+            } else if c == 'R' {
+                nx += 1;
+            } else if c == 'U' {
+                ny -= 1;
+            } else {
+                nx -= 1;
+            }
+            if x == m - 3 && nx == m - 3 {
+                let result = out_len[0];
+                append_segment(out, out_len, core_start, i);
+                out[out_len[0]] = 'R';
+                out_len[0] += 1;
+                construct_path(n, 2, y, 0, ny, 0, out, out_len);
+                out[out_len[0]] = 'L';
+                out_len[0] += 1;
+                append_segment(out, out_len, core_start + i + 1, core_end - core_start - i - 1);
+                compact(out, out_len, base, result);
+                return base;
+            }
+            y = ny;
+            x = nx;
+            i += 1;
+        }
+    }
+    for cut in sy..ty {
+        for x in 0..m {
+            if feasible(cut + 1, m, sy, sx, cut, x) == 1 && feasible(n - cut - 1, m, 0, x, ty - cut - 1, tx) == 1 {
+                construct_path(cut + 1, m, sy, sx, cut, x, out, out_len);
+                out[out_len[0]] = 'D';
+                out_len[0] += 1;
+                construct_path(n - cut - 1, m, 0, x, ty - cut - 1, tx, out, out_len);
+                return base;
+            }
+        }
+    }
+    for cut in sx..tx {
+        for y in 0..n {
+            if feasible(n, cut + 1, sy, sx, y, cut) == 1 && feasible(n, m - cut - 1, y, 0, ty, tx - cut - 1) == 1 {
+                construct_path(n, cut + 1, sy, sx, y, cut, out, out_len);
+                out[out_len[0]] = 'R';
+                out_len[0] += 1;
+                construct_path(n, m - cut - 1, y, 0, ty, tx - cut - 1, out, out_len);
+                return base;
+            }
+        }
+    }
+    return base;
+}
+
+fn main() {
+    let buffer = array(2000000, 0);
+    let out_len = array(1, 0);
+    let tests = read();
+    for test_case in 0..tests {
+        out_len[0] = 0;
+        let n = read();
+        let m = read();
+        let sy = read() - 1;
+        let sx = read() - 1;
+        let ty = read() - 1;
+        let tx = read() - 1;
+        if feasible(n, m, sy, sx, ty, tx) == 0 {
+            println("NO");
+        } else {
+            let start = construct_path(n, m, sy, sx, ty, tx, buffer, out_len);
+            let total = out_len[0] - start;
+            if total != n * m - 1 {
+                println("NO");
+            } else {
+                println("YES");
+                for i in 0..total {
+                    put(buffer[start + i]);
+                }
+                put(10);
+            }
+        }
+    }
+}

@@ -1,0 +1,129 @@
+fn dsu_root(parent: array<i64>, value: i64) -> i64 {
+    var x = value;
+    while parent[x] != x {
+        x = parent[x];
+    }
+    return x;
+}
+
+fn unite(parent: array<i64>, rank: array<i64>, undo_ra: array<i64>, undo_rb: array<i64>, undo_inc: array<i64>, stack_size: array<i64>, first: i64, second: i64) -> bool {
+    let a = dsu_root(parent, first);
+    let b = dsu_root(parent, second);
+    if a == b {
+        undo_ra[stack_size[0]] = -1;
+        undo_rb[stack_size[0]] = -1;
+        undo_inc[stack_size[0]] = 0;
+        stack_size[0] += 1;
+        return false;
+    }
+    var ra = a;
+    var rb = b;
+    if rank[ra] < rank[rb] {
+        let temporary = ra;
+        ra = rb;
+        rb = temporary;
+    }
+    var inc = 0;
+    if rank[ra] == rank[rb] {
+        inc = 1;
+    }
+    parent[rb] = ra;
+    rank[ra] += inc;
+    undo_ra[stack_size[0]] = ra;
+    undo_rb[stack_size[0]] = rb;
+    undo_inc[stack_size[0]] = inc;
+    stack_size[0] += 1;
+    return true;
+}
+
+fn rollback(parent: array<i64>, rank: array<i64>, undo_ra: array<i64>, undo_rb: array<i64>, undo_inc: array<i64>, stack_size: array<i64>, target: i64) {
+    while stack_size[0] > target {
+        stack_size[0] -= 1;
+        if undo_ra[stack_size[0]] != -1 {
+            parent[undo_rb[stack_size[0]]] = undo_rb[stack_size[0]];
+            rank[undo_ra[stack_size[0]]] -= undo_inc[stack_size[0]];
+        }
+    }
+}
+
+fn main() {
+    let n = read();
+    let m = read();
+    let q = read();
+    let edge_a = array(m, 0);
+    let edge_b = array(m, 0);
+    let edge_w = array(m, 0);
+    for e in 0..m {
+        edge_a[e] = read();
+        edge_b[e] = read();
+        edge_w[e] = read();
+    }
+    let event_w = array(m, 0);
+    let event_q = array(m, 0);
+    let event_e = array(m, 0);
+    var event_count = 0;
+    for query in 0..q {
+        let size = read();
+        for j in 0..size {
+            let e = read() - 1;
+            event_w[event_count] = edge_w[e];
+            event_q[event_count] = query;
+            event_e[event_count] = e;
+            event_count += 1;
+        }
+    }
+    sort_triples(event_w, event_q, event_e);
+    let sorted_weight = array(m, 0);
+    let sorted_index = array(m, 0);
+    for e in 0..m {
+        sorted_weight[e] = edge_w[e];
+        sorted_index[e] = e;
+    }
+    sort_pairs(sorted_weight, sorted_index);
+    let parent = array(n + 1, 0);
+    let rank = array(n + 1, 0);
+    for v in 1..=n {
+        parent[v] = v;
+    }
+    let undo_ra = array(2 * m + 4, 0);
+    let undo_rb = array(2 * m + 4, 0);
+    let undo_inc = array(2 * m + 4, 0);
+    let stack_size = array(1, 0);
+    let answer = array(q, 1);
+    var permanent = 0;
+    var ei = 0;
+    while ei < event_count {
+        let w = event_w[ei];
+        while permanent < m && edge_w[sorted_index[permanent]] < w {
+            let e = sorted_index[permanent];
+            unite(parent, rank, undo_ra, undo_rb, undo_inc, stack_size, edge_a[e], edge_b[e]);
+            permanent += 1;
+        }
+        var j = ei;
+        while j < event_count && event_w[j] == w {
+            let query = event_q[j];
+            let base = stack_size[0];
+            var ok = true;
+            var k = j;
+            while k < event_count && event_w[k] == w && event_q[k] == query {
+                if !unite(parent, rank, undo_ra, undo_rb, undo_inc, stack_size, edge_a[event_e[k]], edge_b[event_e[k]]) {
+                    ok = false;
+                }
+                k += 1;
+            }
+            if !ok {
+                answer[query] = 0;
+            }
+            rollback(parent, rank, undo_ra, undo_rb, undo_inc, stack_size, base);
+            j = k;
+        }
+        ei = j;
+    }
+    for query in 0..q {
+        if answer[query] == 1 {
+            println("YES");
+        } else {
+            println("NO");
+        }
+    }
+}

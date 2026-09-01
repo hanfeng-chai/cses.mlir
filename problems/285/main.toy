@@ -1,0 +1,30 @@
+fn main() {
+    let n = read();
+    let size = 1 << 20;
+    let sub = array(size, 0);
+    let sup = array(size, 0);
+    let values = array(n, 0);
+    for i in 0..n {
+        values[i] = read();
+        sub[values[i]] += 1;
+        sup[values[i]] += 1;
+    }
+    for b in 0..20 {
+        for m in 0..size {
+            if ((m >> b) & 1) == 1 {
+                sub[m] += sub[m ^ (1 << b)];
+            }
+        }
+    }
+    for b in 0..20 {
+        for m in 0..size {
+            if ((m >> b) & 1) == 0 {
+                sup[m] += sup[m | (1 << b)];
+            }
+        }
+    }
+    for i in 0..n {
+        let complement = ((0 - 1) ^ values[i]) & (size - 1);
+        println(sub[values[i]], " ", sup[values[i]], " ", n - sub[complement]);
+    }
+}

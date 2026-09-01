@@ -1,0 +1,33 @@
+fn main() {
+    let n = read();
+    if n == 2 {
+        println("1 2");
+        return;
+    }
+    let code = array(n - 2, 0);
+    let degree = array(n + 1, 1);
+    for i in 0..n - 2 {
+        code[i] = read();
+        degree[code[i]] += 1;
+    }
+    var ptr = 1;
+    while degree[ptr] != 1 {
+        ptr += 1;
+    }
+    var leaf = ptr;
+    for i in 0..n - 2 {
+        let a = code[i];
+        println(leaf, " ", a);
+        degree[a] -= 1;
+        if degree[a] == 1 && a < ptr {
+            leaf = a;
+        } else {
+            ptr += 1;
+            while degree[ptr] != 1 {
+                ptr += 1;
+            }
+            leaf = ptr;
+        }
+    }
+    println(leaf, " ", n);
+}

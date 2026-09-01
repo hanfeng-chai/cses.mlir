@@ -1,0 +1,31 @@
+fn main() {
+    let nodes = read();
+    let edges = read();
+    let cost = array(edges, 0);
+    let first = array(edges, 0);
+    let second = array(edges, 0);
+    for edge in 0..edges {
+        first[edge] = read();
+        second[edge] = read();
+        cost[edge] = read();
+    }
+    sort_triples(cost, first, second);
+    let parent = array(nodes + 1, 0);
+    let size = array(nodes + 1, 1);
+    for node in 1..=nodes {
+        parent[node] = node;
+    }
+    var total = 0;
+    var used = 0;
+    for edge in 0..edges {
+        if dsu_union(parent, size, first[edge], second[edge]) {
+            total += cost[edge];
+            used += 1;
+        }
+    }
+    if used != nodes - 1 {
+        println("IMPOSSIBLE");
+    } else {
+        println(total);
+    }
+}

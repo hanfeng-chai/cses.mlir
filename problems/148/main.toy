@@ -1,0 +1,53 @@
+fn main() {
+    let nodes = read();
+    let edge_count = nodes - 1;
+    let head = array(nodes + 1, -1);
+    let to = array(2 * edge_count, 0);
+    let next = array(2 * edge_count, 0);
+    for edge in 0..edge_count {
+        let first = read();
+        let second = read();
+        to[2 * edge] = second;
+        next[2 * edge] = head[first];
+        head[first] = 2 * edge;
+        to[2 * edge + 1] = first;
+        next[2 * edge + 1] = head[second];
+        head[second] = 2 * edge + 1;
+    }
+    let parent = array(nodes + 1, 0);
+    let order = array(nodes, 0);
+    root_tree(nodes, 1, head, to, next, parent, order);
+    let subtree = array(nodes + 1, 1);
+    let below = array(nodes + 1, 0);
+    var index = nodes;
+    while index > 0 {
+        index -= 1;
+        let node = order[index];
+        var edge = head[node];
+        while edge != -1 {
+            let child = to[edge];
+            if child != parent[node] {
+                subtree[node] += subtree[child];
+                below[node] += below[child] + subtree[child];
+            }
+            edge = next[edge];
+        }
+    }
+    let answer = array(nodes + 1, 0);
+    answer[1] = below[1];
+    for order_index in 0..nodes {
+        let node = order[order_index];
+        var edge = head[node];
+        while edge != -1 {
+            let child = to[edge];
+            if child != parent[node] {
+                answer[child] = answer[node] - subtree[child] + nodes - subtree[child];
+            }
+            edge = next[edge];
+        }
+    }
+    for node in 1..=nodes {
+        print(answer[node], " ");
+    }
+    println();
+}

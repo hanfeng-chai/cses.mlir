@@ -1,0 +1,52 @@
+fn li_chao_insert(node: i64, lo: i64, hi: i64, m: i64, b: i64, seg_m: array<i64>, seg_b: array<i64>) {
+    let mid = (lo + hi) / 2;
+    var new_m = m;
+    var new_b = b;
+    let left_better = new_m * lo + new_b < seg_m[node] * lo + seg_b[node];
+    let mid_better = new_m * mid + new_b < seg_m[node] * mid + seg_b[node];
+    if mid_better {
+        let temp_m = seg_m[node];
+        let temp_b = seg_b[node];
+        seg_m[node] = new_m;
+        seg_b[node] = new_b;
+        new_m = temp_m;
+        new_b = temp_b;
+    }
+    if lo == hi {
+        return;
+    }
+    if left_better != mid_better {
+        li_chao_insert(2 * node, lo, mid, new_m, new_b, seg_m, seg_b);
+    } else {
+        li_chao_insert(2 * node + 1, mid + 1, hi, new_m, new_b, seg_m, seg_b);
+    }
+}
+
+fn li_chao_query(node: i64, lo: i64, hi: i64, x: i64, seg_m: array<i64>, seg_b: array<i64>) -> i64 {
+    let result = seg_m[node] * x + seg_b[node];
+    if lo == hi {
+        return result;
+    }
+    let mid = (lo + hi) / 2;
+    if x <= mid {
+        return min(result, li_chao_query(2 * node, lo, mid, x, seg_m, seg_b));
+    }
+    return min(result, li_chao_query(2 * node + 1, mid + 1, hi, x, seg_m, seg_b));
+}
+
+fn main() {
+    let n = read();
+    let x = read();
+    let s = read_array(n);
+    let f = read_array(n);
+    let m = 1000000;
+    let seg_m = array(4 * (m + 1), 0);
+    let seg_b = array(4 * (m + 1), 4000000000000000000);
+    li_chao_insert(1, 1, m, x, 0, seg_m, seg_b);
+    var dp = 0;
+    for i in 1..=n {
+        dp = li_chao_query(1, 1, m, s[i - 1], seg_m, seg_b);
+        li_chao_insert(1, 1, m, f[i - 1], dp, seg_m, seg_b);
+    }
+    println(dp);
+}

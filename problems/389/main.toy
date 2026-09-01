@@ -1,0 +1,132 @@
+fn ntt(values: array<i64>, inverse: bool, mod: i64, primitive_root: i64, size: i64) {
+    // bit reversal
+    var j = 0;
+    var i = 1;
+    while i < size {
+        var bit = size / 2;
+        while (j & bit) != 0 {
+            j = j ^ bit;
+            bit = bit / 2;
+        }
+        j = j ^ bit;
+        if i < j {
+            let tmp2 = values[i];
+            values[i] = values[j];
+            values[j] = tmp2;
+        }
+        i += 1;
+    }
+
+    var length = 2;
+    while length <= size {
+        var root = pow_mod(primitive_root, (mod - 1) / length, mod);
+        if inverse {
+            root = pow_mod(root, mod - 2, mod);
+        }
+        var start = 0;
+        while start < size {
+            var multiplier = 1;
+            for i in 0..length / 2 {
+                let even = values[start + i];
+                let odd = multiplier * values[start + i + length / 2] % mod;
+                var sum = even + odd;
+                if sum >= mod {
+                    sum -= mod;
+                }
+                var difference = even - odd;
+                if difference < 0 {
+                    difference += mod;
+                }
+                values[start + i] = sum;
+                values[start + i + length / 2] = difference;
+                multiplier = multiplier * root % mod;
+            }
+            start += length;
+        }
+        length *= 2;
+    }
+
+    if inverse {
+        let inverse_n = pow_mod(size, mod - 2, mod);
+        for i in 0..size {
+            values[i] = values[i] * inverse_n % mod;
+        }
+    }
+}
+
+fn main() {
+    let bits = read_text();
+    let n = length(bits);
+    var frequency = array(n + 1, 0);
+    var prefix = 0;
+    frequency[0] += 1;
+    for i in 0..n {
+        if at(bits, i) == 49 {
+            prefix += 1;
+        }
+        frequency[prefix] += 1;
+    }
+
+    var zero_ones = 0;
+    for count in 0..=n {
+        zero_ones += frequency[count] * (frequency[count] - 1) / 2;
+    }
+
+    let reversed = array(n + 1, 0);
+    for i in 0..=n {
+        reversed[n - i] = frequency[i];
+    }
+
+    var transform_size = 1;
+    while transform_size < 2 * n + 1 {
+        transform_size *= 2;
+    }
+
+    let size = transform_size;
+    var array_a = array(size, 0);
+    var array_b = array(size, 0);
+    for i in 0..=n {
+        array_a[i] = frequency[i];
+        array_b[i] = reversed[i];
+    }
+    let mod1 = 998244353;
+    let mod2 = 1004535809;
+    ntt(array_a, false, mod1, 3, size);
+    ntt(array_b, false, mod1, 3, size);
+    for i in 0..size {
+        array_a[i] = array_a[i] * array_b[i] % mod1;
+    }
+    ntt(array_a, true, mod1, 3, size);
+    let product1 = array_a;
+
+    var array_c = array(size, 0);
+    var array_d = array(size, 0);
+    for i in 0..=n {
+        array_c[i] = frequency[i];
+        array_d[i] = reversed[i];
+    }
+    ntt(array_c, false, mod2, 3, size);
+    ntt(array_d, false, mod2, 3, size);
+    for i in 0..size {
+        array_c[i] = array_c[i] * array_d[i] % mod2;
+    }
+    ntt(array_c, true, mod2, 3, size);
+    let product2 = array_c;
+
+    let inverse_mod1 = pow_mod(mod1, mod2 - 2, mod2);
+
+    print(zero_ones);
+    for ones in 1..=n {
+        let residue1 = product1[n + ones];
+        var delta = product2[n + ones] - residue1;
+        delta = delta % mod2;
+        if delta < 0 {
+            delta += mod2;
+        }
+        let multiplier = i64(i128(delta) * i128(inverse_mod1) % i128(mod2));
+        let exact = residue1 + mod1 * multiplier;
+        print(" ");
+        print(exact);
+    }
+    print("\n");
+}

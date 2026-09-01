@@ -1,0 +1,112 @@
+fn treap_new_node(code: i64, lc: array<i64>, rc: array<i64>, size: array<i64>, pri: array<i64>, val: array<i64>, rev: array<i64>, sum: array<i64>, count: array<i64>, state: array<i64>) -> i64 {
+    count[0] += 1;
+    let node = count[0];
+    lc[node] = 0;
+    rc[node] = 0;
+    size[node] = 1;
+    rev[node] = 0;
+    val[node] = code;
+    sum[node] = code;
+    var x = state[0];
+    x ^= x << 13;
+    x ^= x >> 7;
+    x ^= x << 17;
+    state[0] = x;
+    pri[node] = x;
+    return node;
+}
+
+fn treap_push(t: i64, lc: array<i64>, rc: array<i64>, rev: array<i64>) {
+    if t != 0 && rev[t] == 1 {
+        let temp = lc[t];
+        lc[t] = rc[t];
+        rc[t] = temp;
+        if lc[t] != 0 {
+            rev[lc[t]] ^= 1;
+        }
+        if rc[t] != 0 {
+            rev[rc[t]] ^= 1;
+        }
+        rev[t] = 0;
+    }
+}
+
+fn treap_update(t: i64, lc: array<i64>, rc: array<i64>, size: array<i64>, val: array<i64>, sum: array<i64>) {
+    if t != 0 {
+        size[t] = 1 + size[lc[t]] + size[rc[t]];
+        sum[t] = val[t] + sum[lc[t]] + sum[rc[t]];
+    }
+}
+
+fn treap_split(t: i64, k: i64, result: array<i64>, lc: array<i64>, rc: array<i64>, size: array<i64>, rev: array<i64>, val: array<i64>, sum: array<i64>) {
+    if t == 0 {
+        result[0] = 0;
+        result[1] = 0;
+        return;
+    }
+    treap_push(t, lc, rc, rev);
+    if size[lc[t]] >= k {
+        treap_split(lc[t], k, result, lc, rc, size, rev, val, sum);
+        lc[t] = result[1];
+        result[1] = t;
+    } else {
+        treap_split(rc[t], k - size[lc[t]] - 1, result, lc, rc, size, rev, val, sum);
+        rc[t] = result[0];
+        result[0] = t;
+    }
+    treap_update(t, lc, rc, size, val, sum);
+}
+
+fn treap_merge(a: i64, b: i64, lc: array<i64>, rc: array<i64>, size: array<i64>, pri: array<i64>, rev: array<i64>, val: array<i64>, sum: array<i64>) -> i64 {
+    if a == 0 {
+        return b;
+    }
+    if b == 0 {
+        return a;
+    }
+    if pri[a] < pri[b] {
+        treap_push(a, lc, rc, rev);
+        rc[a] = treap_merge(rc[a], b, lc, rc, size, pri, rev, val, sum);
+        treap_update(a, lc, rc, size, val, sum);
+        return a;
+    }
+    treap_push(b, lc, rc, rev);
+    lc[b] = treap_merge(a, lc[b], lc, rc, size, pri, rev, val, sum);
+    treap_update(b, lc, rc, size, val, sum);
+    return b;
+}
+
+fn main() {
+    let n = read();
+    let m = read();
+    let lc = array(n + 5, 0);
+    let rc = array(n + 5, 0);
+    let size = array(n + 5, 0);
+    let pri = array(n + 5, 0);
+    let val = array(n + 5, 0);
+    let rev = array(n + 5, 0);
+    let sum = array(n + 5, 0);
+    let count = array(1, 0);
+    let state = array(1, 998244353);
+    var root = 0;
+    for i in 0..n {
+        root = treap_merge(root, treap_new_node(read(), lc, rc, size, pri, val, rev, sum, count, state), lc, rc, size, pri, rev, val, sum);
+    }
+    let result = array(2, 0);
+    for op in 0..m {
+        let type = read();
+        let a = read();
+        let b = read();
+        treap_split(root, b, result, lc, rc, size, rev, val, sum);
+        let l = result[0];
+        let r = result[1];
+        treap_split(l, a - 1, result, lc, rc, size, rev, val, sum);
+        let mid = result[1];
+        if type == 1 {
+            rev[mid] ^= 1;
+        } else {
+            println(sum[mid]);
+        }
+        root = treap_merge(treap_merge(result[0], mid, lc, rc, size, pri, rev, val, sum), r, lc, rc, size, pri, rev, val, sum);
+    }
+}

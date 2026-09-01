@@ -1,0 +1,20 @@
+fn main() {
+    let count = read();
+    let target = read();
+    let values = array(count, 0);
+    var left = 0;
+    var sum = 0;
+    var answer = 0;
+    for right in 0..count {
+        values[right] = read();
+        sum += values[right];
+        while sum > target {
+            sum -= values[left];
+            left += 1;
+        }
+        if sum == target {
+            answer += 1;
+        }
+    }
+    println(answer);
+}

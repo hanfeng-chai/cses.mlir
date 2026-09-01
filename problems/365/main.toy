@@ -1,0 +1,57 @@
+fn count_digit(m: i64, d: i64) -> i64 {
+    if m < 0 {
+        return 0;
+    }
+    var count = 0;
+    var p = i128(1);
+    let mm = i128(m);
+    let dd = i128(d);
+    while p <= mm {
+        let higher = mm / (p * 10);
+        let current = (mm / p) % 10;
+        let lower = mm % p;
+        if d == 0 {
+            if higher != 0 {
+                count += i64((higher - 1) * p);
+                if current > 0 {
+                    count += i64(p);
+                } else {
+                    count += i64(lower + 1);
+                }
+            }
+        } else {
+            count += i64(higher * p);
+            if current > dd {
+                count += i64(p);
+            } else if current == dd {
+                count += i64(lower + 1);
+            }
+        }
+        p *= 10;
+    }
+    return count;
+}
+
+fn feasible(m: i64, n: i64) -> bool {
+    for d in 0..10 {
+        if count_digit(m, d) > n {
+            return false;
+        }
+    }
+    return true;
+}
+
+fn main() {
+    let n = read();
+    var low = 1;
+    var high = 4000000000000000000;
+    while low < high {
+        let mid = low + (high - low + 1) / 2;
+        if feasible(mid, n) {
+            low = mid;
+        } else {
+            high = mid - 1;
+        }
+    }
+    println(low);
+}

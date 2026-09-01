@@ -1,0 +1,83 @@
+fn main() {
+    let n = read();
+    let m = read();
+    let head = array(n + 1, -1);
+    let to = array(2 * m, 0);
+    let next = array(2 * m, 0);
+    for e in 0..m {
+        let a = read();
+        let b = read();
+        to[2 * e] = b;
+        next[2 * e] = head[a];
+        head[a] = 2 * e;
+        to[2 * e + 1] = a;
+        next[2 * e + 1] = head[b];
+        head[b] = 2 * e + 1;
+    }
+    let disc = array(n + 1, 0);
+    let low = array(n + 1, 0);
+    let cursor = array(n + 1, 0);
+    let parent = array(n + 1, 0);
+    let is_art = array(n + 1, 0);
+    let stack = array(n, 0);
+    var timer = 0;
+    for s in 1..=n {
+        if disc[s] == 0 {
+            timer += 1;
+            disc[s] = timer;
+            low[s] = timer;
+            parent[s] = 0;
+            var root_children = 0;
+            var stack_size = 1;
+            stack[0] = s;
+            cursor[s] = head[s];
+            while stack_size > 0 {
+                let u = stack[stack_size - 1];
+                let e = cursor[u];
+                if e == -1 {
+                    stack_size -= 1;
+                    if stack_size > 0 {
+                        let p = stack[stack_size - 1];
+                        if low[u] < low[p] {
+                            low[p] = low[u];
+                        }
+                        if p != s && low[u] >= disc[p] {
+                            is_art[p] = 1;
+                        }
+                    }
+                } else {
+                    cursor[u] = next[e];
+                    let v = to[e];
+                    if v == parent[u] {
+                    } else if disc[v] == 0 {
+                        timer += 1;
+                        disc[v] = timer;
+                        low[v] = timer;
+                        parent[v] = u;
+                        if u == s {
+                            root_children += 1;
+                        }
+                        stack[stack_size] = v;
+                        stack_size += 1;
+                        cursor[v] = head[v];
+                    } else if disc[v] < low[u] {
+                        low[u] = disc[v];
+                    }
+                }
+            }
+            if root_children > 1 {
+                is_art[s] = 1;
+            }
+        }
+    }
+    var count = 0;
+    for i in 1..=n {
+        count += is_art[i];
+    }
+    println(count);
+    for i in 1..=n {
+        if is_art[i] == 1 {
+            println(i);
+        }
+    }
+}

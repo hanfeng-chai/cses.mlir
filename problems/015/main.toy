@@ -1,0 +1,45 @@
+fn factorial(value: i64) -> i64 {
+    var result = 1;
+    var factor = 2;
+    while factor <= value {
+        result *= factor;
+        factor += 1;
+    }
+    return result;
+}
+
+fn generate(position: i64, size: i64, counts: array<i64>, word: array<i64>) {
+    if position == size {
+        for index in 0..size {
+            put(word[index]);
+        }
+        println();
+    } else {
+        for letter in 0..26 {
+            if counts[letter] > 0 {
+                counts[letter] -= 1;
+                word[position] = 97 + letter;
+                generate(position + 1, size, counts, word);
+                counts[letter] += 1;
+            }
+        }
+    }
+}
+
+fn main() {
+    let text = read_text();
+    let size = length(text);
+    let counts = array(26, 0);
+    for index in 0..size {
+        counts[at(text, index) - 97] += 1;
+    }
+
+    var permutations = factorial(size);
+    for letter in 0..26 {
+        permutations /= factorial(counts[letter]);
+    }
+    println(permutations);
+
+    let word = array(size, 0);
+    generate(0, size, counts, word);
+}

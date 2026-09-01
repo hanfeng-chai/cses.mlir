@@ -1,0 +1,56 @@
+fn main() {
+    let n = read();
+    let k = read();
+    let grid = array(n * n, i8(0));
+    for i in 0..n {
+        let line = read_text();
+        for j in 0..n {
+            grid[i * n + j] = i8(at(line, j) - 65);
+        }
+    }
+    let nearest_below = array(n * 26, i16(n));
+    let need = array(2 * (n + 1) * 26, i16(n + 1));
+    let nearest_right = array(26, 0);
+    var answer = 0;
+    var y = n - 1;
+    while y >= 0 {
+        let current = y % 2;
+        let inner = 1 - current;
+        for x in 0..n {
+            let letter = i64(grid[y * n + x]);
+            nearest_below[x * 26 + letter] = i16(y);
+        }
+        for letter in 0..k {
+            nearest_right[letter] = n;
+        }
+        var x = n - 1;
+        while x >= 0 {
+            let letter_x = i64(grid[y * n + x]);
+            nearest_right[letter_x] = x;
+            var minimum_side = 0;
+            for letter in 0..k {
+                let from_top = nearest_right[letter] - x + 1;
+                let from_left = i64(nearest_below[x * 26 + letter]) - y + 1;
+                let from_inner = i64(need[(inner * (n + 1) + x + 1) * 26 + letter]) + 1;
+                var side = from_top;
+                if from_left < side {
+                    side = from_left;
+                }
+                if from_inner < side {
+                    side = from_inner;
+                }
+                need[(current * (n + 1) + x) * 26 + letter] = i16(side);
+                if side > minimum_side {
+                    minimum_side = side;
+                }
+            }
+            let maximum_side = minimum(n - y, n - x);
+            if minimum_side <= maximum_side {
+                answer += maximum_side - minimum_side + 1;
+            }
+            x -= 1;
+        }
+        y -= 1;
+    }
+    println(answer);
+}

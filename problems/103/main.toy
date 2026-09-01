@@ -1,0 +1,57 @@
+fn main() {
+    let nodes = read();
+    let successor = array(nodes + 1, 0);
+    let indegree = array(nodes + 1, 0);
+    for node in 1..=nodes {
+        successor[node] = read();
+        indegree[successor[node]] += 1;
+    }
+    let queue = array(nodes, 0);
+    let order = array(nodes, 0);
+    var queue_head = 0;
+    var queue_tail = 0;
+    var order_size = 0;
+    for node in 1..=nodes {
+        if indegree[node] == 0 {
+            queue[queue_tail] = node;
+            queue_tail += 1;
+        }
+    }
+    while queue_head < queue_tail {
+        let node = queue[queue_head];
+        queue_head += 1;
+        order[order_size] = node;
+        order_size += 1;
+        indegree[successor[node]] -= 1;
+        if indegree[successor[node]] == 0 {
+            queue[queue_tail] = successor[node];
+            queue_tail += 1;
+        }
+    }
+    let answer = array(nodes + 1, 0);
+    for start in 1..=nodes {
+        if indegree[start] > 0 && answer[start] == 0 {
+            var length = 1;
+            var node = successor[start];
+            while node != start {
+                length += 1;
+                node = successor[node];
+            }
+            answer[start] = length;
+            node = successor[start];
+            while node != start {
+                answer[node] = length;
+                node = successor[node];
+            }
+        }
+    }
+    while order_size > 0 {
+        order_size -= 1;
+        let node = order[order_size];
+        answer[node] = answer[successor[node]] + 1;
+    }
+    for node in 1..=nodes {
+        print(answer[node], " ");
+    }
+    println();
+}

@@ -1,0 +1,75 @@
+fn euclidean_length(x: i64, y: i64) -> i64 {
+    var length = 0;
+    var a = x;
+    var b = y;
+    while a != 1 || b != 1 {
+        if a > b {
+            if b == 1 {
+                return length + a - 1;
+            }
+            length += a / b;
+            a = a % b;
+        } else {
+            if a == 1 {
+                return length + b - 1;
+            }
+            length += b / a;
+            b = b % a;
+        }
+    }
+    return length;
+}
+
+fn main() {
+    let subsequences = read();
+    let target = subsequences + 2;
+
+    var best_x = 1;
+    var best_length = target + 5;
+    for x in 1..=target / 2 {
+        if gcd(x, target) != 1 {
+            continue;
+        }
+        let length = euclidean_length(x, target - x);
+        if length < best_length {
+            best_length = length;
+            best_x = x;
+        }
+    }
+
+    var x = best_x;
+    var y = target - best_x;
+    let chars = array(best_length + 1, 0);
+    var count = 0;
+    while x != 1 || y != 1 {
+        if x > y {
+            var repeats = x / y;
+            if y == 1 {
+                repeats = x - 1;
+            }
+            for r in 0..repeats {
+                chars[count] = 0;
+                count += 1;
+            }
+            x -= repeats * y;
+        } else {
+            var repeats = y / x;
+            if x == 1 {
+                repeats = y - 1;
+            }
+            for r in 0..repeats {
+                chars[count] = 1;
+                count += 1;
+            }
+            y -= repeats * x;
+        }
+    }
+    for i in count - 1..=0 by -1 {
+        if chars[i] == 0 {
+            put(48);
+        } else {
+            put(49);
+        }
+    }
+    put(10);
+}

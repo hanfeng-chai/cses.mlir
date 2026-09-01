@@ -1,0 +1,93 @@
+fn rank_of(board: array<i64>, fact: array<i64>) -> i64 {
+    var r = 0;
+    for i in 0..9 {
+        var smaller = 0;
+        for j in i + 1..9 {
+            if board[j] < board[i] {
+                smaller += 1;
+            }
+        }
+        r += smaller * fact[8 - i];
+    }
+    return r;
+}
+
+fn main() {
+    let fact = array(9, 0);
+    fact[0] = 1;
+    for i in 1..9 {
+        fact[i] = fact[i - 1] * i;
+    }
+    var start = array(9, 0);
+    for i in 0..9 {
+        start[i] = read();
+    }
+    var target = array(9, 0);
+    for i in 0..9 {
+        target[i] = i + 1;
+    }
+    let start_rank = rank_of(start, fact);
+    let target_rank = rank_of(target, fact);
+    if start_rank == target_rank {
+        println(0);
+        return;
+    }
+
+    var dist = array(362880, 0);
+    for i in 0..362880 {
+        dist[i] = -1;
+    }
+    dist[start_rank] = 0;
+
+    var queue = array(362880 * 9, 0);
+    for i in 0..9 {
+        queue[i] = start[i];
+    }
+    var head = 0;
+    var tail = 1;
+
+    var adj_a = array(12, 0);
+    var adj_b = array(12, 0);
+    adj_a[0] = 0; adj_b[0] = 1;
+    adj_a[1] = 1; adj_b[1] = 2;
+    adj_a[2] = 3; adj_b[2] = 4;
+    adj_a[3] = 4; adj_b[3] = 5;
+    adj_a[4] = 6; adj_b[4] = 7;
+    adj_a[5] = 7; adj_b[5] = 8;
+    adj_a[6] = 0; adj_b[6] = 3;
+    adj_a[7] = 3; adj_b[7] = 6;
+    adj_a[8] = 1; adj_b[8] = 4;
+    adj_a[9] = 4; adj_b[9] = 7;
+    adj_a[10] = 2; adj_b[10] = 5;
+    adj_a[11] = 5; adj_b[11] = 8;
+
+    var work = array(9, 0);
+    while head < tail {
+        let current = head * 9;
+        for t in 0..9 {
+            work[t] = queue[current + t];
+        }
+        let cd = dist[rank_of(work, fact)];
+        for e in 0..12 {
+            for t in 0..9 {
+                work[t] = queue[current + t];
+            }
+            let tmp = work[adj_a[e]];
+            work[adj_a[e]] = work[adj_b[e]];
+            work[adj_b[e]] = tmp;
+            let nr = rank_of(work, fact);
+            if dist[nr] == -1 {
+                dist[nr] = cd + 1;
+                if nr == target_rank {
+                    println(dist[nr]);
+                    return;
+                }
+                for t in 0..9 {
+                    queue[tail * 9 + t] = work[t];
+                }
+                tail += 1;
+            }
+        }
+        head += 1;
+    }
+}

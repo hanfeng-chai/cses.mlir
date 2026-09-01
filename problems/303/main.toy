@@ -1,0 +1,88 @@
+fn main() {
+    let n = read();
+    let m = read();
+    let q = read();
+    let head = array(n + 1, -1);
+    let to = array(2 * m, 0);
+    let next = array(2 * m, 0);
+    for e in 0..m {
+        let a = read();
+        let b = read();
+        to[2 * e] = b;
+        next[2 * e] = head[a];
+        head[a] = 2 * e;
+        to[2 * e + 1] = a;
+        next[2 * e + 1] = head[b];
+        head[b] = 2 * e + 1;
+    }
+    let de = array(n * n, i16(-1));
+    let od = array(n * n, i16(-1));
+    let dist_even = array(n + 1, i16(-1));
+    let dist_odd = array(n + 1, i16(-1));
+    let queue = array(2 * n + 2, 0);
+    for s in 1..=n {
+        for v in 1..=n {
+            dist_even[v] = i16(-1);
+            dist_odd[v] = i16(-1);
+        }
+        dist_even[s] = i16(0);
+        var head_index = 0;
+        var tail_index = 0;
+        queue[tail_index] = s * 2;
+        tail_index += 1;
+        while head_index < tail_index {
+            let state = queue[head_index];
+            head_index += 1;
+            let u = state / 2;
+            let parity = state % 2;
+            var next_distance = 0;
+            if parity == 0 {
+                next_distance = i64(dist_even[u]) + 1;
+            } else {
+                next_distance = i64(dist_odd[u]) + 1;
+            }
+            let next_parity = 1 - parity;
+            var e = head[u];
+            while e != -1 {
+                let v = to[e];
+                if next_parity == 0 {
+                    if dist_even[v] == -1 {
+                        dist_even[v] = i16(next_distance);
+                        queue[tail_index] = v * 2;
+                        tail_index += 1;
+                    }
+                } else {
+                    if dist_odd[v] == -1 {
+                        dist_odd[v] = i16(next_distance);
+                        queue[tail_index] = v * 2 + 1;
+                        tail_index += 1;
+                    }
+                }
+                e = next[e];
+            }
+        }
+        for t in 1..=n {
+            de[(s - 1) * n + t - 1] = dist_even[t];
+            od[(s - 1) * n + t - 1] = dist_odd[t];
+        }
+    }
+    for query in 0..q {
+        let a = read();
+        let b = read();
+        let x = read();
+        let index = (a - 1) * n + (b - 1);
+        if x % 2 == 0 {
+            if i64(de[index]) != -1 && i64(de[index]) <= x {
+                println("YES");
+            } else {
+                println("NO");
+            }
+        } else {
+            if i64(od[index]) != -1 && i64(od[index]) <= x {
+                println("YES");
+            } else {
+                println("NO");
+            }
+        }
+    }
+}

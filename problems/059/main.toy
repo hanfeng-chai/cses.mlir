@@ -1,0 +1,29 @@
+fn main() {
+    let count = read();
+    let minimum_length = read();
+    let maximum_length = read();
+    let prefix = array(count + 1, 0);
+    for index in 1..=count {
+        prefix[index] = prefix[index - 1] + read();
+    }
+    let deque = array(count + 1, 0);
+    var head = 0;
+    var tail = 0;
+    var answer = -9_223_372_036_854_775_807;
+    for right in minimum_length..=count {
+        let added = right - minimum_length;
+        while head < tail && prefix[deque[tail - 1]] >= prefix[added] {
+            tail -= 1;
+        }
+        deque[tail] = added;
+        tail += 1;
+        while head < tail && deque[head] < right - maximum_length {
+            head += 1;
+        }
+        let candidate = prefix[right] - prefix[deque[head]];
+        if candidate > answer {
+            answer = candidate;
+        }
+    }
+    println(answer);
+}

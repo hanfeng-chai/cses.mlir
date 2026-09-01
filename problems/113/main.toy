@@ -1,0 +1,37 @@
+fn main() {
+    let nodes = read();
+    let edges = read();
+    let reverse_head = array(nodes, -1);
+    let from = array(edges, 0);
+    let next = array(edges, 0);
+    for edge in 0..edges {
+        from[edge] = read() - 1;
+        let destination = read() - 1;
+        next[edge] = reverse_head[destination];
+        reverse_head[destination] = edge;
+    }
+    let states = 1 << nodes;
+    let ways = array(states * nodes, 0);
+    let modulus = 1_000_000_007;
+    ways[nodes] = 1;
+    for mask in 1..states {
+        if (mask & 1) != 0 && mask != 1 {
+            for destination in 1..nodes {
+                if ((mask >> destination) & 1) != 0 {
+                    let previous_mask = mask ^ (1 << destination);
+                    var total = 0;
+                    var edge = reverse_head[destination];
+                    while edge != -1 {
+                        let source = from[edge];
+                        if ((previous_mask >> source) & 1) != 0 {
+                            total += ways[previous_mask * nodes + source];
+                        }
+                        edge = next[edge];
+                    }
+                    ways[mask * nodes + destination] = total % modulus;
+                }
+            }
+        }
+    }
+    println(ways[(states - 1) * nodes + nodes - 1]);
+}

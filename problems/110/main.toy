@@ -1,0 +1,61 @@
+fn main() {
+    let nodes = read();
+    let edges = read();
+    let head = array(nodes + 1, -1);
+    let to = array(2 * edges, 0);
+    let next = array(2 * edges, 0);
+    let degree = array(nodes + 1, 0);
+    for edge in 0..edges {
+        let first = read();
+        let second = read();
+        to[2 * edge] = second;
+        next[2 * edge] = head[first];
+        head[first] = 2 * edge;
+        to[2 * edge + 1] = first;
+        next[2 * edge + 1] = head[second];
+        head[second] = 2 * edge + 1;
+        degree[first] += 1;
+        degree[second] += 1;
+    }
+    var possible = true;
+    for node in 1..=nodes {
+        if (degree[node] & 1) != 0 {
+            possible = false;
+        }
+    }
+    let used = array(edges, 0);
+    let cursor = array(nodes + 1, 0);
+    for node in 1..=nodes {
+        cursor[node] = head[node];
+    }
+    let stack = array(edges + 2, 0);
+    let circuit = array(edges + 2, 0);
+    var stack_size = 1;
+    var circuit_size = 0;
+    stack[0] = 1;
+    while stack_size > 0 && possible {
+        let node = stack[stack_size - 1];
+        while cursor[node] != -1 && used[cursor[node] / 2] != 0 {
+            cursor[node] = next[cursor[node]];
+        }
+        if cursor[node] == -1 {
+            circuit[circuit_size] = node;
+            circuit_size += 1;
+            stack_size -= 1;
+        } else {
+            let edge = cursor[node];
+            cursor[node] = next[edge];
+            used[edge / 2] = 1;
+            stack[stack_size] = to[edge];
+            stack_size += 1;
+        }
+    }
+    if !possible || circuit_size != edges + 1 {
+        println("IMPOSSIBLE");
+    } else {
+        for index in 0..circuit_size {
+            print(circuit[index], " ");
+        }
+        println();
+    }
+}

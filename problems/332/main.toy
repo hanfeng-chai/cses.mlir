@@ -1,0 +1,56 @@
+fn main() {
+    let n = read();
+    let k = read();
+    var group_a = array(n, 0);
+    var group_b = array(n, 0);
+    var ca = 0;
+    var cb = 0;
+    for s in 2..=2 * n {
+        var len = minimum(s - 1, 2 * n + 1 - s);
+        if s % 2 == 1 {
+            group_a[ca] = len;
+            ca += 1;
+        } else {
+            group_b[cb] = len;
+            cb += 1;
+        }
+    }
+    sort_prefix(group_a, ca);
+    sort_prefix(group_b, cb);
+
+    // polynomial for one parity group
+    var pa = array(ca + 1, 0);
+    pa[0] = 1;
+    var cur = 0;
+    for t in 0..ca {
+        let len = group_a[t];
+        for j in cur..=0 by -1 {
+            if pa[j] != 0 && len - j > 0 {
+                pa[j + 1] = (pa[j + 1] + pa[j] * (len - j)) % 1000000007;
+            }
+        }
+        cur += 1;
+    }
+
+    var pb = array(cb + 1, 0);
+    pb[0] = 1;
+    cur = 0;
+    for t in 0..cb {
+        let len = group_b[t];
+        for j in cur..=0 by -1 {
+            if pb[j] != 0 && len - j > 0 {
+                pb[j + 1] = (pb[j + 1] + pb[j] * (len - j)) % 1000000007;
+            }
+        }
+        cur += 1;
+    }
+
+    var ans = 0;
+    for i in 0..=ca {
+        let j = k - i;
+        if j >= 0 && j <= cb {
+            ans = (ans + pa[i] * pb[j]) % 1000000007;
+        }
+    }
+    println(ans);
+}

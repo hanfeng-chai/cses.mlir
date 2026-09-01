@@ -1,0 +1,52 @@
+fn main() {
+    let nodes = read();
+    let edges = read();
+    let source = array(edges, 0);
+    let destination = array(edges, 0);
+    let cost = array(edges, 0);
+    for edge in 0..edges {
+        source[edge] = read();
+        destination[edge] = read();
+        cost[edge] = read();
+    }
+    let distance = array(nodes + 1, 0);
+    let parent = array(nodes + 1, -1);
+    var changed = -1;
+    for iteration in 0..nodes {
+        changed = -1;
+        for edge in 0..edges {
+            if distance[source[edge]] + cost[edge] < distance[destination[edge]] {
+                distance[destination[edge]] = distance[source[edge]] + cost[edge];
+                parent[destination[edge]] = source[edge];
+                changed = destination[edge];
+            }
+        }
+    }
+    if changed == -1 {
+        println("NO");
+    } else {
+        for step in 0..nodes {
+            changed = parent[changed];
+        }
+        let cycle = array(nodes + 2, 0);
+        var size = 0;
+        var node = changed;
+        var finished = false;
+        while !finished {
+            cycle[size] = node;
+            size += 1;
+            node = parent[node];
+            if node == changed && size > 1 {
+                cycle[size] = node;
+                size += 1;
+                finished = true;
+            }
+        }
+        println("YES");
+        while size > 0 {
+            size -= 1;
+            print(cycle[size], " ");
+        }
+        println();
+    }
+}

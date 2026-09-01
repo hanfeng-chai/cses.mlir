@@ -1,0 +1,63 @@
+fn contribution(positions: array<i64>, count: i64, value: i64) -> i64 {
+    var result = 0;
+    if value >= 2 && value <= count && positions[value] < positions[value - 1] {
+        result = 1;
+    }
+    return result;
+}
+
+fn adjust_breakpoints(
+    positions: array<i64>,
+    count: i64,
+    candidates: array<i64>,
+    direction: i64
+) -> i64 {
+    var change = 0;
+    for index in 0..4 {
+        var unique = true;
+        for previous in 0..index {
+            if candidates[previous] == candidates[index] {
+                unique = false;
+            }
+        }
+        if unique {
+            change += direction * contribution(positions, count, candidates[index]);
+        }
+    }
+    return change;
+}
+
+fn main() {
+    let count = read();
+    let queries = read();
+    let values = array(count + 1, 0);
+    let positions = array(count + 2, 0);
+    for index in 1..=count {
+        values[index] = read();
+        positions[values[index]] = index;
+    }
+    var breakpoints = 0;
+    for value in 2..=count {
+        breakpoints += contribution(positions, count, value);
+    }
+
+    let candidates = array(4, 0);
+    for query in 0..queries {
+        let first_index = read();
+        let second_index = read();
+        let first_value = values[first_index];
+        let second_value = values[second_index];
+        candidates[0] = first_value;
+        candidates[1] = first_value + 1;
+        candidates[2] = second_value;
+        candidates[3] = second_value + 1;
+
+        breakpoints += adjust_breakpoints(positions, count, candidates, -1);
+        values[first_index] = second_value;
+        values[second_index] = first_value;
+        positions[first_value] = second_index;
+        positions[second_value] = first_index;
+        breakpoints += adjust_breakpoints(positions, count, candidates, 1);
+        println(breakpoints + 1);
+    }
+}

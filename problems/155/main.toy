@@ -1,0 +1,155 @@
+fn segment_set(tree: array<i64>, size: i64, position: i64, value: i64) {
+    var node = size + position;
+    tree[node] = value;
+    while node > 1 {
+        node /= 2;
+        tree[node] = tree[2 * node];
+        if tree[2 * node + 1] > tree[node] {
+            tree[node] = tree[2 * node + 1];
+        }
+    }
+}
+
+fn segment_max(tree: array<i64>, size: i64, begin: i64, end: i64) -> i64 {
+    var left = size + begin;
+    var right = size + end + 1;
+    var result = -9_223_372_036_854_775_807;
+    while left < right {
+        if (left & 1) != 0 {
+            if tree[left] > result {
+                result = tree[left];
+            }
+            left += 1;
+        }
+        if (right & 1) != 0 {
+            right -= 1;
+            if tree[right] > result {
+                result = tree[right];
+            }
+        }
+        left /= 2;
+        right /= 2;
+    }
+    return result;
+}
+
+fn main() {
+    let nodes = read();
+    let queries = read();
+    let value = array(nodes + 1, 0);
+    for node in 1..=nodes {
+        value[node] = read();
+    }
+    let edge_count = nodes - 1;
+    let adjacency = array(nodes + 1, -1);
+    let to = array(2 * edge_count, 0);
+    let next = array(2 * edge_count, 0);
+    for edge in 0..edge_count {
+        let first = read();
+        let second = read();
+        to[2 * edge] = second;
+        next[2 * edge] = adjacency[first];
+        adjacency[first] = 2 * edge;
+        to[2 * edge + 1] = first;
+        next[2 * edge + 1] = adjacency[second];
+        adjacency[second] = 2 * edge + 1;
+    }
+    let parent = array(nodes + 1, 0);
+    let order = array(nodes, 0);
+    root_tree(nodes, 1, adjacency, to, next, parent, order);
+    parent[1] = 0;
+    let depth = array(nodes + 1, 0);
+    let subtree = array(nodes + 1, 1);
+    let heavy = array(nodes + 1, 0);
+    for index in 1..nodes {
+        let node = order[index];
+        depth[node] = depth[parent[node]] + 1;
+    }
+    var index = nodes;
+    while index > 0 {
+        index -= 1;
+        let node = order[index];
+        var edge = adjacency[node];
+        var largest = 0;
+        while edge != -1 {
+            let child = to[edge];
+            if child != parent[node] {
+                subtree[node] += subtree[child];
+                if subtree[child] > largest {
+                    largest = subtree[child];
+                    heavy[node] = child;
+                }
+            }
+            edge = next[edge];
+        }
+    }
+    let chain_head = array(nodes + 1, 0);
+    let position = array(nodes + 1, 0);
+    let stack_node = array(nodes, 0);
+    let stack_head = array(nodes, 0);
+    var stack_size = 1;
+    var timer = 0;
+    stack_node[0] = 1;
+    stack_head[0] = 1;
+    while stack_size > 0 {
+        stack_size -= 1;
+        var node = stack_node[stack_size];
+        let current_head = stack_head[stack_size];
+        while node != 0 {
+            chain_head[node] = current_head;
+            position[node] = timer;
+            timer += 1;
+            var edge = adjacency[node];
+            while edge != -1 {
+                let child = to[edge];
+                if child != parent[node] && child != heavy[node] {
+                    stack_node[stack_size] = child;
+                    stack_head[stack_size] = child;
+                    stack_size += 1;
+                }
+                edge = next[edge];
+            }
+            node = heavy[node];
+        }
+    }
+    let tree = array(2 * nodes, -9_223_372_036_854_775_807);
+    for node in 1..=nodes {
+        segment_set(tree, nodes, position[node], value[node]);
+    }
+    for query in 0..queries {
+        let kind = read();
+        var first = read();
+        let second_input = read();
+        if kind == 1 {
+            segment_set(tree, nodes, position[first], second_input);
+        } else {
+            var second = second_input;
+            var answer = -9_223_372_036_854_775_807;
+            while chain_head[first] != chain_head[second] {
+                if depth[chain_head[first]] < depth[chain_head[second]] {
+                    let temporary = first;
+                    first = second;
+                    second = temporary;
+                }
+                let candidate = segment_max(
+                    tree, nodes, position[chain_head[first]], position[first]
+                );
+                if candidate > answer {
+                    answer = candidate;
+                }
+                first = parent[chain_head[first]];
+            }
+            if depth[first] > depth[second] {
+                let temporary = first;
+                first = second;
+                second = temporary;
+            }
+            let candidate = segment_max(tree, nodes, position[first], position[second]);
+            if candidate > answer {
+                answer = candidate;
+            }
+            print(answer, " ");
+        }
+    }
+    println();
+}

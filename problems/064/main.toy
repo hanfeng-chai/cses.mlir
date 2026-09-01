@@ -1,0 +1,16 @@
+fn main() {
+    let target = read();
+    let minimum = array(target + 1, 1_000_000_000);
+    minimum[0] = 0;
+    for value in 1..=target {
+        var remaining = value;
+        while remaining > 0 {
+            let digit = remaining % 10;
+            if digit > 0 && minimum[value - digit] + 1 < minimum[value] {
+                minimum[value] = minimum[value - digit] + 1;
+            }
+            remaining /= 10;
+        }
+    }
+    println(minimum[target]);
+}

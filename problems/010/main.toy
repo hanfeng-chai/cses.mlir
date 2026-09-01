@@ -1,0 +1,10 @@
+fn main() {
+    let n = read();
+    var divisor = 5;
+    var zeros = 0;
+    while divisor <= n {
+        zeros += n / divisor;
+        divisor *= 5;
+    }
+    println(zeros);
+}

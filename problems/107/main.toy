@@ -1,0 +1,25 @@
+fn main() {
+    let nodes = read();
+    let edges = read();
+    let head = array(nodes, -1);
+    let reverse_head = array(nodes, -1);
+    let from = array(edges, 0);
+    let to = array(edges, 0);
+    let next = array(edges, 0);
+    let reverse_next = array(edges, 0);
+    for edge in 0..edges {
+        from[edge] = read() - 1;
+        to[edge] = read() - 1;
+        next[edge] = head[from[edge]];
+        head[from[edge]] = edge;
+        reverse_next[edge] = reverse_head[to[edge]];
+        reverse_head[to[edge]] = edge;
+    }
+    let component = array(nodes, -1);
+    let count = kosaraju(nodes, head, to, next, reverse_head, from, reverse_next, component);
+    println(count);
+    for node in 0..nodes {
+        print(component[node] + 1, " ");
+    }
+    println();
+}

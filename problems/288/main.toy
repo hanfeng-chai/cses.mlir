@@ -1,0 +1,31 @@
+fn main() {
+    let tests = read();
+    for test in 0..tests {
+        let n = read();
+        let k = read();
+        if k * k < n {
+            println("IMPOSSIBLE");
+            continue;
+        }
+        let blocks = (n + k - 1) / k;
+        var prefix = 0;
+        var printed = 0;
+        for i in 0..blocks {
+            var size = k;
+            if i == blocks - 1 {
+                size = n - (blocks - 1) * k;
+            }
+            let high = n - prefix;
+            let low = high - size + 1;
+            for v in low..=high {
+                if printed != 0 {
+                    print(" ");
+                }
+                print(v);
+                printed += 1;
+            }
+            prefix += size;
+        }
+        println();
+    }
+}

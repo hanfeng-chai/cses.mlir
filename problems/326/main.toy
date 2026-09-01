@@ -1,0 +1,57 @@
+fn main() {
+    let n = read();
+    let k = read();
+    let grid = array(n * n, i64(0));
+    for y in 0..n {
+        let line = read_text();
+        for x in 0..n {
+            grid[y * n + x] = 1 << (at(line, x) - 65);
+        }
+    }
+    let all_letters = (1 << k) - 1;
+    let column_mask = array(n, 0);
+    let front_value = array(n, 0);
+    let back_value = array(n, 0);
+    let front_or = array(n + 1, 0);
+    let back_or = array(n + 1, 0);
+    var answer = 0;
+    for top in 0..n {
+        for x in 0..n {
+            column_mask[x] = 0;
+        }
+        for bottom in top..n {
+            var band_or = 0;
+            for x in 0..n {
+                column_mask[x] |= grid[bottom * n + x];
+                band_or |= column_mask[x];
+            }
+            if band_or != all_letters {
+                continue;
+            }
+            var front_size = 0;
+            var back_size = 0;
+            front_or[0] = 0;
+            back_or[0] = 0;
+            for right in 0..n {
+                back_value[back_size] = column_mask[right];
+                back_or[back_size + 1] = back_or[back_size] | column_mask[right];
+                back_size += 1;
+                while (front_or[front_size] | back_or[back_size]) == all_letters {
+                    answer += n - right;
+                    if front_size == 0 {
+                        while back_size > 0 {
+                            back_size -= 1;
+                            let value = back_value[back_size];
+                            front_value[front_size] = value;
+                            front_or[front_size + 1] = front_or[front_size] | value;
+                            front_size += 1;
+                        }
+                        back_or[0] = 0;
+                    }
+                    front_size -= 1;
+                }
+            }
+        }
+    }
+    println(answer);
+}

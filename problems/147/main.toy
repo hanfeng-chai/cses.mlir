@@ -1,0 +1,37 @@
+fn main() {
+    let nodes = read();
+    let edge_count = nodes - 1;
+    let head = array(nodes + 1, -1);
+    let to = array(2 * edge_count, 0);
+    let next = array(2 * edge_count, 0);
+    for edge in 0..edge_count {
+        let first = read();
+        let second = read();
+        to[2 * edge] = second;
+        next[2 * edge] = head[first];
+        head[first] = 2 * edge;
+        to[2 * edge + 1] = first;
+        next[2 * edge + 1] = head[second];
+        head[second] = 2 * edge + 1;
+    }
+    let first_distance = array(nodes + 1, -1);
+    let second_distance = array(nodes + 1, -1);
+    let queue = array(nodes, 0);
+    let first_endpoint = graph_bfs_farthest(
+        nodes, 1, head, to, next, first_distance, queue
+    );
+    let second_endpoint = graph_bfs_farthest(
+        nodes, first_endpoint, head, to, next, first_distance, queue
+    );
+    graph_bfs_farthest(
+        nodes, second_endpoint, head, to, next, second_distance, queue
+    );
+    for node in 1..=nodes {
+        if first_distance[node] > second_distance[node] {
+            print(first_distance[node], " ");
+        } else {
+            print(second_distance[node], " ");
+        }
+    }
+    println();
+}

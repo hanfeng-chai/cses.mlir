@@ -1,0 +1,61 @@
+fn main() {
+    let losing = array(41, 0);
+    losing[0] = 1;
+    losing[1] = 2;
+    losing[2] = 4;
+    losing[3] = 7;
+    losing[4] = 10;
+    losing[5] = 20;
+    losing[6] = 23;
+    losing[7] = 26;
+    losing[8] = 50;
+    losing[9] = 53;
+    losing[10] = 270;
+    losing[11] = 273;
+    losing[12] = 276;
+    losing[13] = 282;
+    losing[14] = 285;
+    losing[15] = 288;
+    losing[16] = 316;
+    losing[17] = 334;
+    losing[18] = 337;
+    losing[19] = 340;
+    losing[20] = 346;
+    losing[21] = 359;
+    losing[22] = 362;
+    losing[23] = 365;
+    losing[24] = 386;
+    losing[25] = 389;
+    losing[26] = 392;
+    losing[27] = 566;
+    losing[28] = 630;
+    losing[29] = 633;
+    losing[30] = 636;
+    losing[31] = 639;
+    losing[32] = 673;
+    losing[33] = 676;
+    losing[34] = 682;
+    losing[35] = 685;
+    losing[36] = 923;
+    losing[37] = 926;
+    losing[38] = 929;
+    losing[39] = 932;
+    losing[40] = 1222;
+    let tests = read();
+    for test in 0..tests {
+        let n = read();
+        var is_losing = false;
+        var i = 0;
+        while i < 41 {
+            if losing[i] == n {
+                is_losing = true;
+            }
+            i += 1;
+        }
+        if is_losing {
+            println("second");
+        } else {
+            println("first");
+        }
+    }
+}

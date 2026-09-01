@@ -1,0 +1,21 @@
+fn main() {
+    let size = read();
+    let queries = read();
+    let values = array(size + 1, 0);
+    let tree = array(size + 1, 0);
+    for index in 1..=size {
+        values[index] = read();
+        fenwick_add(tree, index, values[index]);
+    }
+    for query in 0..queries {
+        let kind = read();
+        let first = read();
+        let second = read();
+        if kind == 1 {
+            fenwick_add(tree, first, second - values[first]);
+            values[first] = second;
+        } else {
+            println(fenwick_sum(tree, second) - fenwick_sum(tree, first - 1));
+        }
+    }
+}

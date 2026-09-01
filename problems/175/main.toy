@@ -1,0 +1,46 @@
+fn main() {
+    let size = read();
+    let permutation = array(size + 1, 0);
+    for index in 1..=size {
+        permutation[index] = read();
+    }
+    let visited = array(size + 1, 0);
+    let maximum_exponent = array(size + 1, 0);
+    for start in 1..=size {
+        if visited[start] == 0 {
+            var length = 0;
+            var current = start;
+            while visited[current] == 0 {
+                visited[current] = 1;
+                current = permutation[current];
+                length += 1;
+            }
+            var remaining = length;
+            var divisor = 2;
+            while divisor * divisor <= remaining {
+                if remaining % divisor == 0 {
+                    var exponent = 0;
+                    while remaining % divisor == 0 {
+                        remaining /= divisor;
+                        exponent += 1;
+                    }
+                    if exponent > maximum_exponent[divisor] {
+                        maximum_exponent[divisor] = exponent;
+                    }
+                }
+                divisor += 1;
+            }
+            if remaining > 1 && maximum_exponent[remaining] < 1 {
+                maximum_exponent[remaining] = 1;
+            }
+        }
+    }
+    let modulus = 1_000_000_007;
+    var answer = 1;
+    for prime in 2..=size {
+        if maximum_exponent[prime] > 0 {
+            answer = answer * pow_mod(prime, maximum_exponent[prime], modulus) % modulus;
+        }
+    }
+    println(answer);
+}

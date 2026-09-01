@@ -1,0 +1,37 @@
+fn main() {
+    let order = read();
+    if order == 1 {
+        println("01");
+    } else {
+        let bits = order - 1;
+        let nodes = 1 << bits;
+        let mask = nodes - 1;
+        let cursor = array(nodes, 0);
+        let stack = array(2 * nodes + 1, 0);
+        let circuit = array(2 * nodes + 1, 0);
+        var stack_size = 1;
+        var circuit_size = 0;
+        while stack_size > 0 {
+            let node = stack[stack_size - 1];
+            if cursor[node] < 2 {
+                let label = cursor[node];
+                cursor[node] += 1;
+                stack[stack_size] = ((node << 1) | label) & mask;
+                stack_size += 1;
+            } else {
+                circuit[circuit_size] = node;
+                circuit_size += 1;
+                stack_size -= 1;
+            }
+        }
+        for bit in 0..bits {
+            put(48);
+        }
+        var index = circuit_size - 1;
+        while index > 0 {
+            index -= 1;
+            put(48 + (circuit[index] & 1));
+        }
+        println();
+    }
+}

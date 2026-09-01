@@ -1,0 +1,48 @@
+fn main() {
+    let nodes = read();
+    let edges = read();
+    let head = array(nodes + 1, -1);
+    let to = array(2 * edges, 0);
+    let next = array(2 * edges, 0);
+    let capacity = array(2 * edges, 0);
+    let original_from = array(edges, 0);
+    let original_to = array(edges, 0);
+    for edge in 0..edges {
+        original_from[edge] = read();
+        original_to[edge] = read();
+        flow_add(
+            head, to, next, capacity, 2 * edge,
+            original_from[edge], original_to[edge], 1
+        );
+    }
+    let flow = max_flow(nodes + 1, 1, nodes, head, to, next, capacity);
+    let used_head = array(nodes + 1, -1);
+    let used_to = array(edges, 0);
+    let used_next = array(edges, -1);
+    for edge in 0..edges {
+        if capacity[2 * edge] == 0 {
+            used_to[edge] = original_to[edge];
+            used_next[edge] = used_head[original_from[edge]];
+            used_head[original_from[edge]] = edge;
+        }
+    }
+    println(flow);
+    let path = array(nodes + 1, 0);
+    for route in 0..flow {
+        var size = 1;
+        var node = 1;
+        path[0] = 1;
+        while node != nodes {
+            let edge = used_head[node];
+            used_head[node] = used_next[edge];
+            node = used_to[edge];
+            path[size] = node;
+            size += 1;
+        }
+        println(size);
+        for index in 0..size {
+            print(path[index], " ");
+        }
+        println();
+    }
+}

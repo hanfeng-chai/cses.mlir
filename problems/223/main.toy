@@ -1,0 +1,45 @@
+fn main() {
+    let n = read();
+    let x = array(n, 0);
+    let y = array(n, 0);
+    for i in 0..n {
+        x[i] = read();
+        y[i] = read();
+    }
+    sort_pairs(x, y);
+    let points = ordered(n + 10);
+    var best = 8000000000000000000;
+    var j = 0;
+    for i in 0..n {
+        var dx = x[i] - x[j];
+        while j < i && dx * dx > best {
+            ordered_erase(points, (y[j] + 1000000001) * 4294967296 + (x[j] + 1000000001));
+            j += 1;
+            if j < i {
+                dx = x[i] - x[j];
+            }
+        }
+        let radius = integer_sqrt(best) + 1;
+        var y_low = y[i] - radius;
+        if y_low < -1000000001 {
+            y_low = -1000000001;
+        }
+        var y_high = y[i] + radius;
+        if y_high > 1000000000 {
+            y_high = 1000000000;
+        }
+        let low_key = (y_low + 1000000001) * 4294967296;
+        let high_key = (y_high + 1000000002) * 4294967296;
+        var current = ordered_ceiling(points, low_key, -1);
+        while current != -1 && current < high_key {
+            let cy = current / 4294967296 - 1000000001;
+            let cx = current % 4294967296 - 1000000001;
+            let dx = x[i] - cx;
+            let dy = y[i] - cy;
+            best = min(best, dx * dx + dy * dy);
+            current = ordered_higher(points, current, -1);
+        }
+        ordered_insert(points, (y[i] + 1000000001) * 4294967296 + (x[i] + 1000000001));
+    }
+    println(best);
+}

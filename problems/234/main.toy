@@ -1,0 +1,36 @@
+fn main() {
+    let n = read();
+    let x = read();
+    let t = read_array(n);
+    let half = n / 2;
+    let half2 = n - half;
+    let size1 = 1 << half;
+    let first = array(size1, 0);
+    for mask in 0..size1 {
+        var sum = 0;
+        for i in 0..half {
+            if (mask & (1 << i)) != 0 {
+                sum += t[i];
+            }
+        }
+        first[mask] = sum;
+    }
+    let size2 = 1 << half2;
+    let second = array(size2, 0);
+    for mask in 0..size2 {
+        var sum = 0;
+        for i in 0..half2 {
+            if (mask & (1 << i)) != 0 {
+                sum += t[half + i];
+            }
+        }
+        second[mask] = sum;
+    }
+    sort(second);
+    var count = 0;
+    for i in 0..size1 {
+        let need = x - first[i];
+        count += upper_bound(second, need) - lower_bound(second, need);
+    }
+    println(count);
+}

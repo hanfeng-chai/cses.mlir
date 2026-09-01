@@ -1,0 +1,45 @@
+fn main() {
+    let nodes = read();
+    let edges = read();
+    let head = array(nodes + 1, -1);
+    let to = array(edges, 0);
+    let next = array(edges, 0);
+    let indegree = array(nodes + 1, 0);
+    for edge in 0..edges {
+        let source = read();
+        to[edge] = read();
+        next[edge] = head[source];
+        head[source] = edge;
+        indegree[to[edge]] += 1;
+    }
+    let queue = array(nodes, 0);
+    var head_index = 0;
+    var tail_index = 0;
+    for node in 1..=nodes {
+        if indegree[node] == 0 {
+            queue[tail_index] = node;
+            tail_index += 1;
+        }
+    }
+    while head_index < tail_index {
+        let node = queue[head_index];
+        head_index += 1;
+        var edge = head[node];
+        while edge != -1 {
+            indegree[to[edge]] -= 1;
+            if indegree[to[edge]] == 0 {
+                queue[tail_index] = to[edge];
+                tail_index += 1;
+            }
+            edge = next[edge];
+        }
+    }
+    if tail_index != nodes {
+        println("IMPOSSIBLE");
+    } else {
+        for index in 0..nodes {
+            print(queue[index], " ");
+        }
+        println();
+    }
+}

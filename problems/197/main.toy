@@ -1,0 +1,42 @@
+fn main() {
+    let text = read_text();
+    let n = length(text);
+    let k = read();
+    let next = array(26 * 1000001, i32(0));
+    let term = array(1000001, 0);
+    var node_count = 1;
+    for w in 0..k {
+        let word = read_text();
+        var u = 0;
+        for j in 0..length(word) {
+            let d = at(word, j) - 97;
+            if i64(next[u * 26 + d]) == 0 {
+                next[u * 26 + d] = i32(node_count);
+                node_count += 1;
+            }
+            u = i64(next[u * 26 + d]);
+        }
+        term[u] = 1;
+    }
+    let dp = array(n + 1, 0);
+    dp[0] = 1;
+    for i in 0..n {
+        if dp[i] != 0 {
+            var u = 0;
+            var j = i;
+            while j < n {
+                let d = at(text, j) - 97;
+                if i64(next[u * 26 + d]) == 0 {
+                    j = n;
+                } else {
+                    u = i64(next[u * 26 + d]);
+                    if term[u] == 1 {
+                        dp[j + 1] = (dp[j + 1] + dp[i]) % 1000000007;
+                    }
+                    j += 1;
+                }
+            }
+        }
+    }
+    println(dp[n]);
+}

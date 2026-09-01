@@ -1,0 +1,60 @@
+fn main() {
+    let nodes = read();
+    let edges = read();
+    let coins = array(nodes, 0);
+    for node in 0..nodes {
+        coins[node] = read();
+    }
+    let head = array(nodes, -1);
+    let reverse_head = array(nodes, -1);
+    let from = array(edges, 0);
+    let to = array(edges, 0);
+    let next = array(edges, 0);
+    let reverse_next = array(edges, 0);
+    for edge in 0..edges {
+        from[edge] = read() - 1;
+        to[edge] = read() - 1;
+        next[edge] = head[from[edge]];
+        head[from[edge]] = edge;
+        reverse_next[edge] = reverse_head[to[edge]];
+        reverse_head[to[edge]] = edge;
+    }
+    let component = array(nodes, -1);
+    let count = kosaraju(nodes, head, to, next, reverse_head, from, reverse_next, component);
+    let sum = array(count, 0);
+    for node in 0..nodes {
+        sum[component[node]] += coins[node];
+    }
+    let component_head = array(count, -1);
+    let component_to = array(edges, 0);
+    let component_next = array(edges, 0);
+    for edge in 0..edges {
+        let source = component[from[edge]];
+        let destination = component[to[edge]];
+        if source != destination {
+            component_to[edge] = destination;
+            component_next[edge] = component_head[source];
+            component_head[source] = edge;
+        }
+    }
+    let best = array(count, 0);
+    var answer = 0;
+    for source in 0..count {
+        if best[source] < sum[source] {
+            best[source] = sum[source];
+        }
+        var edge = component_head[source];
+        while edge != -1 {
+            let destination = component_to[edge];
+            let candidate = best[source] + sum[destination];
+            if candidate > best[destination] {
+                best[destination] = candidate;
+            }
+            edge = component_next[edge];
+        }
+        if best[source] > answer {
+            answer = best[source];
+        }
+    }
+    println(answer);
+}

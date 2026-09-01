@@ -1,0 +1,58 @@
+fn main() {
+    let n = read();
+    var pa = array(n + 1, 0);
+    for i in 1..=n {
+        pa[i] = pa[i - 1] + read();
+    }
+    var pb = array(n + 1, 0);
+    for i in 1..=n {
+        pb[i] = pb[i - 1] + read();
+    }
+
+    var low = 0.0;
+    var high = 2000000000.0;
+    for iter in 0..200 {
+        let mid = (low + high) / 2.0;
+        var best_a = -1000000000000000000000000000000.0;
+        for i in 1..=n {
+            let v = f64(pa[i]) - mid * f64(i);
+            if v > best_a {
+                best_a = v;
+            }
+        }
+        var best_b = -1000000000000000000000000000000.0;
+        for j in 1..=n {
+            let v = f64(pb[j]) - mid * f64(j);
+            if v > best_b {
+                best_b = v;
+            }
+        }
+        if best_a + best_b >= 0.0 {
+            low = mid;
+        } else {
+            high = mid;
+        }
+    }
+
+    var best_i = 1;
+    var best_j = 1;
+    var best_a = -1000000000000000000000000000000.0;
+    var best_b = -1000000000000000000000000000000.0;
+    for i in 1..=n {
+        let v = f64(pa[i]) - low * f64(i);
+        if v > best_a {
+            best_a = v;
+            best_i = i;
+        }
+    }
+    for j in 1..=n {
+        let v = f64(pb[j]) - low * f64(j);
+        if v > best_b {
+            best_b = v;
+            best_j = j;
+        }
+    }
+    print(best_i);
+    print(" ");
+    println(best_j);
+}

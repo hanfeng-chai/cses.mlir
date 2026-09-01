@@ -1,0 +1,47 @@
+fn main() {
+    let n = read();
+    var s = array(n + 1, 0);
+    for i in 1..=n {
+        s[i] = s[i - 1] + read();
+    }
+    let hx = array(n + 2, 0);
+    let hy = array(n + 2, 0);
+    var top = 0;
+    for i in 1..=n {
+        let px = i - 1;
+        let py = s[i - 1];
+        while top >= 2 {
+            let x1 = hx[top - 2];
+            let y1 = hy[top - 2];
+            let x2 = hx[top - 1];
+            let y2 = hy[top - 1];
+            if (y2 - y1) * (px - x1) >= (py - y1) * (x2 - x1) {
+                top -= 1;
+            } else {
+                break;
+            }
+        }
+        hx[top] = px;
+        hy[top] = py;
+        top += 1;
+
+        let qx = i;
+        let qy = s[i];
+        var lo = 0;
+        var hi = top - 1;
+        while lo < hi {
+            let mid = (lo + hi) / 2;
+            let lhs = (qy - hy[mid]) * (qx - hx[mid + 1]);
+            let rhs = (qy - hy[mid + 1]) * (qx - hx[mid]);
+            if lhs < rhs {
+                lo = mid + 1;
+            } else {
+                hi = mid;
+            }
+        }
+        let l = hx[lo] + 1;
+        print(i - l + 1);
+        print(" ");
+    }
+    print("\n");
+}

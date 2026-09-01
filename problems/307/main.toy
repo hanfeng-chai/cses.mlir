@@ -1,0 +1,160 @@
+fn main() {
+    let n = read();
+    let m = read();
+    let edge_a = array(m, 0);
+    let edge_b = array(m, 0);
+    let edge_w = array(m, 0);
+    for e in 0..m {
+        edge_a[e] = read();
+        edge_b[e] = read();
+        edge_w[e] = read();
+    }
+    let sorted_weight = array(m, 0);
+    let sorted_index = array(m, 0);
+    for e in 0..m {
+        sorted_weight[e] = edge_w[e];
+        sorted_index[e] = e;
+    }
+    sort_pairs(sorted_weight, sorted_index);
+    let parent = array(n + 1, 0);
+    let size = array(n + 1, 0);
+    for v in 1..=n {
+        parent[v] = v;
+        size[v] = 1;
+    }
+    let head = array(n + 1, -1);
+    let to = array(2 * n, 0);
+    let next = array(2 * n, 0);
+    let tree_w = array(2 * n, 0);
+    let in_mst = array(m, 0);
+    var mst_cost = 0;
+    var edge_count = 0;
+    for pos in 0..m {
+        let e = sorted_index[pos];
+        let a = edge_a[e];
+        let b = edge_b[e];
+        let ra = dsu_find(parent, a);
+        let rb = dsu_find(parent, b);
+        if ra != rb {
+            if size[ra] < size[rb] {
+                parent[ra] = rb;
+                size[rb] += size[ra];
+            } else {
+                parent[rb] = ra;
+                size[ra] += size[rb];
+            }
+            mst_cost += edge_w[e];
+            in_mst[e] = 1;
+            to[edge_count] = b;
+            tree_w[edge_count] = edge_w[e];
+            next[edge_count] = head[a];
+            head[a] = edge_count;
+            edge_count += 1;
+            to[edge_count] = a;
+            tree_w[edge_count] = edge_w[e];
+            next[edge_count] = head[b];
+            head[b] = edge_count;
+            edge_count += 1;
+        }
+    }
+    var levels = 1;
+    while (1 << levels) < n {
+        levels += 1;
+    }
+    levels += 1;
+    let stride = n + 1;
+    let up = array(levels * stride, 0);
+    let mx = array(levels * stride, 0);
+    let depth = array(n + 1, 0);
+    let visited = array(n + 1, 0);
+    let stack = array(n, 0);
+    var timer = 0;
+    for s in 1..=n {
+        if visited[s] != 0 {
+            continue;
+        }
+        visited[s] = 1;
+        up[s] = s;
+        mx[s] = 0;
+        var stack_size = 1;
+        stack[0] = s;
+        while stack_size > 0 {
+            stack_size -= 1;
+            let u = stack[stack_size];
+            var e = head[u];
+            while e != -1 {
+                let v = to[e];
+                if visited[v] == 0 {
+                    visited[v] = 1;
+                    depth[v] = depth[u] + 1;
+                    up[v] = u;
+                    mx[v] = tree_w[e];
+                    stack[stack_size] = v;
+                    stack_size += 1;
+                }
+                e = next[e];
+            }
+        }
+    }
+    for k in 1..levels {
+        for v in 1..=n {
+            let ancestor = up[(k - 1) * stride + v];
+            up[k * stride + v] = up[(k - 1) * stride + ancestor];
+            let first_max = mx[(k - 1) * stride + v];
+            let second_max = mx[(k - 1) * stride + ancestor];
+            if second_max > first_max {
+                mx[k * stride + v] = second_max;
+            } else {
+                mx[k * stride + v] = first_max;
+            }
+        }
+    }
+    for e in 0..m {
+        if in_mst[e] == 1 {
+            println(mst_cost);
+        } else {
+            var a = edge_a[e];
+            var b = edge_b[e];
+            var result = 0;
+            if depth[a] < depth[b] {
+                let temporary = a;
+                a = b;
+                b = temporary;
+            }
+            var difference = depth[a] - depth[b];
+            var k = 0;
+            while k < levels {
+                if ((difference >> k) & 1) == 1 {
+                    if mx[k * stride + a] > result {
+                        result = mx[k * stride + a];
+                    }
+                    a = up[k * stride + a];
+                }
+                k += 1;
+            }
+            if a != b {
+                var k2 = levels - 1;
+                while k2 >= 0 {
+                    if up[k2 * stride + a] != up[k2 * stride + b] {
+                        if mx[k2 * stride + a] > result {
+                            result = mx[k2 * stride + a];
+                        }
+                        if mx[k2 * stride + b] > result {
+                            result = mx[k2 * stride + b];
+                        }
+                        a = up[k2 * stride + a];
+                        b = up[k2 * stride + b];
+                    }
+                    k2 -= 1;
+                }
+                if mx[a] > result {
+                    result = mx[a];
+                }
+                if mx[b] > result {
+                    result = mx[b];
+                }
+            }
+            println(mst_cost - result + edge_w[e]);
+        }
+    }
+}

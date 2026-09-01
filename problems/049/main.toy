@@ -1,0 +1,17 @@
+fn main() {
+    let count = read();
+    var total = 0;
+    var longest = 0;
+    for book in 0..count {
+        let time = read();
+        total += time;
+        if time > longest {
+            longest = time;
+        }
+    }
+    var answer = total;
+    if 2 * longest > answer {
+        answer = 2 * longest;
+    }
+    println(answer);
+}

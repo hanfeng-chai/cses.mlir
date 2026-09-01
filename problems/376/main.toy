@@ -1,0 +1,16 @@
+fn main() {
+    let n = read();
+    let queue = heap(2 * n + 10);
+    var cost = 0;
+    for i in 0..n {
+        let v = read();
+        heap_push(queue, 0 - v, 0);
+        let top = 0 - heap_first(queue);
+        if top > v {
+            cost += top - v;
+            heap_pop(queue);
+            heap_push(queue, 0 - v, 0);
+        }
+    }
+    println(cost);
+}

@@ -1,0 +1,58 @@
+fn seg_update(mn: array<i64>, mx: array<i64>, lazy: array<i64>, node: i64, l: i64, r: i64, ql: i64, qr: i64, v: i64) {
+    if qr < l || r < ql {
+        return;
+    }
+    if ql <= l && r <= qr {
+        mn[node] += v;
+        mx[node] += v;
+        lazy[node] += v;
+        return;
+    }
+    if lazy[node] != 0 {
+        mn[2 * node] += lazy[node];
+        mx[2 * node] += lazy[node];
+        lazy[2 * node] += lazy[node];
+        mn[2 * node + 1] += lazy[node];
+        mx[2 * node + 1] += lazy[node];
+        lazy[2 * node + 1] += lazy[node];
+        lazy[node] = 0;
+    }
+    let m = (l + r) / 2;
+    seg_update(mn, mx, lazy, 2 * node, l, m, ql, qr, v);
+    seg_update(mn, mx, lazy, 2 * node + 1, m + 1, r, ql, qr, v);
+    if mn[2 * node] < mn[2 * node + 1] {
+        mn[node] = mn[2 * node];
+    } else {
+        mn[node] = mn[2 * node + 1];
+    }
+    if mx[2 * node] > mx[2 * node + 1] {
+        mx[node] = mx[2 * node];
+    } else {
+        mx[node] = mx[2 * node + 1];
+    }
+}
+
+fn main() {
+    let n = read();
+    let size = 4 * n + 5;
+    let mn = array(size, 0);
+    let mx = array(size, 0);
+    let lazy = array(size, 0);
+    for i in 0..n {
+        let c = read();
+        let s = read();
+        var delta = 1;
+        if s == 2 {
+            delta = -1;
+        }
+        seg_update(mn, mx, lazy, 1, 1, n, 1, c, delta);
+        if mn[1] >= 0 {
+            print(">");
+        } else if mx[1] <= 0 {
+            print("<");
+        } else {
+            print("?");
+        }
+        print("\n");
+    }
+}

@@ -1,0 +1,63 @@
+fn range_min(tree: array<i64>, size: i64, begin: i64, end: i64) -> i64 {
+    var left = size + begin;
+    var right = size + end;
+    var result = 4_000_000_000_000_000_000;
+    while left < right {
+        if (left & 1) != 0 {
+            if tree[left] < result {
+                result = tree[left];
+            }
+            left += 1;
+        }
+        if (right & 1) != 0 {
+            right -= 1;
+            if tree[right] < result {
+                result = tree[right];
+            }
+        }
+        left /= 2;
+        right /= 2;
+    }
+    return result;
+}
+
+fn set_min(tree: array<i64>, size: i64, position: i64, value: i64) {
+    var node = size + position;
+    tree[node] = value;
+    while node > 1 {
+        node /= 2;
+        tree[node] = tree[2 * node];
+        if tree[2 * node + 1] < tree[node] {
+            tree[node] = tree[2 * node + 1];
+        }
+    }
+}
+
+fn main() {
+    let size = read();
+    let queries = read();
+    let left_tree = array(2 * size, 4_000_000_000_000_000_000);
+    let right_tree = array(2 * size, 4_000_000_000_000_000_000);
+    for index in 1..=size {
+        let price = read();
+        set_min(left_tree, size, index - 1, price - index);
+        set_min(right_tree, size, index - 1, price + index);
+    }
+    for query in 0..queries {
+        let kind = read();
+        let index = read();
+        if kind == 1 {
+            let price = read();
+            set_min(left_tree, size, index - 1, price - index);
+            set_min(right_tree, size, index - 1, price + index);
+        } else {
+            let from_left = range_min(left_tree, size, 0, index) + index;
+            let from_right = range_min(right_tree, size, index - 1, size) - index;
+            if from_left < from_right {
+                println(from_left);
+            } else {
+                println(from_right);
+            }
+        }
+    }
+}

@@ -1,0 +1,70 @@
+fn merge_node(
+    sum: array<i64>, prefix: array<i64>, suffix: array<i64>, best: array<i64>,
+    node: i64
+) {
+    let left = 2 * node;
+    let right = left + 1;
+    sum[node] = sum[left] + sum[right];
+    prefix[node] = prefix[left];
+    if sum[left] + prefix[right] > prefix[node] {
+        prefix[node] = sum[left] + prefix[right];
+    }
+    suffix[node] = suffix[right];
+    if sum[right] + suffix[left] > suffix[node] {
+        suffix[node] = sum[right] + suffix[left];
+    }
+    best[node] = best[left];
+    if best[right] > best[node] {
+        best[node] = best[right];
+    }
+    if suffix[left] + prefix[right] > best[node] {
+        best[node] = suffix[left] + prefix[right];
+    }
+}
+
+fn main() {
+    let size = read();
+    let updates = read();
+    var base = 1;
+    while base < size {
+        base *= 2;
+    }
+    let sum = array(2 * base, 0);
+    let prefix = array(2 * base, 0);
+    let suffix = array(2 * base, 0);
+    let best = array(2 * base, 0);
+    for index in 0..size {
+        let value = read();
+        let node = base + index;
+        sum[node] = value;
+        if value > 0 {
+            prefix[node] = value;
+            suffix[node] = value;
+            best[node] = value;
+        }
+    }
+    var node = base;
+    while node > 1 {
+        node -= 1;
+        merge_node(sum, prefix, suffix, best, node);
+    }
+    for update in 0..updates {
+        let position = read() - 1;
+        let value = read();
+        node = base + position;
+        sum[node] = value;
+        prefix[node] = 0;
+        suffix[node] = 0;
+        best[node] = 0;
+        if value > 0 {
+            prefix[node] = value;
+            suffix[node] = value;
+            best[node] = value;
+        }
+        while node > 1 {
+            node /= 2;
+            merge_node(sum, prefix, suffix, best, node);
+        }
+        println(best[1]);
+    }
+}

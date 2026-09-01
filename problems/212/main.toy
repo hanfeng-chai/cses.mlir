@@ -1,0 +1,49 @@
+fn main() {
+    let s = read_text();
+    let n = length(s);
+    let z = array(n, 0);
+    var l = 0;
+    var r = 0;
+    for i in 1..n {
+        if i < r {
+            let candidate = r - i;
+            if z[i - l] < candidate {
+                z[i] = z[i - l];
+            } else {
+                z[i] = candidate;
+            }
+        }
+        while i + z[i] < n && at(s, z[i]) == at(s, i + z[i]) {
+            z[i] += 1;
+        }
+        if i + z[i] > r {
+            l = i;
+            r = i + z[i];
+        }
+    }
+    let pi = array(n, 0);
+    for i in 1..n {
+        var j = pi[i - 1];
+        while j != 0 && at(s, i) != at(s, j) {
+            j = pi[j - 1];
+        }
+        if at(s, i) == at(s, j) {
+            j += 1;
+        }
+        pi[i] = j;
+    }
+    for i in 0..n {
+        if i != 0 {
+            print(" ");
+        }
+        print(z[i]);
+    }
+    println();
+    for i in 0..n {
+        if i != 0 {
+            print(" ");
+        }
+        print(pi[i]);
+    }
+    println();
+}

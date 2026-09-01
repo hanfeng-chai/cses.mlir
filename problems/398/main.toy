@@ -1,0 +1,162 @@
+fn main() {
+    let n = read();
+    let cuts = read();
+    let length = read_array(n);
+
+    let best_max = array(cuts + 1, 0);
+    let assoc_min = array(cuts + 1, 0);
+    var pieces = array(n, 0);
+    for i in 0..n {
+        pieces[i] = 1;
+    }
+
+    // multiset of min pieces (map + ordered)
+    let mins_map = map(2 * (n + cuts) + 100);
+    let mins_set = ordered(2 * (n + cuts) + 100);
+    let scale = n + 1;
+    let queue = heap(2 * (n + cuts) + 100);
+    for i in 0..n {
+        let count = map_get(mins_map, length[i], 0) + 1;
+        map_set(mins_map, length[i], count);
+        if count == 1 {
+            ordered_insert(mins_set, length[i]);
+        }
+        heap_push(queue, 0 - length[i], length[i] * scale + i);
+    }
+    best_max[0] = 0 - heap_first(queue);
+    assoc_min[0] = ordered_first(mins_set);
+
+    for used in 1..=cuts {
+        let max_piece = 0 - heap_first(queue);
+        let code = heap_second(queue);
+        heap_pop(queue);
+        let i = code % scale;
+        let min_piece = code / scale;
+        // remove min_piece from multiset
+        var count = map_get(mins_map, min_piece, 0) - 1;
+        map_set(mins_map, min_piece, count);
+        if count == 0 {
+            ordered_erase(mins_set, min_piece);
+        }
+        pieces[i] += 1;
+        let new_max = (length[i] + pieces[i] - 1) / pieces[i];
+        let new_min = length[i] / pieces[i];
+        count = map_get(mins_map, new_min, 0) + 1;
+        map_set(mins_map, new_min, count);
+        if count == 1 {
+            ordered_insert(mins_set, new_min);
+        }
+        heap_push(queue, 0 - new_max, new_min * scale + i);
+        best_max[used] = 0 - heap_first(queue);
+        assoc_min[used] = ordered_first(mins_set);
+    }
+
+    // phase B: maximize the minimum piece
+    var best_min = array(cuts + 1, 0);
+    for i in 0..n {
+        pieces[i] = 1;
+    }
+    let mins_map_b = map(2 * (n + cuts) + 100);
+    let mins_set_b = ordered(2 * (n + cuts) + 100);
+    let queue_b = heap(2 * (n + cuts) + 100);
+    for i in 0..n {
+        let count = map_get(mins_map_b, length[i], 0) + 1;
+        map_set(mins_map_b, length[i], count);
+        if count == 1 {
+            ordered_insert(mins_set_b, length[i]);
+        }
+        heap_push(queue_b, 0 - length[i] / 2, i);
+    }
+    best_min[0] = ordered_first(mins_set_b);
+    for used in 1..=cuts {
+        let i = heap_second(queue_b);
+        heap_pop(queue_b);
+        let old_min = length[i] / pieces[i];
+        var count = map_get(mins_map_b, old_min, 0) - 1;
+        map_set(mins_map_b, old_min, count);
+        if count == 0 {
+            ordered_erase(mins_set_b, old_min);
+        }
+        pieces[i] += 1;
+        let new_min = length[i] / pieces[i];
+        count = map_get(mins_map_b, new_min, 0) + 1;
+        map_set(mins_map_b, new_min, count);
+        if count == 1 {
+            ordered_insert(mins_set_b, new_min);
+        }
+        heap_push(queue_b, 0 - length[i] / (pieces[i] + 1), i);
+        best_min[used] = ordered_first(mins_set_b);
+    }
+
+    // direct range and RMQ
+    var direct_range = array(cuts + 1, 0);
+    for used in 0..=cuts {
+        direct_range[used] = best_max[used] - assoc_min[used];
+    }
+    // iterative segment tree over direct_range[0..cuts]
+    var tree_size = 1;
+    while tree_size < cuts + 1 {
+        tree_size *= 2;
+    }
+    let tree = array(2 * tree_size, 0);
+    let inf = 4000000000000000000;
+    for i in 0..2 * tree_size {
+        tree[i] = inf;
+    }
+    for i in 0..=cuts {
+        tree[tree_size + i] = direct_range[i];
+    }
+    for i in tree_size - 1..=1 by -1 {
+        var smaller = tree[2 * i];
+        if tree[2 * i + 1] < smaller {
+            smaller = tree[2 * i + 1];
+        }
+        tree[i] = smaller;
+    }
+
+    for k in 1..=cuts {
+        let target_min = best_min[k];
+        var low = 0;
+        var high = k;
+        while low < high {
+            let middle = (low + high + 1) / 2;
+            if assoc_min[middle] >= target_min {
+                low = middle;
+            } else {
+                high = middle - 1;
+            }
+        }
+        let split = low;
+        var answer = best_max[split] - target_min;
+        if split < k {
+            // range min over [split+1, k]
+            var l = tree_size + split + 1;
+            var r = tree_size + k + 1;
+            var best = inf;
+            while l < r {
+                if (l & 1) == 1 {
+                    if tree[l] < best {
+                        best = tree[l];
+                    }
+                    l += 1;
+                }
+                if (r & 1) == 1 {
+                    r -= 1;
+                    if tree[r] < best {
+                        best = tree[r];
+                    }
+                }
+                l = l / 2;
+                r = r / 2;
+            }
+            if best < answer {
+                answer = best;
+            }
+        }
+        if k > 1 {
+            print(" ");
+        }
+        print(answer);
+    }
+    print("\n");
+}

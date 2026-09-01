@@ -1,0 +1,122 @@
+fn main() {
+    let rows = read();
+    let columns = read();
+    let cells = rows * columns;
+    let grid = array(cells, 0);
+    let monster_distance = array(cells, 1_000_000_000);
+    let queue = array(cells, 0);
+    var queue_head = 0;
+    var queue_tail = 0;
+    var start = 0;
+    for row in 0..rows {
+        let line = read_text();
+        for column in 0..columns {
+            let cell = row * columns + column;
+            grid[cell] = at(line, column);
+            if grid[cell] == 77 {
+                monster_distance[cell] = 0;
+                queue[queue_tail] = cell;
+                queue_tail += 1;
+            }
+            if grid[cell] == 65 {
+                start = cell;
+            }
+        }
+    }
+    let delta_row = array(4, 0);
+    let delta_column = array(4, 0);
+    let direction_code = array(4, 0);
+    delta_row[0] = 1;
+    direction_code[0] = 68;
+    delta_row[1] = -1;
+    direction_code[1] = 85;
+    delta_column[2] = 1;
+    direction_code[2] = 82;
+    delta_column[3] = -1;
+    direction_code[3] = 76;
+    while queue_head < queue_tail {
+        let cell = queue[queue_head];
+        queue_head += 1;
+        let row = cell / columns;
+        let column = cell % columns;
+        for direction in 0..4 {
+            let next_row = row + delta_row[direction];
+            let next_column = column + delta_column[direction];
+            if next_row >= 0 && next_row < rows && next_column >= 0 && next_column < columns {
+                let next_cell = next_row * columns + next_column;
+                if grid[next_cell] != 35 && monster_distance[next_cell] == 1_000_000_000 {
+                    monster_distance[next_cell] = monster_distance[cell] + 1;
+                    queue[queue_tail] = next_cell;
+                    queue_tail += 1;
+                }
+            }
+        }
+    }
+
+    let distance = array(cells, -1);
+    let previous_move = array(cells, 0);
+    queue_head = 0;
+    queue_tail = 1;
+    queue[0] = start;
+    distance[start] = 0;
+    var exit = -1;
+    let start_row = start / columns;
+    let start_column = start % columns;
+    if start_row == 0 || start_row + 1 == rows || start_column == 0 || start_column + 1 == columns {
+        exit = start;
+    }
+    while queue_head < queue_tail && exit == -1 {
+        let cell = queue[queue_head];
+        queue_head += 1;
+        let row = cell / columns;
+        let column = cell % columns;
+        for direction in 0..4 {
+            if exit == -1 {
+                let next_row = row + delta_row[direction];
+                let next_column = column + delta_column[direction];
+                if next_row >= 0 && next_row < rows && next_column >= 0 && next_column < columns {
+                    let next_cell = next_row * columns + next_column;
+                    if grid[next_cell] != 35 && distance[next_cell] == -1
+                        && distance[cell] + 1 < monster_distance[next_cell] {
+                        distance[next_cell] = distance[cell] + 1;
+                        previous_move[next_cell] = direction_code[direction];
+                        queue[queue_tail] = next_cell;
+                        queue_tail += 1;
+                        if next_row == 0 || next_row + 1 == rows
+                            || next_column == 0 || next_column + 1 == columns {
+                            exit = next_cell;
+                        }
+                    }
+                }
+            }
+        }
+    }
+    if exit == -1 {
+        println("NO");
+    } else {
+        let path = array(distance[exit], 0);
+        var size = 0;
+        var cell = exit;
+        while cell != start {
+            let direction = previous_move[cell];
+            path[size] = direction;
+            size += 1;
+            if direction == 68 {
+                cell -= columns;
+            } else if direction == 85 {
+                cell += columns;
+            } else if direction == 82 {
+                cell -= 1;
+            } else {
+                cell += 1;
+            }
+        }
+        println("YES");
+        println(size);
+        while size > 0 {
+            size -= 1;
+            put(path[size]);
+        }
+        println();
+    }
+}

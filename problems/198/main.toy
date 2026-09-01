@@ -1,0 +1,32 @@
+fn main() {
+    let s = read_text();
+    let p = read_text();
+    let n = length(s);
+    let m = length(p);
+    let pi = array(m, 0);
+    for i in 1..m {
+        var j = pi[i - 1];
+        while j != 0 && at(p, i) != at(p, j) {
+            j = pi[j - 1];
+        }
+        if at(p, i) == at(p, j) {
+            j += 1;
+        }
+        pi[i] = j;
+    }
+    var count = 0;
+    var j = 0;
+    for i in 0..n {
+        while j != 0 && at(s, i) != at(p, j) {
+            j = pi[j - 1];
+        }
+        if at(s, i) == at(p, j) {
+            j += 1;
+        }
+        if j == m {
+            count += 1;
+            j = pi[j - 1];
+        }
+    }
+    println(count);
+}

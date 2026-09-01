@@ -1,0 +1,164 @@
+fn query_kd(nodes: array<i64>, pt_x: array<i64>, pt_y: array<i64>, best: array<i64>, node: i64, qx: i64, qy: i64) {
+    if node == -1 {
+        return;
+    }
+    let base = node * 8;
+    var dx = 0;
+    if nodes[base + 4] - qx > dx {
+        dx = nodes[base + 4] - qx;
+    }
+    if qx - nodes[base + 5] > dx {
+        dx = qx - nodes[base + 5];
+    }
+    var dy = 0;
+    if nodes[base + 6] - qy > dy {
+        dy = nodes[base + 6] - qy;
+    }
+    if qy - nodes[base + 7] > dy {
+        dy = qy - nodes[base + 7];
+    }
+    if dx + dy >= best[0] {
+        return;
+    }
+    let point = nodes[base];
+    let px = pt_x[point];
+    let py = pt_y[point];
+    var dist = px - qx;
+    if dist < 0 {
+        dist = 0 - dist;
+    }
+    var d2 = py - qy;
+    if d2 < 0 {
+        d2 = 0 - d2;
+    }
+    dist += d2;
+    if dist < best[0] {
+        best[0] = dist;
+    }
+    var diff = qx - px;
+    if nodes[base + 1] == 1 {
+        diff = qy - py;
+    }
+    var near = nodes[base + 3];
+    var far = nodes[base + 2];
+    if diff < 0 {
+        near = nodes[base + 2];
+        far = nodes[base + 3];
+    }
+    query_kd(nodes, pt_x, pt_y, best, near, qx, qy);
+    query_kd(nodes, pt_x, pt_y, best, far, qx, qy);
+}
+
+fn build_kd(idx_arr: array<i64>, pt_x: array<i64>, pt_y: array<i64>, nodes: array<i64>, count: array<i64>, left: i64, right: i64, depth: i64) -> i64 {
+    if left >= right {
+        return -1;
+    }
+    let axis = depth % 2;
+    let mid = (left + right) / 2;
+    // quickselect idx_arr[left..right) so that idx_arr[mid] is the median
+    var lo = left;
+    var hi = right;
+    while lo < hi {
+        let pivot_value = idx_arr[lo];
+        var i = lo;
+        var k = lo + 1;
+        while k < hi {
+            var element_key = pt_x[idx_arr[k]];
+            var pivot_key = pt_x[pivot_value];
+            if axis == 1 {
+                element_key = pt_y[idx_arr[k]];
+                pivot_key = pt_y[pivot_value];
+            }
+            if element_key < pivot_key {
+                i += 1;
+                let tmp = idx_arr[i];
+                idx_arr[i] = idx_arr[k];
+                idx_arr[k] = tmp;
+            }
+            k += 1;
+        }
+        let tmp2 = idx_arr[lo];
+        idx_arr[lo] = idx_arr[i];
+        idx_arr[i] = tmp2;
+        if i == mid {
+            break;
+        } else if mid < i {
+            hi = i;
+        } else {
+            lo = i + 1;
+        }
+    }
+    let cur = count[0];
+    count[0] += 1;
+    let self = idx_arr[mid];
+    nodes[cur * 8] = self;
+    nodes[cur * 8 + 1] = axis;
+    let lc = build_kd(idx_arr, pt_x, pt_y, nodes, count, left, mid, depth + 1);
+    let rc = build_kd(idx_arr, pt_x, pt_y, nodes, count, mid + 1, right, depth + 1);
+    nodes[cur * 8 + 2] = lc;
+    nodes[cur * 8 + 3] = rc;
+    nodes[cur * 8 + 4] = pt_x[self];
+    nodes[cur * 8 + 5] = pt_x[self];
+    nodes[cur * 8 + 6] = pt_y[self];
+    nodes[cur * 8 + 7] = pt_y[self];
+    if lc != -1 {
+        if nodes[lc * 8 + 4] < nodes[cur * 8 + 4] {
+            nodes[cur * 8 + 4] = nodes[lc * 8 + 4];
+        }
+        if nodes[lc * 8 + 5] > nodes[cur * 8 + 5] {
+            nodes[cur * 8 + 5] = nodes[lc * 8 + 5];
+        }
+        if nodes[lc * 8 + 6] < nodes[cur * 8 + 6] {
+            nodes[cur * 8 + 6] = nodes[lc * 8 + 6];
+        }
+        if nodes[lc * 8 + 7] > nodes[cur * 8 + 7] {
+            nodes[cur * 8 + 7] = nodes[lc * 8 + 7];
+        }
+    }
+    if rc != -1 {
+        if nodes[rc * 8 + 4] < nodes[cur * 8 + 4] {
+            nodes[cur * 8 + 4] = nodes[rc * 8 + 4];
+        }
+        if nodes[rc * 8 + 5] > nodes[cur * 8 + 5] {
+            nodes[cur * 8 + 5] = nodes[rc * 8 + 5];
+        }
+        if nodes[rc * 8 + 6] < nodes[cur * 8 + 6] {
+            nodes[cur * 8 + 6] = nodes[rc * 8 + 6];
+        }
+        if nodes[rc * 8 + 7] > nodes[cur * 8 + 7] {
+            nodes[cur * 8 + 7] = nodes[rc * 8 + 7];
+        }
+    }
+    return cur;
+}
+
+fn main() {
+    let n = read();
+    let m = read();
+    var pt_x = array(n, 0);
+    var pt_y = array(n, 0);
+    for i in 0..n {
+        pt_x[i] = read();
+        pt_y[i] = read();
+    }
+    var idx_arr = array(n, 0);
+    for i in 0..n {
+        idx_arr[i] = i;
+    }
+    let nodes = array(n * 8 + 8, 0);
+    let count = array(1, 0);
+    let root = build_kd(idx_arr, pt_x, pt_y, nodes, count, 0, n, 0);
+
+    var ans = 0;
+    let best = array(1, 0);
+    for i in 0..m {
+        let qx = read();
+        let qy = read();
+        best[0] = 4000000000000000000;
+        query_kd(nodes, pt_x, pt_y, best, root, qx, qy);
+        if best[0] > ans {
+            ans = best[0];
+        }
+    }
+    println(ans);
+}

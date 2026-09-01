@@ -1,0 +1,20 @@
+fn main() {
+    let count = read();
+    let limit = read();
+    let weights = array(count, 0);
+    for index in 0..count {
+        weights[index] = read();
+    }
+    sort(weights);
+    var light = 0;
+    var heavy = count - 1;
+    var gondolas = 0;
+    while light <= heavy {
+        if weights[light] + weights[heavy] <= limit {
+            light += 1;
+        }
+        heavy -= 1;
+        gondolas += 1;
+    }
+    println(gondolas);
+}

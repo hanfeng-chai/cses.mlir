@@ -1,0 +1,63 @@
+fn cross(ox: i64, oy: i64, ax: i64, ay: i64, bx: i64, by2: i64) -> i64 {
+    return (ax - ox) * (by2 - oy) - (ay - oy) * (bx - ox);
+}
+
+fn main() {
+    let n = read();
+    let x = array(n, 0);
+    let y = array(n, 0);
+    for i in 0..n {
+        x[i] = read();
+        y[i] = read();
+    }
+    sort_pairs(x, y);
+    let hull_x = array(2 * n, 0);
+    let hull_y = array(2 * n, 0);
+    var size = 0;
+    for i in 0..n {
+        while size >= 2 && cross(hull_x[size - 2], hull_y[size - 2], hull_x[size - 1], hull_y[size - 1], x[i], y[i]) < 0 {
+            size -= 1;
+        }
+        hull_x[size] = x[i];
+        hull_y[size] = y[i];
+        size += 1;
+    }
+    let lower = size + 1;
+    for i in 0..n - 1 {
+        let index = n - 2 - i;
+        while size >= lower && cross(hull_x[size - 2], hull_y[size - 2], hull_x[size - 1], hull_y[size - 1], x[index], y[index]) < 0 {
+            size -= 1;
+        }
+        hull_x[size] = x[index];
+        hull_y[size] = y[index];
+        size += 1;
+    }
+    size -= 1;
+    let result_x = array(size, 0);
+    let result_y = array(size, 0);
+    for i in 0..size {
+        result_x[i] = hull_x[i];
+        result_y[i] = hull_y[i];
+    }
+    sort_pairs(result_x, result_y);
+    var unique = 0;
+    var previous_x = -2000000000;
+    var previous_y = -2000000000;
+    for i in 0..size {
+        if result_x[i] != previous_x || result_y[i] != previous_y {
+            unique += 1;
+            previous_x = result_x[i];
+            previous_y = result_y[i];
+        }
+    }
+    println(unique);
+    previous_x = -2000000000;
+    previous_y = -2000000000;
+    for i in 0..size {
+        if result_x[i] != previous_x || result_y[i] != previous_y {
+            println(result_x[i], " ", result_y[i]);
+            previous_x = result_x[i];
+            previous_y = result_y[i];
+        }
+    }
+}

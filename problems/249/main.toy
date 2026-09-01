@@ -1,0 +1,69 @@
+fn divide_conquer(i_l: i64, i_r: i64, p_l: i64, p_r: i64, dp_prev: array<i64>, dp_cur: array<i64>, cost: array<i64>, n: i64) {
+    if i_l > i_r {
+        return;
+    }
+    let mid = (i_l + i_r) / 2;
+    var best = 4000000000000000000;
+    var best_p = p_l;
+    var up = p_r;
+    if mid - 1 < up {
+        up = mid - 1;
+    }
+    for p in p_l..=up {
+        if dp_prev[p] < 4000000000000000000 {
+            let value = dp_prev[p] + cost[(p + 1) * (n + 1) + mid];
+            if value < best {
+                best = value;
+                best_p = p;
+            }
+        }
+    }
+    dp_cur[mid] = best;
+    divide_conquer(i_l, mid - 1, p_l, best_p, dp_prev, dp_cur, cost, n);
+    divide_conquer(mid + 1, i_r, best_p, p_r, dp_prev, dp_cur, cost, n);
+}
+
+fn main() {
+    let n = read();
+    let k = read();
+    let children = array(n + 1, 0);
+    for i in 1..=n {
+        children[i] = read();
+    }
+    let cost = array((n + 1) * (n + 1), 0);
+    for a in 1..=n {
+        var median = a;
+        var left_weight = children[a];
+        var weight = children[a];
+        var current = 0;
+        for b in a + 1..=n {
+            current += children[b] * (b - median);
+            weight += children[b];
+            var moving = true;
+            while moving {
+                let right_weight = weight - left_weight;
+                if right_weight > left_weight {
+                    current += left_weight - right_weight;
+                    median += 1;
+                    left_weight += children[median];
+                } else {
+                    moving = false;
+                }
+            }
+            cost[a * (n + 1) + b] = current;
+        }
+    }
+    let dp_prev = array(n + 1, 4000000000000000000);
+    let dp_cur = array(n + 1, 4000000000000000000);
+    dp_prev[0] = 0;
+    for j in 1..=k {
+        for i in 0..=n {
+            dp_cur[i] = 4000000000000000000;
+        }
+        divide_conquer(j, n, j - 1, n - 1, dp_prev, dp_cur, cost, n);
+        for i in 0..=n {
+            dp_prev[i] = dp_cur[i];
+        }
+    }
+    println(dp_prev[n]);
+}

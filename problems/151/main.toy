@@ -1,0 +1,45 @@
+fn main() {
+    let nodes = read();
+    let queries = read();
+    let edge_count = nodes - 1;
+    let head = array(nodes + 1, -1);
+    let to = array(2 * edge_count, 0);
+    let next = array(2 * edge_count, 0);
+    for edge in 0..edge_count {
+        let first = read();
+        let second = read();
+        to[2 * edge] = second;
+        next[2 * edge] = head[first];
+        head[first] = 2 * edge;
+        to[2 * edge + 1] = first;
+        next[2 * edge + 1] = head[second];
+        head[second] = 2 * edge + 1;
+    }
+    let parent = array(nodes + 1, 0);
+    let order = array(nodes, 0);
+    root_tree(nodes, 1, head, to, next, parent, order);
+    parent[1] = 0;
+    let depth = array(nodes + 1, 0);
+    for index in 1..nodes {
+        let node = order[index];
+        depth[node] = depth[parent[node]] + 1;
+    }
+    let levels = 20;
+    let stride = nodes + 1;
+    let up = array(levels * stride, 0);
+    for node in 1..=nodes {
+        up[node] = parent[node];
+    }
+    for level in 1..levels {
+        for node in 1..=nodes {
+            up[level * stride + node] = up[(level - 1) * stride
+                + up[(level - 1) * stride + node]];
+        }
+    }
+    for query in 0..queries {
+        let first = read();
+        let second = read();
+        let ancestor = tree_lca(up, depth, stride, levels, first, second);
+        println(depth[first] + depth[second] - 2 * depth[ancestor]);
+    }
+}

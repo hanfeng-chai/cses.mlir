@@ -1,0 +1,38 @@
+fn modpow(base: i64, exp: i64) -> i64 {
+    var result = 1;
+    var a = base % 1000000007;
+    var b = exp;
+    while b > 0 {
+        if b % 2 == 1 {
+            result = result * a % 1000000007;
+        }
+        a = a * a % 1000000007;
+        b = b / 2;
+    }
+    return result;
+}
+
+fn main() {
+    let n = read();
+    let k = read();
+    let fact = array(k + 1, 0);
+    let inv = array(k + 1, 0);
+    fact[0] = 1;
+    for i in 1..=k {
+        fact[i] = fact[i - 1] * i % 1000000007;
+    }
+    inv[k] = modpow(fact[k], 1000000005);
+    for i in k..=1 by -1 {
+        inv[i - 1] = inv[i] * i % 1000000007;
+    }
+    var ans = 0;
+    for i in 0..=k {
+        let term = fact[k] * inv[i] % 1000000007 * inv[k - i] % 1000000007 * modpow(k - i, n) % 1000000007;
+        if i % 2 == 1 {
+            ans = (ans - term + 1000000007) % 1000000007;
+        } else {
+            ans = (ans + term) % 1000000007;
+        }
+    }
+    println(ans);
+}

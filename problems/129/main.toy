@@ -1,0 +1,84 @@
+fn merge_prefix(
+    sum: array<i64>,
+    prefix: array<i64>,
+    node: i64,
+    left: i64,
+    right: i64
+) {
+    sum[node] = sum[left] + sum[right];
+    prefix[node] = prefix[left];
+    let across = sum[left] + prefix[right];
+    if across > prefix[node] {
+        prefix[node] = across;
+    }
+}
+
+fn main() {
+    let size = read();
+    let queries = read();
+    let sum = array(2 * size, 0);
+    let prefix = array(2 * size, 0);
+    for index in 0..size {
+        let value = read();
+        sum[size + index] = value;
+        if value > 0 {
+            prefix[size + index] = value;
+        }
+    }
+    var node = size;
+    while node > 1 {
+        node -= 1;
+        merge_prefix(sum, prefix, node, 2 * node, 2 * node + 1);
+    }
+    for query in 0..queries {
+        let kind = read();
+        let first = read();
+        let second = read();
+        if kind == 1 {
+            node = size + first - 1;
+            sum[node] = second;
+            prefix[node] = 0;
+            if second > 0 {
+                prefix[node] = second;
+            }
+            while node > 1 {
+                node /= 2;
+                merge_prefix(sum, prefix, node, 2 * node, 2 * node + 1);
+            }
+        } else {
+            var left = size + first - 1;
+            var right = size + second;
+            var left_sum = 0;
+            var left_prefix = 0;
+            var right_sum = 0;
+            var right_prefix = 0;
+            while left < right {
+                if (left & 1) != 0 {
+                    let candidate = left_sum + prefix[left];
+                    if candidate > left_prefix {
+                        left_prefix = candidate;
+                    }
+                    left_sum += sum[left];
+                    left += 1;
+                }
+                if (right & 1) != 0 {
+                    right -= 1;
+                    let candidate = sum[right] + right_prefix;
+                    if prefix[right] > candidate {
+                        right_prefix = prefix[right];
+                    } else {
+                        right_prefix = candidate;
+                    }
+                    right_sum = sum[right] + right_sum;
+                }
+                left /= 2;
+                right /= 2;
+            }
+            let across = left_sum + right_prefix;
+            if across > left_prefix {
+                left_prefix = across;
+            }
+            println(left_prefix);
+        }
+    }
+}

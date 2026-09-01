@@ -1,0 +1,82 @@
+fn digit_dp(
+    position: i64,
+    previous: i64,
+    tight: i64,
+    started: i64,
+    digits: array<i64>,
+    size: i64,
+    memo: array<i64>,
+    seen: array<i64>
+) -> i64 {
+    var result = 0;
+    if position == size {
+        result = 1;
+    } else {
+        let state = (((position * 11 + previous) * 2 + tight) * 2 + started);
+        if seen[state] != 0 {
+            result = memo[state];
+        } else {
+            var high = 9;
+            if tight != 0 {
+                high = digits[position];
+            }
+            for digit in 0..=high {
+                var next_tight = 0;
+                if tight != 0 && digit == high {
+                    next_tight = 1;
+                }
+                if started == 0 {
+                    if digit == 0 {
+                        result += digit_dp(
+                            position + 1, 10, next_tight, 0, digits, size, memo, seen
+                        );
+                    } else {
+                        result += digit_dp(
+                            position + 1, digit, next_tight, 1, digits, size, memo, seen
+                        );
+                    }
+                } else if digit != previous {
+                    result += digit_dp(
+                        position + 1, digit, next_tight, 1, digits, size, memo, seen
+                    );
+                }
+            }
+            seen[state] = 1;
+            memo[state] = result;
+        }
+    }
+    return result;
+}
+
+fn count_valid(bound: i64) -> i64 {
+    var result = 0;
+    if bound >= 0 {
+        let digits = array(19, 0);
+        var value = bound;
+        var size = 0;
+        if value == 0 {
+            size = 1;
+        } else {
+            while value > 0 {
+                digits[size] = value % 10;
+                size += 1;
+                value /= 10;
+            }
+        }
+        for index in 0..size / 2 {
+            let temporary = digits[index];
+            digits[index] = digits[size - 1 - index];
+            digits[size - 1 - index] = temporary;
+        }
+        let memo = array(19 * 11 * 4, 0);
+        let seen = array(19 * 11 * 4, 0);
+        result = digit_dp(0, 10, 1, 0, digits, size, memo, seen);
+    }
+    return result;
+}
+
+fn main() {
+    let left = read();
+    let right = read();
+    println(count_valid(right) - count_valid(left - 1));
+}

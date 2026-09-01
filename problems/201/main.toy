@@ -1,0 +1,29 @@
+fn main() {
+    let s = read_text();
+    let n = length(s);
+    let doubled = 2 * n;
+    let f = array(doubled, -1);
+    var k = 0;
+    for j in 1..doubled {
+        let sj = at(s, j % n);
+        var i = f[j - k - 1];
+        while i != -1 && sj != at(s, (k + i + 1) % n) {
+            if sj < at(s, (k + i + 1) % n) {
+                k = j - i - 1;
+            }
+            i = f[i];
+        }
+        if sj != at(s, (k + i + 1) % n) {
+            if sj < at(s, k % n) {
+                k = j;
+            }
+            f[j - k] = -1;
+        } else {
+            f[j - k] = i + 1;
+        }
+    }
+    for i in 0..n {
+        put(at(s, (k + i) % n));
+    }
+    put(10);
+}

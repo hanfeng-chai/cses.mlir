@@ -1,0 +1,59 @@
+fn main() {
+    let nodes = read();
+    let edges = read();
+    let head = array(nodes + 1, -1);
+    let to = array(edges, 0);
+    let weight = array(edges, 0);
+    let next = array(edges, 0);
+    for edge in 0..edges {
+        let source = read();
+        to[edge] = read();
+        weight[edge] = read();
+        next[edge] = head[source];
+        head[source] = edge;
+    }
+    let infinity = 1_000_000_000_000_000_000;
+    let distance = array(nodes + 1, infinity);
+    let ways = array(nodes + 1, 0);
+    let minimum_edges = array(nodes + 1, 1_000_000_000);
+    let maximum_edges = array(nodes + 1, 0);
+    let done = array(nodes + 1, 0);
+    let modulus = 1_000_000_007;
+    let queue = heap(edges + 1);
+    distance[1] = 0;
+    ways[1] = 1;
+    minimum_edges[1] = 0;
+    heap_push(queue, 0, 1);
+    while heap_size(queue) > 0 {
+        let node = heap_second(queue);
+        heap_pop(queue);
+        if done[node] == 0 {
+            done[node] = 1;
+            var edge = head[node];
+            while edge != -1 {
+                let neighbor = to[edge];
+                let candidate = distance[node] + weight[edge];
+                if candidate < distance[neighbor] {
+                    distance[neighbor] = candidate;
+                    ways[neighbor] = ways[node];
+                    minimum_edges[neighbor] = minimum_edges[node] + 1;
+                    maximum_edges[neighbor] = maximum_edges[node] + 1;
+                    heap_push(queue, candidate, neighbor);
+                } else if candidate == distance[neighbor] {
+                    ways[neighbor] = (ways[neighbor] + ways[node]) % modulus;
+                    if minimum_edges[node] + 1 < minimum_edges[neighbor] {
+                        minimum_edges[neighbor] = minimum_edges[node] + 1;
+                    }
+                    if maximum_edges[node] + 1 > maximum_edges[neighbor] {
+                        maximum_edges[neighbor] = maximum_edges[node] + 1;
+                    }
+                }
+                edge = next[edge];
+            }
+        }
+    }
+    println(
+        distance[nodes], " ", ways[nodes], " ",
+        minimum_edges[nodes], " ", maximum_edges[nodes]
+    );
+}

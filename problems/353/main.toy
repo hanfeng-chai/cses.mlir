@@ -1,0 +1,52 @@
+fn g_value(n: i64, e: i64) -> i64 {
+    let em = e % 1000000007;
+    // M = [1, 1; em, 0], P = M^(n-1)
+    var pa = 1; var pb = 0; var pc = 0; var pd = 1;
+    var ma = 1; var mb = 1; var mc = em; var md = 0;
+    var p = n - 1;
+    while p > 0 {
+        if p % 2 == 1 {
+            let na = (pa * ma + pb * mc) % 1000000007;
+            let nb = (pa * mb + pb * md) % 1000000007;
+            let nc = (pc * ma + pd * mc) % 1000000007;
+            let nd = (pc * mb + pd * md) % 1000000007;
+            pa = na; pb = nb; pc = nc; pd = nd;
+        }
+        let na = (ma * ma + mb * mc) % 1000000007;
+        let nb = (ma * mb + mb * md) % 1000000007;
+        let nc = (mc * ma + md * mc) % 1000000007;
+        let nd = (mc * mb + md * md) % 1000000007;
+        ma = na; mb = nb; mc = nc; md = nd;
+        p = p / 2;
+    }
+    // A1=1, B1=em
+    let an = (pa * 1 + pb * em) % 1000000007;
+    let bn = (pc * 1 + pd * em) % 1000000007;
+    return (an + bn) % 1000000007;
+}
+
+fn main() {
+    let t = read();
+    for test in 0..t {
+        let n = read();
+        let k = read();
+        var ans = 1;
+        var kk = k;
+        var p = 2;
+        while p * p <= kk {
+            if kk % p == 0 {
+                var e = 0;
+                while kk % p == 0 {
+                    kk = kk / p;
+                    e += 1;
+                }
+                ans = ans * g_value(n, e) % 1000000007;
+            }
+            p += 1;
+        }
+        if kk > 1 {
+            ans = ans * g_value(n, 1) % 1000000007;
+        }
+        println(ans);
+    }
+}

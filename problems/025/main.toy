@@ -1,0 +1,15 @@
+fn main() {
+    let count = read();
+    let values = array(count, 0);
+    for index in 0..count {
+        values[index] = read();
+    }
+    sort(values);
+    var distinct = 0;
+    for index in 0..count {
+        if index == 0 || values[index] != values[index - 1] {
+            distinct += 1;
+        }
+    }
+    println(distinct);
+}

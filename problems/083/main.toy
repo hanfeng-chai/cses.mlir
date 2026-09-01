@@ -1,0 +1,53 @@
+fn main() {
+    let rows = read();
+    let columns = read();
+    let cells = rows * columns;
+    let grid = array(cells, 0);
+    for row in 0..rows {
+        let line = read_text();
+        for column in 0..columns {
+            grid[row * columns + column] = at(line, column);
+        }
+    }
+    let visited = array(cells, 0);
+    let queue = array(cells, 0);
+    let delta_row = array(4, 0);
+    let delta_column = array(4, 0);
+    delta_column[0] = 1;
+    delta_column[1] = -1;
+    delta_row[2] = 1;
+    delta_row[3] = -1;
+    var rooms = 0;
+    for row in 0..rows {
+        for column in 0..columns {
+            let start = row * columns + column;
+            if grid[start] != 35 && visited[start] == 0 {
+                rooms += 1;
+                var head = 0;
+                var tail = 1;
+                queue[0] = start;
+                visited[start] = 1;
+                while head < tail {
+                    let cell = queue[head];
+                    head += 1;
+                    let current_row = cell / columns;
+                    let current_column = cell % columns;
+                    for direction in 0..4 {
+                        let next_row = current_row + delta_row[direction];
+                        let next_column = current_column + delta_column[direction];
+                        if next_row >= 0 && next_row < rows
+                            && next_column >= 0 && next_column < columns {
+                            let next_cell = next_row * columns + next_column;
+                            if visited[next_cell] == 0 && grid[next_cell] != 35 {
+                                visited[next_cell] = 1;
+                                queue[tail] = next_cell;
+                                tail += 1;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    println(rooms);
+}

@@ -1,0 +1,45 @@
+fn main() {
+    let hotels = read();
+    let groups = read();
+    var base = 1;
+    while base < hotels {
+        base *= 2;
+    }
+    let tree = array(2 * base, 0);
+    for hotel in 0..hotels {
+        tree[base + hotel] = read();
+    }
+    var node = base;
+    while node > 1 {
+        node -= 1;
+        tree[node] = tree[2 * node];
+        if tree[2 * node + 1] > tree[node] {
+            tree[node] = tree[2 * node + 1];
+        }
+    }
+    for group in 0..groups {
+        let rooms = read();
+        if tree[1] < rooms {
+            print(0, " ");
+        } else {
+            node = 1;
+            while node < base {
+                if tree[2 * node] >= rooms {
+                    node *= 2;
+                } else {
+                    node = 2 * node + 1;
+                }
+            }
+            print(node - base + 1, " ");
+            tree[node] -= rooms;
+            while node > 1 {
+                node /= 2;
+                tree[node] = tree[2 * node];
+                if tree[2 * node + 1] > tree[node] {
+                    tree[node] = tree[2 * node + 1];
+                }
+            }
+        }
+    }
+    println();
+}

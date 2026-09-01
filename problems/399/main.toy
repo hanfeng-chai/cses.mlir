@@ -1,0 +1,58 @@
+fn main() {
+    let n = read();
+    let limit = read();
+    let skill = read_array(n);
+    sort(skill);
+
+    let stride = limit + 1;
+    var dp = array((n + 1) * stride, 0);
+    var next = array((n + 1) * stride, 0);
+    dp[0] = 1;
+    for i in 0..n {
+        for t in 0..(n + 1) * stride {
+            next[t] = 0;
+        }
+        var gap = 0;
+        if i > 0 {
+            gap = skill[i] - skill[i - 1];
+        }
+        for open in 0..=i {
+            let added_cost = open * gap;
+            if added_cost > limit {
+                continue;
+            }
+            for cost in 0..=limit - added_cost {
+                let ways = dp[open * stride + cost];
+                if ways == 0 {
+                    continue;
+                }
+                let new_cost = cost + added_cost;
+                // close this coder alone (open stays)
+                next[open * stride + new_cost] =
+                    (next[open * stride + new_cost] + ways * (open + 1)) % 1000000007;
+                // start a new team with this coder as its opening end
+                next[(open + 1) * stride + new_cost] += ways;
+                if next[(open + 1) * stride + new_cost] >= 1000000007 {
+                    next[(open + 1) * stride + new_cost] -= 1000000007;
+                }
+                // close one open team
+                if open > 0 {
+                    next[(open - 1) * stride + new_cost] =
+                        (next[(open - 1) * stride + new_cost] + ways * open) % 1000000007;
+                }
+            }
+        }
+        // swap dp and next
+        var tmp = dp;
+        dp = next;
+        next = tmp;
+    }
+    var answer = 0;
+    for cost in 0..=limit {
+        answer += dp[cost];
+        if answer >= 1000000007 {
+            answer -= 1000000007;
+        }
+    }
+    println(answer);
+}

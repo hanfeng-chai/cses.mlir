@@ -1,0 +1,21 @@
+fn main() {
+    let n = read();
+    let x = read_array(n);
+    let copy = array(n, 0);
+    for i in 0..n {
+        copy[i] = x[i];
+    }
+    sort(copy);
+    var last = array(n, 0);
+    for i in 0..n {
+        last[i] = -1;
+    }
+    var ans = 0;
+    for i in 0..n {
+        let rank = lower_bound(copy, x[i]);
+        let p = last[rank];
+        ans += (i - p) * (n - i);
+        last[rank] = i;
+    }
+    println(ans);
+}

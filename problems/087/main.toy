@@ -1,0 +1,52 @@
+fn main() {
+    let nodes = read();
+    let edges = read();
+    let head = array(nodes + 1, -1);
+    let to = array(2 * edges, 0);
+    let next = array(2 * edges, 0);
+    for edge in 0..edges {
+        let first = read();
+        let second = read();
+        to[2 * edge] = second;
+        next[2 * edge] = head[first];
+        head[first] = 2 * edge;
+        to[2 * edge + 1] = first;
+        next[2 * edge + 1] = head[second];
+        head[second] = 2 * edge + 1;
+    }
+    let color = array(nodes + 1, 0);
+    let queue = array(nodes, 0);
+    var possible = true;
+    for start in 1..=nodes {
+        if color[start] == 0 && possible {
+            var queue_head = 0;
+            var queue_tail = 1;
+            queue[0] = start;
+            color[start] = 1;
+            while queue_head < queue_tail && possible {
+                let node = queue[queue_head];
+                queue_head += 1;
+                var edge = head[node];
+                while edge != -1 && possible {
+                    let neighbor = to[edge];
+                    if color[neighbor] == 0 {
+                        color[neighbor] = 3 - color[node];
+                        queue[queue_tail] = neighbor;
+                        queue_tail += 1;
+                    } else if color[neighbor] == color[node] {
+                        possible = false;
+                    }
+                    edge = next[edge];
+                }
+            }
+        }
+    }
+    if !possible {
+        println("IMPOSSIBLE");
+    } else {
+        for node in 1..=nodes {
+            print(color[node], " ");
+        }
+        println();
+    }
+}

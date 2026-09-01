@@ -1,0 +1,107 @@
+fn tree_merge(tr: array<i64>, node: i64, lc: i64, rc: i64) {
+    let len_l = tr[lc * 6];
+    let len_r = tr[rc * 6];
+    tr[node * 6] = len_l + len_r;
+    if tr[lc * 6 + 1] == len_l {
+        tr[node * 6 + 1] = len_l + tr[rc * 6 + 1];
+    } else {
+        tr[node * 6 + 1] = tr[lc * 6 + 1];
+    }
+    if tr[lc * 6 + 2] == len_l {
+        tr[node * 6 + 2] = len_l + tr[rc * 6 + 2];
+    } else {
+        tr[node * 6 + 2] = tr[lc * 6 + 2];
+    }
+    if tr[rc * 6 + 3] == len_r {
+        tr[node * 6 + 3] = len_r + tr[lc * 6 + 3];
+    } else {
+        tr[node * 6 + 3] = tr[rc * 6 + 3];
+    }
+    if tr[rc * 6 + 4] == len_r {
+        tr[node * 6 + 4] = len_r + tr[lc * 6 + 4];
+    } else {
+        tr[node * 6 + 4] = tr[rc * 6 + 4];
+    }
+    var best = tr[lc * 6 + 5];
+    if tr[rc * 6 + 5] > best {
+        best = tr[rc * 6 + 5];
+    }
+    if tr[lc * 6 + 3] + tr[rc * 6 + 1] > best {
+        best = tr[lc * 6 + 3] + tr[rc * 6 + 1];
+    }
+    if tr[lc * 6 + 4] + tr[rc * 6 + 2] > best {
+        best = tr[lc * 6 + 4] + tr[rc * 6 + 2];
+    }
+    tr[node * 6 + 5] = best;
+}
+
+fn tree_build(tr: array<i64>, bits: array<i64>, node: i64, l: i64, r: i64) {
+    if l == r {
+        let b = bits[l];
+        var p0 = 0;
+        var p1 = 0;
+        if b == 0 {
+            p0 = 1;
+        } else {
+            p1 = 1;
+        }
+        tr[node * 6] = 1;
+        tr[node * 6 + 1] = p0;
+        tr[node * 6 + 2] = p1;
+        tr[node * 6 + 3] = p0;
+        tr[node * 6 + 4] = p1;
+        tr[node * 6 + 5] = 1;
+        return;
+    }
+    let m = (l + r) / 2;
+    tree_build(tr, bits, 2 * node, l, m);
+    tree_build(tr, bits, 2 * node + 1, m + 1, r);
+    tree_merge(tr, node, 2 * node, 2 * node + 1);
+}
+
+fn tree_update(tr: array<i64>, bits: array<i64>, node: i64, l: i64, r: i64, pos: i64) {
+    if l == r {
+        let b = bits[l];
+        var p0 = 0;
+        var p1 = 0;
+        if b == 0 {
+            p0 = 1;
+        } else {
+            p1 = 1;
+        }
+        tr[node * 6] = 1;
+        tr[node * 6 + 1] = p0;
+        tr[node * 6 + 2] = p1;
+        tr[node * 6 + 3] = p0;
+        tr[node * 6 + 4] = p1;
+        tr[node * 6 + 5] = 1;
+        return;
+    }
+    let m = (l + r) / 2;
+    if pos <= m {
+        tree_update(tr, bits, 2 * node, l, m, pos);
+    } else {
+        tree_update(tr, bits, 2 * node + 1, m + 1, r, pos);
+    }
+    tree_merge(tr, node, 2 * node, 2 * node + 1);
+}
+
+fn main() {
+    let s = read_text();
+    let n = length(s);
+    var bits = array(n + 1, 0);
+    for i in 1..=n {
+        bits[i] = at(s, i - 1) - 48;
+    }
+    let tr = array(6 * (4 * n + 5), 0);
+    tree_build(tr, bits, 1, 1, n);
+    let m = read();
+    for q in 0..m {
+        let x = read();
+        bits[x] = 1 - bits[x];
+        tree_update(tr, bits, 1, 1, n, x);
+        print(tr[6 + 5]);
+        print(" ");
+    }
+    print("\n");
+}

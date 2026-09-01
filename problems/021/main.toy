@@ -1,0 +1,40 @@
+fn main() {
+    let rows = read();
+    let columns = read();
+    let original = array(rows * columns, 0);
+    let result = array(rows * columns, 0);
+    for row in 0..rows {
+        let line = read_text();
+        for column in 0..columns {
+            original[row * columns + column] = at(line, column);
+        }
+    }
+
+    for row in 0..rows {
+        for column in 0..columns {
+            var candidate = 65;
+            var selected = false;
+            while candidate <= 68 && !selected {
+                var allowed = candidate != original[row * columns + column];
+                if row > 0 && result[(row - 1) * columns + column] == candidate {
+                    allowed = false;
+                }
+                if column > 0 && result[row * columns + column - 1] == candidate {
+                    allowed = false;
+                }
+                if allowed {
+                    result[row * columns + column] = candidate;
+                    selected = true;
+                }
+                candidate += 1;
+            }
+        }
+    }
+
+    for row in 0..rows {
+        for column in 0..columns {
+            put(result[row * columns + column]);
+        }
+        println();
+    }
+}

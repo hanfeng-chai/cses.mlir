@@ -1,0 +1,85 @@
+fn main() {
+    let s = read_text();
+    let n = length(s);
+    let max_nodes = 2 * n + 2;
+    let len = array(max_nodes, 0);
+    let link = array(max_nodes, 0);
+    let to = array(26 * max_nodes, 0);
+    let cnt = array(max_nodes, 0);
+    let firstpos = array(max_nodes, 0);
+    var size = 1;
+    var last = 1;
+    for idx in 0..n {
+        let c = at(s, idx) - 97;
+        size += 1;
+        let cur = size;
+        len[cur] = len[last] + 1;
+        cnt[cur] = 1;
+        firstpos[cur] = idx;
+        var p = last;
+        while p != 0 && to[p * 26 + c] == 0 {
+            to[p * 26 + c] = cur;
+            p = link[p];
+        }
+        if p == 0 {
+            link[cur] = 1;
+        } else {
+            let q = to[p * 26 + c];
+            if len[q] == len[p] + 1 {
+                link[cur] = q;
+            } else {
+                size += 1;
+                let clone = size;
+                len[clone] = len[p] + 1;
+                link[clone] = link[q];
+                cnt[clone] = 0;
+                firstpos[clone] = firstpos[q];
+                for t in 0..26 {
+                    to[clone * 26 + t] = to[q * 26 + t];
+                }
+                while p != 0 && to[p * 26 + c] == q {
+                    to[p * 26 + c] = clone;
+                    p = link[p];
+                }
+                link[q] = clone;
+                link[cur] = clone;
+            }
+        }
+        last = cur;
+    }
+    let bucket = array(n + 2, 0);
+    let order = array(size + 1, 0);
+    for v in 1..=size {
+        bucket[len[v]] += 1;
+    }
+    for i in 1..=n {
+        bucket[i] += bucket[i - 1];
+    }
+    for v in 1..=size {
+        order[bucket[len[v]]] = v;
+        bucket[len[v]] -= 1;
+    }
+    for i in 1..=size {
+        let v = order[size + 1 - i];
+        if link[v] != 0 {
+            cnt[link[v]] += cnt[v];
+        }
+    }
+    var best_len = 0;
+    var best_v = -1;
+    for v in 2..=size {
+        if cnt[v] >= 2 && len[v] > best_len {
+            best_len = len[v];
+            best_v = v;
+        }
+    }
+    if best_v == -1 {
+        println(-1);
+    } else {
+        let end = firstpos[best_v];
+        for i in 0..best_len {
+            put(at(s, end - best_len + 1 + i));
+        }
+        put(10);
+    }
+}

@@ -1,0 +1,55 @@
+fn combination(fact: array<i64>, inv: array<i64>, a: i64, b: i64) -> i64 {
+    if b < 0 || b > a {
+        return 0;
+    }
+    return fact[a] * inv[b] % 1000000007 * inv[a - b] % 1000000007;
+}
+
+fn main() {
+    let s = read_text();
+    let n = length(s);
+    let counts = array(26, 0);
+    for i in 0..n {
+        counts[at(s, i) - 97] += 1;
+    }
+    let fact = array(n + 1, 0);
+    let inv = array(n + 1, 0);
+    fact[0] = 1;
+    for i in 1..=n {
+        fact[i] = fact[i - 1] * i % 1000000007;
+    }
+    inv[n] = pow_mod(fact[n], 1000000005, 1000000007);
+    for i in n..=1 by -1 {
+        inv[i - 1] = inv[i] * i % 1000000007;
+    }
+
+    var dp = array(n + 1, 0);
+    dp[0] = 1;
+    var cur_max = 0;
+    for letter in 0..26 {
+        let count = counts[letter];
+        if count == 0 {
+            continue;
+        }
+        let next = array(cur_max + count + 1, 0);
+        for t in 0..=cur_max {
+            if dp[t] != 0 {
+                for kk in 1..=count {
+                    var g = combination(fact, inv, count - 1, kk - 1) * inv[kk] % 1000000007;
+                    if (count - kk) % 2 == 1 {
+                        g = (1000000007 - g) % 1000000007;
+                    }
+                    next[t + kk] = (next[t + kk] + dp[t] * g) % 1000000007;
+                }
+            }
+        }
+        cur_max += count;
+        dp = next;
+    }
+
+    var ans = 0;
+    for t in 0..=cur_max {
+        ans = (ans + dp[t] * fact[t]) % 1000000007;
+    }
+    println(ans);
+}

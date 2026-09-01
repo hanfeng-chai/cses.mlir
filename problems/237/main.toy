@@ -1,0 +1,24 @@
+fn main() {
+    let n = read();
+    let words = (n + 63) / 64;
+    let bits = array(n * words, 0);
+    for i in 0..n {
+        let line = read_text();
+        for j in 0..n {
+            if at(line, j) == 49 {
+                bits[i * words + (j >> 6)] |= 1 << (j & 63);
+            }
+        }
+    }
+    var answer = 0;
+    for i in 0..n {
+        for j in i + 1..n {
+            var common = 0;
+            for t in 0..words {
+                common += popcount(bits[i * words + t] & bits[j * words + t]);
+            }
+            answer += common * (common - 1) / 2;
+        }
+    }
+    println(answer);
+}

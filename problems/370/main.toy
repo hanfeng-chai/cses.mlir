@@ -1,0 +1,144 @@
+fn take_value(sorted_b: array<i64>, used: array<i64>, m: i64, v: i64) -> bool {
+    var lo = 0;
+    var hi = m;
+    while lo < hi {
+        let mid = (lo + hi) / 2;
+        if sorted_b[mid] < v {
+            lo = mid + 1;
+        } else {
+            hi = mid;
+        }
+    }
+    // first index with sorted_b[idx] == v and not used
+    var idx = lo;
+    while idx < m {
+        if sorted_b[idx] > v {
+            break;
+        }
+        if sorted_b[idx] == v && used[idx] == 0 {
+            used[idx] = 1;
+            return true;
+        }
+        idx += 1;
+    }
+    return false;
+}
+
+fn minimum_free(sorted_b: array<i64>, used: array<i64>, m: i64) -> i64 {
+    for idx in 0..m {
+        if used[idx] == 0 {
+            return sorted_b[idx];
+        }
+    }
+    return -1;
+}
+
+fn try_reconstruct(sorted_b: array<i64>, used: array<i64>, m: i64, n: i64, a1: i64, result_len: array<i64>) -> array<i64> {
+    var result = array(n, 0);
+    result_len[0] = 0;
+    if a1 > 0 {
+        for i in 0..m {
+            used[i] = 0;
+        }
+        var ok = false;
+        if take_value(sorted_b, used, m, sorted_b[0]) {
+            let a2 = sorted_b[0] - a1;
+            if a2 >= a1 {
+                result[0] = a1;
+                result[1] = a2;
+                var size = 2;
+                var good = true;
+                while size < n && good {
+                    let s = minimum_free(sorted_b, used, m);
+                    if s == -1 {
+                        good = false;
+                    } else {
+                        let new_value = s - a1;
+                        if !take_value(sorted_b, used, m, s) {
+                            good = false;
+                        }
+                        if good {
+                            for k in 1..size {
+                                if !take_value(sorted_b, used, m, result[k] + new_value) {
+                                    good = false;
+                                    break;
+                                }
+                            }
+                        }
+                        if good {
+                            result[size] = new_value;
+                            size += 1;
+                        }
+                    }
+                }
+                if good {
+                    for idx in 0..m {
+                        if used[idx] == 0 {
+                            good = false;
+                            break;
+                        }
+                    }
+                }
+                if good {
+                    ok = true;
+                }
+            }
+        }
+        if ok {
+            result_len[0] = n;
+        }
+    }
+    return result;
+}
+
+fn main() {
+    let n = read();
+    let m = n * (n - 1) / 2;
+    let b = read_array(m);
+    let sorted_b = array(m, 0);
+    for i in 0..m {
+        sorted_b[i] = b[i];
+    }
+    sort(sorted_b);
+    let used = array(m, 0);
+    let tried = array(300, 0);
+    var tried_count = 0;
+    let result_len = array(1, 0);
+    var answer = array(n, 0);
+    var found = false;
+    let lim = minimum(m, 300);
+    for i in 0..lim {
+        if found {
+            break;
+        }
+        let num = sorted_b[0] + sorted_b[1] - sorted_b[i];
+        if num <= 0 || num % 2 != 0 {
+            continue;
+        }
+        let a1 = num / 2;
+        var seen = false;
+        for t in 0..tried_count {
+            if tried[t] == a1 {
+                seen = true;
+                break;
+            }
+        }
+        if seen {
+            continue;
+        }
+        tried[tried_count] = a1;
+        tried_count += 1;
+        let res = try_reconstruct(sorted_b, used, m, n, a1, result_len);
+        if result_len[0] > 0 {
+            for t in 0..n {
+                answer[t] = res[t];
+            }
+            found = true;
+        }
+    }
+    for i in 0..n {
+        print(answer[i]);
+        print(" ");
+    }
+    print("\n");
+}

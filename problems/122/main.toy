@@ -1,0 +1,54 @@
+fn main() {
+    let size = read();
+    let queries = read();
+    let infinity = 9_223_372_036_854_775_807;
+    let tree = array(2 * size, infinity);
+    for index in 0..size {
+        tree[size + index] = read();
+    }
+    var index = size;
+    while index > 1 {
+        index -= 1;
+        tree[index] = tree[2 * index];
+        if tree[2 * index + 1] < tree[index] {
+            tree[index] = tree[2 * index + 1];
+        }
+    }
+    for query in 0..queries {
+        let kind = read();
+        let first = read();
+        let second = read();
+        if kind == 1 {
+            var position = size + first - 1;
+            tree[position] = second;
+            while position > 1 {
+                position /= 2;
+                tree[position] = tree[2 * position];
+                if tree[2 * position + 1] < tree[position] {
+                    tree[position] = tree[2 * position + 1];
+                }
+            }
+        } else {
+            var left = size + first - 1;
+            var right = size + second;
+            var result = infinity;
+            while left < right {
+                if (left & 1) != 0 {
+                    if tree[left] < result {
+                        result = tree[left];
+                    }
+                    left += 1;
+                }
+                if (right & 1) != 0 {
+                    right -= 1;
+                    if tree[right] < result {
+                        result = tree[right];
+                    }
+                }
+                left /= 2;
+                right /= 2;
+            }
+            println(result);
+        }
+    }
+}

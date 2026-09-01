@@ -1,0 +1,78 @@
+fn multiply_mod(first: i64, second: i64, modulus: i64) -> i64 {
+    return i64((i128(first) * i128(second)) % i128(modulus));
+}
+
+fn power_mod_wide(base_value: i64, exponent_value: i64, modulus: i64) -> i64 {
+    var base = base_value % modulus;
+    var exponent = exponent_value;
+    var result = 1;
+    while exponent > 0 {
+        if (exponent & 1) != 0 {
+            result = multiply_mod(result, base, modulus);
+        }
+        base = multiply_mod(base, base, modulus);
+        exponent >>= 1;
+    }
+    return result;
+}
+
+fn is_prime(value: i64, small: array<i64>) -> bool {
+    var result = value >= 2;
+    var decided = !result;
+    for index in 0..12 {
+        if !decided && value % small[index] == 0 {
+            result = value == small[index];
+            decided = true;
+        }
+    }
+    if !decided {
+        var odd_part = value - 1;
+        var powers_of_two = 0;
+        while odd_part % 2 == 0 {
+            odd_part /= 2;
+            powers_of_two += 1;
+        }
+        for index in 0..12 {
+            if result {
+                var witness = power_mod_wide(small[index], odd_part, value);
+                var passes = witness == 1 || witness == value - 1;
+                var round = 1;
+                while round < powers_of_two && !passes {
+                    witness = multiply_mod(witness, witness, value);
+                    if witness == value - 1 {
+                        passes = true;
+                    }
+                    round += 1;
+                }
+                if !passes {
+                    result = false;
+                }
+            }
+        }
+    }
+    return result;
+}
+
+fn main() {
+    let small = array(12, 0);
+    small[0] = 2;
+    small[1] = 3;
+    small[2] = 5;
+    small[3] = 7;
+    small[4] = 11;
+    small[5] = 13;
+    small[6] = 17;
+    small[7] = 19;
+    small[8] = 23;
+    small[9] = 29;
+    small[10] = 31;
+    small[11] = 37;
+    let queries = read();
+    for query in 0..queries {
+        var candidate = read() + 1;
+        while !is_prime(candidate, small) {
+            candidate += 1;
+        }
+        println(candidate);
+    }
+}

@@ -1,0 +1,27 @@
+fn main() {
+    let n = read();
+    let a = read();
+    let b = read();
+    let width = 6 * n + 1;
+    let dp = array(width, f64(0));
+    dp[0] = f64(1);
+    for throw in 0..n {
+        let next = array(width, f64(0));
+        for s in 0..=6 * throw {
+            if dp[s] > f64(0) {
+                for face in 1..=6 {
+                    next[s + face] += dp[s] / f64(6);
+                }
+            }
+        }
+        for s in 0..width {
+            dp[s] = next[s];
+        }
+    }
+    var answer = f64(0);
+    for s in a..=b {
+        answer += dp[s];
+    }
+    print_fixed(answer, 6);
+    println();
+}

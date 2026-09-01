@@ -1,0 +1,43 @@
+fn main() {
+    let nodes = read();
+    let edges = read();
+    let head = array(nodes + 1, -1);
+    let to = array(edges, 0);
+    let next = array(edges, 0);
+    let indegree = array(nodes + 1, 0);
+    for edge in 0..edges {
+        let source = read();
+        to[edge] = read();
+        next[edge] = head[source];
+        head[source] = edge;
+        indegree[to[edge]] += 1;
+    }
+    let queue = array(nodes, 0);
+    var queue_head = 0;
+    var queue_tail = 0;
+    for node in 1..=nodes {
+        if indegree[node] == 0 {
+            queue[queue_tail] = node;
+            queue_tail += 1;
+        }
+    }
+    let modulus = 1_000_000_007;
+    let ways = array(nodes + 1, 0);
+    ways[1] = 1;
+    while queue_head < queue_tail {
+        let node = queue[queue_head];
+        queue_head += 1;
+        var edge = head[node];
+        while edge != -1 {
+            let neighbor = to[edge];
+            ways[neighbor] = (ways[neighbor] + ways[node]) % modulus;
+            indegree[neighbor] -= 1;
+            if indegree[neighbor] == 0 {
+                queue[queue_tail] = neighbor;
+                queue_tail += 1;
+            }
+            edge = next[edge];
+        }
+    }
+    println(ways[nodes]);
+}

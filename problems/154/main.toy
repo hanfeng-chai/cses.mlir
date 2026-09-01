@@ -1,0 +1,44 @@
+fn main() {
+    let nodes = read();
+    let queries = read();
+    let value = array(nodes + 1, 0);
+    for node in 1..=nodes {
+        value[node] = read();
+    }
+    let edge_count = nodes - 1;
+    let head = array(nodes + 1, -1);
+    let to = array(2 * edge_count, 0);
+    let next = array(2 * edge_count, 0);
+    for edge in 0..edge_count {
+        let first = read();
+        let second = read();
+        to[2 * edge] = second;
+        next[2 * edge] = head[first];
+        head[first] = 2 * edge;
+        to[2 * edge + 1] = first;
+        next[2 * edge + 1] = head[second];
+        head[second] = 2 * edge + 1;
+    }
+    let parent = array(nodes + 1, 0);
+    let entry = array(nodes + 1, 0);
+    let exit = array(nodes + 1, 0);
+    tree_euler(nodes, 1, head, to, next, parent, entry, exit);
+    let tree = array(nodes + 2, 0);
+    for node in 1..=nodes {
+        fenwick_add(tree, entry[node], value[node]);
+        fenwick_add(tree, exit[node] + 1, 0 - value[node]);
+    }
+    for query in 0..queries {
+        let kind = read();
+        let node = read();
+        if kind == 1 {
+            let next_value = read();
+            let change = next_value - value[node];
+            value[node] = next_value;
+            fenwick_add(tree, entry[node], change);
+            fenwick_add(tree, exit[node] + 1, 0 - change);
+        } else {
+            println(fenwick_sum(tree, entry[node]));
+        }
+    }
+}

@@ -1,0 +1,6 @@
+fn main() {
+    let queries = read();
+    for query in 0..queries {
+        println(pow_mod(read(), read(), 1_000_000_007));
+    }
+}

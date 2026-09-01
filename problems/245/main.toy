@@ -1,0 +1,19 @@
+fn main() {
+    let n = read();
+    let m = read();
+    let parent = array(n + 1, 0);
+    let size = array(n + 1, 0);
+    for i in 1..=n {
+        parent[i] = i;
+        size[i] = 1;
+    }
+    var components = n;
+    for e in 0..m {
+        let a = read();
+        let b = read();
+        if dsu_union(parent, size, a, b) {
+            components -= 1;
+        }
+    }
+    println(pow_mod(2, m - n + components, 1000000007));
+}

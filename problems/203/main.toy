@@ -1,0 +1,45 @@
+fn main() {
+    let str = read_text();
+    let n = length(str);
+    let s = array(n + 2, 0);
+    s[0] = -1;
+    let length = array(n + 2, 0);
+    let link = array(n + 2, 0);
+    let to = array(26 * (n + 2), 0);
+    length[0] = -1;
+    link[0] = 0;
+    length[1] = 0;
+    link[1] = 0;
+    var size = 2;
+    var last = 1;
+    var position = 0;
+    for idx in 0..n {
+        position += 1;
+        s[position] = at(str, idx);
+        let c = at(str, idx) - 97;
+        var cur = last;
+        while s[position - length[cur] - 1] != s[position] {
+            cur = link[cur];
+        }
+        if to[cur * 26 + c] == 0 {
+            to[cur * 26 + c] = size;
+            length[size] = length[cur] + 2;
+            if length[size] == 1 {
+                link[size] = 1;
+            } else {
+                var suffix = link[cur];
+                while s[position - length[suffix] - 1] != s[position] {
+                    suffix = link[suffix];
+                }
+                link[size] = to[suffix * 26 + c];
+            }
+            size += 1;
+        }
+        last = to[cur * 26 + c];
+        if idx != 0 {
+            print(" ");
+        }
+        print(length[last]);
+    }
+    println();
+}

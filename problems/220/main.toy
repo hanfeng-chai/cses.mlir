@@ -1,0 +1,33 @@
+fn main() {
+    let n = read();
+    let x = array(n, 0);
+    let y = array(n, 0);
+    for i in 0..n {
+        x[i] = read();
+        y[i] = read();
+    }
+    var s = i128(0);
+    for i in 0..n {
+        let j = (i + 1) % n;
+        s += i128(x[i]) * i128(y[j]) - i128(x[j]) * i128(y[i]);
+    }
+    if s < i128(0) {
+        s = i128(0) - s;
+    }
+    let digits = array(30, 0);
+    var count = 0;
+    if s == i128(0) {
+        digits[0] = 0;
+        count = 1;
+    } else {
+        while s > i128(0) {
+            digits[count] = i64(s % i128(10));
+            count += 1;
+            s = s / i128(10);
+        }
+    }
+    for i in 0..count {
+        put(48 + digits[count - 1 - i]);
+    }
+    put(10);
+}

@@ -1,0 +1,47 @@
+fn main() {
+    let n = read();
+    let k = read();
+    let values = read_array(n);
+    let sorted = array(n, 0);
+    for i in 0..n {
+        sorted[i] = values[i];
+    }
+    sort(sorted);
+    let size = unique_sorted(sorted, n);
+    for i in 0..n {
+        values[i] = lower_bound_prefix(sorted, size, values[i]);
+    }
+    let freq = array(size, 0);
+    let by_freq = array(k + 2, 0);
+    for f in 0..k + 2 {
+        by_freq[f] = i64(ordered(8));
+    }
+    var max_freq = 0;
+    for i in 0..n {
+        let rank = values[i];
+        if freq[rank] > 0 {
+            ordered_erase(by_freq[freq[rank]], rank);
+        }
+        freq[rank] += 1;
+        ordered_insert(by_freq[freq[rank]], rank);
+        max_freq = max(max_freq, freq[rank]);
+        if i >= k {
+            let old = values[i - k];
+            ordered_erase(by_freq[freq[old]], old);
+            freq[old] -= 1;
+            if freq[old] > 0 {
+                ordered_insert(by_freq[freq[old]], old);
+            }
+            while max_freq > 0 && ordered_size(by_freq[max_freq]) == 0 {
+                max_freq -= 1;
+            }
+        }
+        if i >= k - 1 {
+            if i != k - 1 {
+                print(" ");
+            }
+            print(sorted[ordered_first(by_freq[max_freq])]);
+        }
+    }
+    println();
+}

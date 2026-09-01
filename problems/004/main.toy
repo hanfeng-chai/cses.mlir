@@ -1,0 +1,14 @@
+fn main() {
+    let n = read();
+    var previous = read();
+    var moves = 0;
+    for index in 1..n {
+        let value = read();
+        if value < previous {
+            moves += previous - value;
+        } else {
+            previous = value;
+        }
+    }
+    println(moves);
+}

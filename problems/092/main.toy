@@ -1,0 +1,77 @@
+fn mark_reachable(
+    start: i64,
+    nodes: i64,
+    head: array<i64>,
+    to: array<i64>,
+    next: array<i64>,
+    reachable: array<i64>
+) {
+    let queue = array(nodes, 0);
+    var queue_head = 0;
+    var queue_tail = 1;
+    queue[0] = start;
+    reachable[start] = 1;
+    while queue_head < queue_tail {
+        let node = queue[queue_head];
+        queue_head += 1;
+        var edge = head[node];
+        while edge != -1 {
+            let neighbor = to[edge];
+            if reachable[neighbor] == 0 {
+                reachable[neighbor] = 1;
+                queue[queue_tail] = neighbor;
+                queue_tail += 1;
+            }
+            edge = next[edge];
+        }
+    }
+}
+
+fn main() {
+    let nodes = read();
+    let edges = read();
+    let source = array(edges, 0);
+    let destination = array(edges, 0);
+    let score = array(edges, 0);
+    let head = array(nodes + 1, -1);
+    let reverse_head = array(nodes + 1, -1);
+    let next = array(edges, 0);
+    let reverse_next = array(edges, 0);
+    for edge in 0..edges {
+        source[edge] = read();
+        destination[edge] = read();
+        score[edge] = read();
+        next[edge] = head[source[edge]];
+        head[source[edge]] = edge;
+        reverse_next[edge] = reverse_head[destination[edge]];
+        reverse_head[destination[edge]] = edge;
+    }
+    let from_start = array(nodes + 1, 0);
+    let to_end = array(nodes + 1, 0);
+    mark_reachable(1, nodes, head, destination, next, from_start);
+    mark_reachable(nodes, nodes, reverse_head, source, reverse_next, to_end);
+    let negative = -2_000_000_000_000_000_000;
+    let distance = array(nodes + 1, negative);
+    distance[1] = 0;
+    for iteration in 1..nodes {
+        for edge in 0..edges {
+            if distance[source[edge]] != negative
+                && distance[source[edge]] + score[edge] > distance[destination[edge]] {
+                distance[destination[edge]] = distance[source[edge]] + score[edge];
+            }
+        }
+    }
+    var infinite = false;
+    for edge in 0..edges {
+        if distance[source[edge]] != negative
+            && distance[source[edge]] + score[edge] > distance[destination[edge]]
+            && from_start[source[edge]] != 0 && to_end[destination[edge]] != 0 {
+            infinite = true;
+        }
+    }
+    if infinite {
+        println(-1);
+    } else {
+        println(distance[nodes]);
+    }
+}

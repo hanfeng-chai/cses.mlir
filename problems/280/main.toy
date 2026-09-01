@@ -1,0 +1,64 @@
+fn main() {
+    let n = read();
+    let k = read();
+    let basis = array(31, 0);
+    var rank = 0;
+    for i in 0..n {
+        var x = read();
+        for b in 0..30 {
+            let bit = 29 - b;
+            if ((x >> bit) & 1) == 1 {
+                if basis[bit] == 0 {
+                    basis[bit] = x;
+                    rank += 1;
+                    break;
+                }
+                x ^= basis[bit];
+            }
+        }
+    }
+    // RREF
+    for b in 0..30 {
+        if basis[b] != 0 {
+            for c in b + 1..30 {
+                if basis[c] != 0 && ((basis[c] >> b) & 1) == 1 {
+                    basis[c] ^= basis[b];
+                }
+            }
+        }
+    }
+    let reduced = array(30, 0);
+    var reduced_count = 0;
+    for b in 0..30 {
+        if basis[b] != 0 {
+            reduced[reduced_count] = basis[b];
+            reduced_count += 1;
+        }
+    }
+    let extra = n - rank;
+    if extra >= 18 {
+        for i in 0..k {
+            if i != 0 {
+                print(" ");
+            }
+            print(0);
+        }
+        println();
+        return;
+    }
+    let multiplier = 1 << extra;
+    for p in 0..k {
+        let index = p / multiplier;
+        var value = 0;
+        for t in 0..reduced_count {
+            if ((index >> t) & 1) == 1 {
+                value ^= reduced[t];
+            }
+        }
+        if p != 0 {
+            print(" ");
+        }
+        print(value);
+    }
+    println();
+}

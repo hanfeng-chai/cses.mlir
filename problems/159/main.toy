@@ -1,0 +1,107 @@
+fn main() {
+    let nodes = read();
+    let minimum_length = read();
+    let maximum_length = read();
+    let edge_count = nodes - 1;
+    let head = array(nodes + 1, -1);
+    let to = array(2 * edge_count, 0);
+    let next = array(2 * edge_count, 0);
+    for edge in 0..edge_count {
+        let first = read();
+        let second = read();
+        to[2 * edge] = second;
+        next[2 * edge] = head[first];
+        head[first] = 2 * edge;
+        to[2 * edge + 1] = first;
+        next[2 * edge + 1] = head[second];
+        head[second] = 2 * edge + 1;
+    }
+    let removed = array(nodes + 1, 0);
+    let parent = array(nodes + 1, 0);
+    let subtree = array(nodes + 1, 0);
+    let order = array(nodes, 0);
+    let depth = array(nodes + 1, 0);
+    let depth_tree = array(nodes + 2, 0);
+    let touched = array(nodes + 1, 0);
+    let component_stack = array(nodes, 0);
+    var component_count = 1;
+    component_stack[0] = 1;
+    var answer = 0;
+    while component_count > 0 {
+        component_count -= 1;
+        let start = component_stack[component_count];
+        if removed[start] == 0 {
+            let centroid = centroid_find(
+                start, head, to, next, removed, parent, subtree, order
+            );
+            var touched_count = 1;
+            touched[0] = 0;
+            fenwick_add(depth_tree, 1, 1);
+            var edge = head[centroid];
+            while edge != -1 {
+                let child = to[edge];
+                if removed[child] == 0 {
+                    var order_size = 1;
+                    var index = 0;
+                    order[0] = child;
+                    parent[child] = centroid;
+                    depth[child] = 1;
+                    while index < order_size {
+                        let node = order[index];
+                        var child_edge = head[node];
+                        while child_edge != -1 {
+                            let neighbor = to[child_edge];
+                            if removed[neighbor] == 0 && neighbor != parent[node] {
+                                parent[neighbor] = node;
+                                depth[neighbor] = depth[node] + 1;
+                                order[order_size] = neighbor;
+                                order_size += 1;
+                            }
+                            child_edge = next[child_edge];
+                        }
+                        index += 1;
+                    }
+                    for order_index in 0..order_size {
+                        let distance = depth[order[order_index]];
+                        var low = minimum_length - distance;
+                        let high = maximum_length - distance;
+                        if low < 0 {
+                            low = 0;
+                        }
+                        if high >= low {
+                            var capped_high = high;
+                            if capped_high > nodes {
+                                capped_high = nodes;
+                            }
+                            answer += fenwick_sum(depth_tree, capped_high + 1)
+                                - fenwick_sum(depth_tree, low);
+                        }
+                    }
+                    for order_index in 0..order_size {
+                        let distance = depth[order[order_index]];
+                        if distance <= maximum_length {
+                            fenwick_add(depth_tree, distance + 1, 1);
+                            touched[touched_count] = distance;
+                            touched_count += 1;
+                        }
+                    }
+                }
+                edge = next[edge];
+            }
+            for index in 0..touched_count {
+                fenwick_add(depth_tree, touched[index] + 1, -1);
+            }
+            removed[centroid] = 1;
+            edge = head[centroid];
+            while edge != -1 {
+                let child = to[edge];
+                if removed[child] == 0 {
+                    component_stack[component_count] = child;
+                    component_count += 1;
+                }
+                edge = next[edge];
+            }
+        }
+    }
+    println(answer);
+}

@@ -1,0 +1,42 @@
+fn main() {
+    let n = read();
+    let suffix = array(n, 0);
+    for i in 0..n {
+        suffix[i] = read() - 1;
+    }
+    let rank = array(n, 0);
+    for i in 0..n {
+        rank[suffix[i]] = i;
+    }
+    let s = array(n, 97);
+    var cur = 0;
+    var possible = true;
+    var i = 1;
+    while i < n && possible {
+        var prev_next = -1;
+        if suffix[i - 1] + 1 < n {
+            prev_next = rank[suffix[i - 1] + 1];
+        }
+        var next_next = -1;
+        if suffix[i] + 1 < n {
+            next_next = rank[suffix[i] + 1];
+        }
+        if !(prev_next < next_next) {
+            cur += 1;
+        }
+        if cur > 25 {
+            possible = false;
+        } else {
+            s[suffix[i]] = 97 + cur;
+            i += 1;
+        }
+    }
+    if !possible {
+        println(-1);
+    } else {
+        for i in 0..n {
+            put(s[i]);
+        }
+        put(10);
+    }
+}

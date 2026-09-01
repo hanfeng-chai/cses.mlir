@@ -1,0 +1,45 @@
+fn main() {
+    let employees = read();
+    let head = array(employees + 1, -1);
+    let to = array(employees, 0);
+    let next = array(employees, 0);
+    for employee in 2..=employees {
+        let boss = read();
+        let edge = employee - 2;
+        to[edge] = employee;
+        next[edge] = head[boss];
+        head[boss] = edge;
+    }
+    let order = array(employees, 0);
+    let stack = array(employees, 0);
+    var stack_size = 1;
+    stack[0] = 1;
+    var order_size = 0;
+    while stack_size > 0 {
+        stack_size -= 1;
+        let node = stack[stack_size];
+        order[order_size] = node;
+        order_size += 1;
+        var edge = head[node];
+        while edge != -1 {
+            stack[stack_size] = to[edge];
+            stack_size += 1;
+            edge = next[edge];
+        }
+    }
+    let subtree = array(employees + 1, 1);
+    var index = order_size;
+    while index > 0 {
+        index -= 1;
+        let node = order[index];
+        var edge = head[node];
+        while edge != -1 {
+            subtree[node] += subtree[to[edge]];
+            edge = next[edge];
+        }
+    }
+    for employee in 1..=employees {
+        print(subtree[employee] - 1, " ");
+    }
+    println();
+}

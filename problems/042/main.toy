@@ -1,0 +1,19 @@
+fn main() {
+    let count = read();
+    let queue = array(2 * count + 1, 0);
+    for value in 1..=count {
+        queue[value - 1] = value;
+    }
+    var head = 0;
+    var tail = count;
+    var remaining = count;
+    while remaining > 0 {
+        queue[tail] = queue[head];
+        tail += 1;
+        head += 1;
+        print(queue[head], " ");
+        head += 1;
+        remaining -= 1;
+    }
+    println();
+}

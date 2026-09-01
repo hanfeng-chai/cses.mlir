@@ -1,0 +1,79 @@
+fn main() {
+    let n = read();
+    let first = read_array(n);
+    let second = read_array(n);
+    if n == 2 {
+        println("IMPOSSIBLE");
+        return;
+    }
+    let free = ordered(n + 5);
+    for s in 1..=n {
+        ordered_insert(free, s);
+    }
+    let result = array(n + 1, 0);
+    let deferred = array(n, 0);
+    var deferred_count = 0;
+    for i in 1..=n {
+        let ai = first[i - 1];
+        let bi = second[i - 1];
+        var chosen = -1;
+        var current = ordered_first(free);
+        var tries = 0;
+        while current != -1 && tries < 3 {
+            if current != ai && current != bi {
+                chosen = current;
+                break;
+            }
+            current = ordered_higher(free, current, -1);
+            tries += 1;
+        }
+        if chosen != -1 {
+            result[i] = chosen;
+            ordered_erase(free, chosen);
+        } else {
+            deferred[deferred_count] = i;
+            deferred_count += 1;
+        }
+    }
+    for t in 0..deferred_count {
+        let i = deferred[t];
+        var found = -1;
+        var current = ordered_first(free);
+        while current != -1 && found == -1 {
+            if current != first[i - 1] && current != second[i - 1] {
+                found = current;
+            }
+            current = ordered_higher(free, current, -1);
+        }
+        if found != -1 {
+            result[i] = found;
+            ordered_erase(free, found);
+            continue;
+        }
+        for j in 1..=n {
+            if result[j] != 0 && result[j] != first[i - 1] && result[j] != second[i - 1] {
+                var swap_candidate = -1;
+                current = ordered_first(free);
+                while current != -1 && swap_candidate == -1 {
+                    if current != first[j - 1] && current != second[j - 1] {
+                        swap_candidate = current;
+                    }
+                    current = ordered_higher(free, current, -1);
+                }
+                if swap_candidate != -1 {
+                    result[i] = result[j];
+                    result[j] = swap_candidate;
+                    ordered_erase(free, swap_candidate);
+                    break;
+                }
+            }
+        }
+    }
+    for i in 1..=n {
+        if i != 1 {
+            print(" ");
+        }
+        print(result[i]);
+    }
+    println();
+}

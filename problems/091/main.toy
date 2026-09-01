@@ -1,0 +1,43 @@
+fn main() {
+    let nodes = read();
+    let edges = read();
+    let queries = read();
+    let stride = nodes + 1;
+    let infinity = 1_000_000_000_000_000_000;
+    let distance = array(stride * stride, infinity);
+    for node in 1..=nodes {
+        distance[node * stride + node] = 0;
+    }
+    for edge in 0..edges {
+        let first = read();
+        let second = read();
+        let cost = read();
+        if cost < distance[first * stride + second] {
+            distance[first * stride + second] = cost;
+            distance[second * stride + first] = cost;
+        }
+    }
+    for middle in 1..=nodes {
+        for first in 1..=nodes {
+            if distance[first * stride + middle] != infinity {
+                for second in 1..=nodes {
+                    let candidate = distance[first * stride + middle]
+                        + distance[middle * stride + second];
+                    if candidate < distance[first * stride + second] {
+                        distance[first * stride + second] = candidate;
+                    }
+                }
+            }
+        }
+    }
+    for query in 0..queries {
+        let first = read();
+        let second = read();
+        let answer = distance[first * stride + second];
+        if answer == infinity {
+            println(-1);
+        } else {
+            println(answer);
+        }
+    }
+}

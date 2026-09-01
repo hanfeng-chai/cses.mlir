@@ -1,0 +1,48 @@
+fn choose(
+    factorial: array<i64>, inverse_factorial: array<i64>,
+    total: i64, selected: i64, modulus: i64
+) -> i64 {
+    var result = 0;
+    if selected >= 0 && selected <= total {
+        result = factorial[total] * inverse_factorial[selected] % modulus
+            * inverse_factorial[total - selected] % modulus;
+    }
+    return result;
+}
+
+fn main() {
+    let size = read();
+    let prefix = read_text();
+    var balance = 0;
+    var valid = true;
+    for index in 0..length(prefix) {
+        if at(prefix, index) == 40 {
+            balance += 1;
+        } else {
+            balance -= 1;
+        }
+        if balance < 0 {
+            valid = false;
+        }
+    }
+    let remaining = size - length(prefix);
+    if !valid || remaining < balance || (remaining - balance) % 2 != 0 {
+        println(0);
+    } else {
+        let modulus = 1_000_000_007;
+        let factorial = array(size + 1, 1);
+        let inverse_factorial = array(size + 1, 1);
+        for value in 1..=size {
+            factorial[value] = factorial[value - 1] * value % modulus;
+        }
+        inverse_factorial[size] = pow_mod(factorial[size], modulus - 2, modulus);
+        var value = size;
+        while value > 0 {
+            inverse_factorial[value - 1] = inverse_factorial[value] * value % modulus;
+            value -= 1;
+        }
+        let up = (remaining - balance) / 2;
+        println((choose(factorial, inverse_factorial, remaining, up, modulus)
+            - choose(factorial, inverse_factorial, remaining, up - 1, modulus) + modulus) % modulus);
+    }
+}

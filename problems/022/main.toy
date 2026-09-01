@@ -1,0 +1,24 @@
+fn main() {
+    let queries = read();
+    for query in 0..queries {
+        var position = read();
+        var digits = 1;
+        var count = 9;
+        var start = 1;
+        while position > digits * count {
+            position -= digits * count;
+            digits += 1;
+            count *= 10;
+            start *= 10;
+        }
+        let number = start + (position - 1) / digits;
+        let offset = (position - 1) % digits;
+        var divisor = 1;
+        var remaining = digits - offset - 1;
+        while remaining > 0 {
+            divisor *= 10;
+            remaining -= 1;
+        }
+        println((number / divisor) % 10);
+    }
+}

@@ -1,0 +1,60 @@
+fn main() {
+    let n = read();
+    let m = read();
+    let head = array(n + 1, -1);
+    let to = array(2 * m, 0);
+    let next = array(2 * m, 0);
+    for e in 0..m {
+        let a = read();
+        let b = read();
+        to[2 * e] = b;
+        next[2 * e] = head[a];
+        head[a] = 2 * e;
+        to[2 * e + 1] = a;
+        next[2 * e + 1] = head[b];
+        head[b] = 2 * e + 1;
+    }
+    let dist = array(n + 1, 0);
+    let parent = array(n + 1, 0);
+    let queue = array(n + 1, 0);
+    var answer = 1000000000;
+    for s in 1..=n {
+        for v in 1..=n {
+            dist[v] = -1;
+        }
+        dist[s] = 0;
+        parent[s] = -1;
+        var head_index = 0;
+        var tail_index = 0;
+        queue[tail_index] = s;
+        tail_index += 1;
+        while head_index < tail_index {
+            let u = queue[head_index];
+            head_index += 1;
+            if 2 * dist[u] >= answer {
+                break;
+            }
+            var e = head[u];
+            while e != -1 {
+                let v = to[e];
+                if dist[v] == -1 {
+                    dist[v] = dist[u] + 1;
+                    parent[v] = u;
+                    queue[tail_index] = v;
+                    tail_index += 1;
+                } else if v != parent[u] {
+                    let candidate = dist[u] + dist[v] + 1;
+                    if candidate < answer {
+                        answer = candidate;
+                    }
+                }
+                e = next[e];
+            }
+        }
+    }
+    if answer == 1000000000 {
+        println(-1);
+    } else {
+        println(answer);
+    }
+}

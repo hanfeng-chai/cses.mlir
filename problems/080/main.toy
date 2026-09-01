@@ -1,0 +1,43 @@
+fn fill_column(
+    row: i64,
+    height: i64,
+    filled: i64,
+    outgoing: i64,
+    ways: i64,
+    next: array<i64>
+) {
+    let modulus = 1_000_000_007;
+    if row == height {
+        next[outgoing] = (next[outgoing] + ways) % modulus;
+    } else if (filled & (1 << row)) != 0 {
+        fill_column(row + 1, height, filled, outgoing, ways, next);
+    } else {
+        fill_column(row + 1, height, filled, outgoing | (1 << row), ways, next);
+        if row + 1 < height && (filled & (1 << (row + 1))) == 0 {
+            fill_column(row + 2, height, filled, outgoing, ways, next);
+        }
+    }
+}
+
+fn main() {
+    let height = read();
+    let width = read();
+    let states = 1 << height;
+    let current = array(states, 0);
+    let next = array(states, 0);
+    current[0] = 1;
+    for column in 0..width {
+        for mask in 0..states {
+            next[mask] = 0;
+        }
+        for mask in 0..states {
+            if current[mask] != 0 {
+                fill_column(0, height, mask, 0, current[mask], next);
+            }
+        }
+        for mask in 0..states {
+            current[mask] = next[mask];
+        }
+    }
+    println(current[0]);
+}

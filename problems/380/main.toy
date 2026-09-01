@@ -1,0 +1,62 @@
+fn main() {
+    let n = read();
+    let m = read();
+    var parent = array(n + 1, 0);
+    for i in 1..=n {
+        parent[i] = i;
+    }
+    let sizes_holder = array(n + 1, 0);
+    for i in 0..m {
+        let a = read();
+        let b = read();
+        dsu_union(parent, sizes_holder, a, b);
+    }
+
+    var comp_size = array(n + 1, 0);
+    for i in 1..=n {
+        comp_size[dsu_find(parent, i)] += 1;
+    }
+    var sizes = array(n + 1, 0);
+    var size_count = 0;
+    for i in 1..=n {
+        if dsu_find(parent, i) == i {
+            sizes[size_count] = comp_size[i];
+            size_count += 1;
+        }
+    }
+
+    let words = n / 64 + 1;
+    let dp = array(words, 0);
+    dp[0] = 1;
+    for s_idx in 0..size_count {
+        let s = sizes[s_idx];
+        let word_shift = s / 64;
+        let bit_shift = s % 64;
+        if bit_shift == 0 {
+            for w in words - 1..=word_shift by -1 {
+                dp[w] = dp[w] | dp[w - word_shift];
+            }
+        } else {
+            for w in words - 1..=word_shift by -1 {
+                let lo = dp[w - word_shift] << bit_shift;
+                var hi = 0;
+                if w - word_shift - 1 >= 0 {
+                    let shifted = dp[w - word_shift - 1] >> (64 - bit_shift);
+                    hi = shifted & ((1 << bit_shift) - 1);
+                }
+                dp[w] = dp[w] | (lo | hi);
+            }
+        }
+    }
+
+    for count in 1..=n {
+        let w = count / 64;
+        let b = count % 64;
+        if ((dp[w] >> b) & 1) == 1 {
+            put(49);
+        } else {
+            put(48);
+        }
+    }
+    put(10);
+}

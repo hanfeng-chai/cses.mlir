@@ -1,0 +1,90 @@
+fn main() {
+    let n = read();
+    let m = read();
+    let q = read();
+    let head = array(n, -1);
+    let to = array(m, 0);
+    let next = array(m, 0);
+    let reverse_head = array(n, -1);
+    let from = array(m, 0);
+    let reverse_next = array(m, 0);
+    for e in 0..m {
+        let a = read() - 1;
+        let b = read() - 1;
+        to[e] = b;
+        next[e] = head[a];
+        head[a] = e;
+        from[e] = a;
+        reverse_next[e] = reverse_head[b];
+        reverse_head[b] = e;
+    }
+    let component = array(n, -1);
+    let count = kosaraju(n, head, to, next, reverse_head, from, reverse_next, component);
+    let component_head = array(count, -1);
+    let component_to = array(m, 0);
+    let component_next = array(m, 0);
+    let indegree = array(count, 0);
+    for e in 0..m {
+        let ca = component[from[e]];
+        let cb = component[to[e]];
+        if ca != cb {
+            component_to[e] = cb;
+            component_next[e] = component_head[ca];
+            component_head[ca] = e;
+            indegree[cb] += 1;
+        }
+    }
+    let topo = array(count, 0);
+    let stack = array(count, 0);
+    var stack_size = 0;
+    for u in 0..count {
+        if indegree[u] == 0 {
+            stack[stack_size] = u;
+            stack_size += 1;
+        }
+    }
+    var topo_size = 0;
+    while stack_size > 0 {
+        stack_size -= 1;
+        let u = stack[stack_size];
+        topo[topo_size] = u;
+        topo_size += 1;
+        var e = component_head[u];
+        while e != -1 {
+            let v = component_to[e];
+            indegree[v] -= 1;
+            if indegree[v] == 0 {
+                stack[stack_size] = v;
+                stack_size += 1;
+            }
+            e = component_next[e];
+        }
+    }
+    let words = (count + 63) / 64;
+    let reach = array(count * words, 0);
+    var p = topo_size;
+    while p > 0 {
+        p -= 1;
+        let u = topo[p];
+        reach[u * words + (u >> 6)] |= 1 << (u & 63);
+        var e = component_head[u];
+        while e != -1 {
+            let v = component_to[e];
+            for t in 0..words {
+                reach[u * words + t] |= reach[v * words + t];
+            }
+            e = component_next[e];
+        }
+    }
+    for query in 0..q {
+        let a = read() - 1;
+        let b = read() - 1;
+        let ca = component[a];
+        let cb = component[b];
+        if ((reach[ca * words + (cb >> 6)] >> (cb & 63)) & 1) != 0 {
+            println("YES");
+        } else {
+            println("NO");
+        }
+    }
+}

@@ -1,0 +1,52 @@
+fn main() {
+    let nodes = read();
+    let edge_count = nodes - 1;
+    let head = array(nodes + 1, -1);
+    let to = array(2 * edge_count, 0);
+    let next = array(2 * edge_count, 0);
+    for edge in 0..edge_count {
+        let first = read();
+        let second = read();
+        to[2 * edge] = second;
+        next[2 * edge] = head[first];
+        head[first] = 2 * edge;
+        to[2 * edge + 1] = first;
+        next[2 * edge + 1] = head[second];
+        head[second] = 2 * edge + 1;
+    }
+    let parent = array(nodes + 1, 0);
+    let order = array(nodes, 0);
+    root_tree(nodes, 1, head, to, next, parent, order);
+    let unmatched = array(nodes + 1, 0);
+    let matched = array(nodes + 1, 0);
+    var index = nodes;
+    while index > 0 {
+        index -= 1;
+        let node = order[index];
+        var sum = 0;
+        var improvement = 0;
+        var edge = head[node];
+        while edge != -1 {
+            let child = to[edge];
+            if child != parent[node] {
+                var child_best = unmatched[child];
+                if matched[child] > child_best {
+                    child_best = matched[child];
+                }
+                sum += child_best;
+                let candidate = 1 + unmatched[child] - child_best;
+                if candidate > improvement {
+                    improvement = candidate;
+                }
+            }
+            edge = next[edge];
+        }
+        unmatched[node] = sum;
+        matched[node] = sum + improvement;
+    }
+    if unmatched[1] > matched[1] {
+        println(unmatched[1]);
+    } else {
+        println(matched[1]);
+    }
+}

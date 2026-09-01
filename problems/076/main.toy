@@ -1,0 +1,107 @@
+fn segment_update(
+    tree: array<i64>,
+    node: i64,
+    left: i64,
+    right: i64,
+    position: i64,
+    value: i64
+) {
+    if left == right {
+        if value > tree[node] {
+            tree[node] = value;
+        }
+    } else {
+        let middle = (left + right) / 2;
+        if position <= middle {
+            segment_update(tree, 2 * node, left, middle, position, value);
+        } else {
+            segment_update(tree, 2 * node + 1, middle + 1, right, position, value);
+        }
+        tree[node] = tree[2 * node];
+        if tree[2 * node + 1] > tree[node] {
+            tree[node] = tree[2 * node + 1];
+        }
+    }
+}
+
+fn segment_query(
+    tree: array<i64>,
+    node: i64,
+    left: i64,
+    right: i64,
+    query_left: i64,
+    query_right: i64
+) -> i64 {
+    var result = 0;
+    if query_left <= query_right && query_right >= left && right >= query_left {
+        if query_left <= left && right <= query_right {
+            result = tree[node];
+        } else {
+            let middle = (left + right) / 2;
+            result = segment_query(tree, 2 * node, left, middle, query_left, query_right);
+            let other = segment_query(tree, 2 * node + 1, middle + 1, right, query_left, query_right);
+            if other > result {
+                result = other;
+            }
+        }
+    }
+    return result;
+}
+
+fn main() {
+    let count = read();
+    let heights = array(count, 0);
+    for index in 0..count {
+        heights[index] = read();
+    }
+    let left_limit = array(count, 0);
+    let right_limit = array(count, 0);
+    let stack = array(count, 0);
+    var stack_size = 0;
+    for index in 0..count {
+        while stack_size > 0 && heights[stack[stack_size - 1]] < heights[index] {
+            stack_size -= 1;
+        }
+        left_limit[index] = -1;
+        if stack_size > 0 {
+            left_limit[index] = stack[stack_size - 1];
+        }
+        stack[stack_size] = index;
+        stack_size += 1;
+    }
+    stack_size = 0;
+    var index = count;
+    while index > 0 {
+        index -= 1;
+        while stack_size > 0 && heights[stack[stack_size - 1]] < heights[index] {
+            stack_size -= 1;
+        }
+        right_limit[index] = count;
+        if stack_size > 0 {
+            right_limit[index] = stack[stack_size - 1];
+        }
+        stack[stack_size] = index;
+        stack_size += 1;
+    }
+
+    let sorted_heights = array(count, 0);
+    let order = array(count, 0);
+    for position in 0..count {
+        sorted_heights[position] = heights[position];
+        order[position] = position;
+    }
+    sort_pairs(sorted_heights, order);
+    let tree = array(4 * count + 1, 0);
+    var answer = 1;
+    for position in 0..count {
+        let mountain = order[position];
+        let route = 1 + segment_query(
+            tree, 1, 0, count - 1, left_limit[mountain] + 1, right_limit[mountain] - 1
+        );
+        segment_update(tree, 1, 0, count - 1, mountain, route);
+        if route > answer {
+            answer = route;
+        }
+    }
+    println(answer);
+}

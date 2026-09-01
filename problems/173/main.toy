@@ -1,0 +1,15 @@
+fn main() {
+    let size = read();
+    var capacity = size + 1;
+    if capacity < 2 {
+        capacity = 2;
+    }
+    let derangements = array(capacity, 0);
+    derangements[0] = 1;
+    let modulus = 1_000_000_007;
+    for value in 2..=size {
+        derangements[value] = (value - 1)
+            * ((derangements[value - 1] + derangements[value - 2]) % modulus) % modulus;
+    }
+    println(derangements[size]);
+}

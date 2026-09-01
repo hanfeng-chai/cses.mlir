@@ -1,0 +1,22 @@
+fn pair_distance_sum(values: array<i64>) -> i128 {
+    sort(values);
+    let n = length(values);
+    var prefix = 0;
+    var result = i128(0);
+    for i in 0..n {
+        result += i128(values[i]) * i128(i) - i128(prefix);
+        prefix += values[i];
+    }
+    return result;
+}
+
+fn main() {
+    let n = read();
+    let x = array(n, 0);
+    let y = array(n, 0);
+    for i in 0..n {
+        x[i] = read();
+        y[i] = read();
+    }
+    println(pair_distance_sum(x) + pair_distance_sum(y));
+}

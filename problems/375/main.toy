@@ -1,0 +1,50 @@
+fn main() {
+    let n = read();
+    let m = read();
+    let k = read();
+    let values = read_array(n);
+    sort(values);
+
+    var min_sum = 0;
+    for i in 0..m {
+        min_sum += values[i];
+    }
+    let answer = array(k, 0);
+    var count = 0;
+    answer[count] = min_sum;
+    count += 1;
+
+    let scale = n + 1;
+    let queue = heap(4 * k + 10);
+    if count < k && m < n {
+        let sum = min_sum - values[m - 1] + values[m];
+        let code = ((m - 1) * scale + m) * scale + n;
+        heap_push(queue, sum, code);
+    }
+    while count < k && heap_size(queue) > 0 {
+        let sum = heap_first(queue);
+        let code = heap_second(queue);
+        heap_pop(queue);
+        answer[count] = sum;
+        count += 1;
+        let limit = code % scale;
+        let rest = code / scale;
+        let moving = rest % scale;
+        let hole = rest / scale;
+        if hole > 0 {
+            let sum2 = sum - values[hole - 1] + values[hole];
+            let code2 = ((hole - 1) * scale + hole) * scale + moving;
+            heap_push(queue, sum2, code2);
+        }
+        if moving + 1 < limit {
+            let sum2 = sum - values[moving] + values[moving + 1];
+            let code2 = (hole * scale + moving + 1) * scale + limit;
+            heap_push(queue, sum2, code2);
+        }
+    }
+    for i in 0..count {
+        print(answer[i]);
+        print(" ");
+    }
+    print("\n");
+}

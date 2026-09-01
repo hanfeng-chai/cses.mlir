@@ -1,0 +1,38 @@
+fn main() {
+    let n = read();
+    let k = read();
+    let answer = array(n, 0);
+    var answer_size = 0;
+    var remaining = k;
+    var m = n;
+    while remaining > 0 {
+        if remaining >= m - 1 {
+            answer[answer_size] = m;
+            answer_size += 1;
+            remaining -= m - 1;
+            m -= 1;
+        } else {
+            answer[answer_size] = remaining + 1;
+            answer_size += 1;
+            for v in 1..=m {
+                if v != remaining + 1 {
+                    answer[answer_size] = v;
+                    answer_size += 1;
+                }
+            }
+            m = 0;
+            remaining = 0;
+        }
+    }
+    for v in 1..=m {
+        answer[answer_size] = v;
+        answer_size += 1;
+    }
+    for i in 0..answer_size {
+        if i != 0 {
+            print(" ");
+        }
+        print(answer[i]);
+    }
+    println();
+}

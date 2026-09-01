@@ -1,0 +1,68 @@
+fn combination(fact: array<i64>, inv: array<i64>, a: i64, b: i64) -> i64 {
+    if b < 0 || b > a {
+        return 0;
+    }
+    return fact[a] * inv[b] % 1000000007 * inv[a - b] % 1000000007;
+}
+
+fn main() {
+    let n = read();
+    let max_edges = n * (n - 1) / 2;
+    let pw2 = array(max_edges + 1, 0);
+    pw2[0] = 1;
+    for i in 1..=max_edges {
+        pw2[i] = pw2[i - 1] * 2 % 1000000007;
+    }
+    let fact = array(n + 1, 0);
+    let inv = array(n + 1, 0);
+    fact[0] = 1;
+    for i in 1..=n {
+        fact[i] = fact[i - 1] * i % 1000000007;
+    }
+    inv[n] = pow_mod(fact[n], 1000000005, 1000000007);
+    for i in n..=1 by -1 {
+        inv[i - 1] = inv[i] * i % 1000000007;
+    }
+
+    var strongly = array(n + 1, 0);
+    for m in 1..=n {
+        var value = pw2[m * (m - 1) / 2];
+        for k in 1..m {
+            value -= combination(fact, inv, m, k) * strongly[k] % 1000000007
+                * pw2[(m - k) * (m - k - 1) / 2] % 1000000007;
+            value = value % 1000000007;
+        }
+        if value < 0 {
+            value += 1000000007;
+        }
+        strongly[m] = value;
+    }
+
+    var g = array(n + 1, 0);
+    for m in 1..=n {
+        g[m] = strongly[m] * inv[m] % 1000000007;
+    }
+    var cur = array(n + 1, 0);
+    for m in 0..=n {
+        cur[m] = g[m];
+    }
+    var ans = array(n + 1, 0);
+    ans[1] = fact[n] * cur[n] % 1000000007;
+    for j in 2..=n {
+        let next = array(n + 1, 0);
+        for a in 1..=n {
+            if g[a] != 0 {
+                for d in a..=n {
+                    if cur[d - a] != 0 {
+                        next[d] = (next[d] + g[a] * cur[d - a]) % 1000000007;
+                    }
+                }
+            }
+        }
+        cur = next;
+        ans[j] = fact[n] * cur[n] % 1000000007;
+    }
+    for j in 1..=n {
+        println(ans[j]);
+    }
+}

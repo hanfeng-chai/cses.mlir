@@ -1,0 +1,75 @@
+fn main() {
+    let n = read();
+    let size = 1 << 20;
+    let f = array(size, 0);
+    var prefix = 0;
+    f[0] += 1;
+    for i in 0..n {
+        prefix ^= read();
+        f[prefix] += 1;
+    }
+    var len = 1;
+    while len < size {
+        var start = 0;
+        while start < size {
+            for j in start..start + len {
+                let u = f[j];
+                let v = f[j + len];
+                f[j] = u + v;
+                f[j + len] = u - v;
+            }
+            start += 2 * len;
+        }
+        len <<= 1;
+    }
+    for i in 0..size {
+        f[i] = f[i] * f[i];
+    }
+    len = 1;
+    while len < size {
+        var start = 0;
+        while start < size {
+            for j in start..start + len {
+                let u = f[j];
+                let v = f[j + len];
+                f[j] = u + v;
+                f[j + len] = u - v;
+            }
+            start += 2 * len;
+        }
+        len <<= 1;
+    }
+    for i in 0..size {
+        f[i] = f[i] >> 20;
+    }
+    var count = 0;
+    if f[0] > n + 1 {
+        count = 1;
+    }
+    for v in 1..size {
+        if f[v] > 0 {
+            count += 1;
+        }
+    }
+    println(count);
+    if f[0] > n + 1 {
+        print(0);
+        if count > 1 {
+            print(" ");
+        }
+    }
+    var printed = 0;
+    if f[0] > n + 1 {
+        printed = 1;
+    }
+    for v in 1..size {
+        if f[v] > 0 {
+            if printed != 0 {
+                print(" ");
+            }
+            print(v);
+            printed += 1;
+        }
+    }
+    println();
+}

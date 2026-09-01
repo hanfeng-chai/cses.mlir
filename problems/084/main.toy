@@ -1,0 +1,86 @@
+fn main() {
+    let rows = read();
+    let columns = read();
+    let cells = rows * columns;
+    let grid = array(cells, 0);
+    var start = 0;
+    var destination = 0;
+    for row in 0..rows {
+        let line = read_text();
+        for column in 0..columns {
+            let cell = row * columns + column;
+            grid[cell] = at(line, column);
+            if grid[cell] == 65 {
+                start = cell;
+            }
+            if grid[cell] == 66 {
+                destination = cell;
+            }
+        }
+    }
+    let distance = array(cells, -1);
+    let previous_move = array(cells, 0);
+    let queue = array(cells, 0);
+    let delta_row = array(4, 0);
+    let delta_column = array(4, 0);
+    let direction_code = array(4, 0);
+    delta_row[0] = 1;
+    direction_code[0] = 68;
+    delta_row[1] = -1;
+    direction_code[1] = 85;
+    delta_column[2] = 1;
+    direction_code[2] = 82;
+    delta_column[3] = -1;
+    direction_code[3] = 76;
+    var head = 0;
+    var tail = 1;
+    queue[0] = start;
+    distance[start] = 0;
+    while head < tail {
+        let cell = queue[head];
+        head += 1;
+        let row = cell / columns;
+        let column = cell % columns;
+        for direction in 0..4 {
+            let next_row = row + delta_row[direction];
+            let next_column = column + delta_column[direction];
+            if next_row >= 0 && next_row < rows && next_column >= 0 && next_column < columns {
+                let next_cell = next_row * columns + next_column;
+                if distance[next_cell] == -1 && grid[next_cell] != 35 {
+                    distance[next_cell] = distance[cell] + 1;
+                    previous_move[next_cell] = direction_code[direction];
+                    queue[tail] = next_cell;
+                    tail += 1;
+                }
+            }
+        }
+    }
+    if distance[destination] == -1 {
+        println("NO");
+    } else {
+        let path = array(distance[destination], 0);
+        var size = 0;
+        var cell = destination;
+        while cell != start {
+            let direction = previous_move[cell];
+            path[size] = direction;
+            size += 1;
+            if direction == 68 {
+                cell -= columns;
+            } else if direction == 85 {
+                cell += columns;
+            } else if direction == 82 {
+                cell -= 1;
+            } else {
+                cell += 1;
+            }
+        }
+        println("YES");
+        println(size);
+        while size > 0 {
+            size -= 1;
+            put(path[size]);
+        }
+        println();
+    }
+}

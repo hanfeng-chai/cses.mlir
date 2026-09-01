@@ -1,0 +1,56 @@
+fn main() {
+    let n = read();
+    let p = read_text();
+    let m = length(p);
+    let pi = array(m, 0);
+    for i in 1..m {
+        var j = pi[i - 1];
+        while j != 0 && at(p, i) != at(p, j) {
+            j = pi[j - 1];
+        }
+        if at(p, i) == at(p, j) {
+            j += 1;
+        }
+        pi[i] = j;
+    }
+    let automaton = array(m * 26, 0);
+    for state in 0..m {
+        for c in 0..26 {
+            var j = state;
+            while j != 0 && at(p, j) != 65 + c {
+                j = pi[j - 1];
+            }
+            if at(p, j) == 65 + c {
+                j += 1;
+            }
+            automaton[state * 26 + c] = j;
+        }
+    }
+    let dp = array(m, 0);
+    dp[0] = 1;
+    for i in 0..n {
+        let next = array(m, 0);
+        for state in 0..m {
+            if dp[state] != 0 {
+                for c in 0..26 {
+                    let ns = automaton[state * 26 + c];
+                    if ns < m {
+                        next[ns] = (next[ns] + dp[state]) % 1000000007;
+                    }
+                }
+            }
+        }
+        for state in 0..m {
+            dp[state] = next[state];
+        }
+    }
+    var avoid = 0;
+    for state in 0..m {
+        avoid = (avoid + dp[state]) % 1000000007;
+    }
+    var total = 1;
+    for i in 0..n {
+        total = total * 26 % 1000000007;
+    }
+    println((total - avoid + 1000000007) % 1000000007);
+}

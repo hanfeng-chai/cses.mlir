@@ -1,0 +1,32 @@
+fn main() {
+    let size = read();
+    let grid = array(size * size, 0);
+    for row in 0..size {
+        let line = read_text();
+        for column in 0..size {
+            grid[row * size + column] = at(line, column);
+        }
+    }
+    let ways = array(size * size, 0);
+    let modulus = 1_000_000_007;
+    for row in 0..size {
+        for column in 0..size {
+            let index = row * size + column;
+            if grid[index] == 42 {
+                ways[index] = 0;
+            } else if row == 0 && column == 0 {
+                ways[index] = 1;
+            } else {
+                var total = 0;
+                if row > 0 {
+                    total += ways[(row - 1) * size + column];
+                }
+                if column > 0 {
+                    total += ways[row * size + column - 1];
+                }
+                ways[index] = total % modulus;
+            }
+        }
+    }
+    println(ways[size * size - 1]);
+}

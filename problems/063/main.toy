@@ -1,0 +1,18 @@
+fn main() {
+    let coin_count = read();
+    let target = read();
+    let coins = array(coin_count, 0);
+    for index in 0..coin_count {
+        coins[index] = read();
+    }
+    let ways = array(target + 1, 0);
+    ways[0] = 1;
+    let modulus = 1_000_000_007;
+    for index in 0..coin_count {
+        let coin = coins[index];
+        for sum in coin..=target {
+            ways[sum] = (ways[sum] + ways[sum - coin]) % modulus;
+        }
+    }
+    println(ways[target]);
+}

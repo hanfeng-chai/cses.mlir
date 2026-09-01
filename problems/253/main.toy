@@ -1,0 +1,87 @@
+fn fft_transform(re: array<f64>, im: array<f64>, size: i64, inverse: bool) {
+    var j = 0;
+    for i in 1..size {
+        var bit = size >> 1;
+        while (j & bit) != 0 {
+            j ^= bit;
+            bit >>= 1;
+        }
+        j ^= bit;
+        if i < j {
+            let temp_re = re[i];
+            let temp_im = im[i];
+            re[i] = re[j];
+            im[i] = im[j];
+            re[j] = temp_re;
+            im[j] = temp_im;
+        }
+    }
+    var len = 2;
+    while len <= size {
+        let angle = if inverse { 0.0 - 6.283185307179586 / f64(len) } else { 6.283185307179586 / f64(len) };
+        let wlen_re = cos(angle);
+        let wlen_im = sin(angle);
+        var start = 0;
+        while start < size {
+            var w_re = 1.0;
+            var w_im = 0.0;
+            for k in 0..len / 2 {
+                let u_re = re[start + k];
+                let u_im = im[start + k];
+                let v_re = re[start + k + len / 2] * w_re - im[start + k + len / 2] * w_im;
+                let v_im = re[start + k + len / 2] * w_im + im[start + k + len / 2] * w_re;
+                re[start + k] = u_re + v_re;
+                im[start + k] = u_im + v_im;
+                re[start + k + len / 2] = u_re - v_re;
+                im[start + k + len / 2] = u_im - v_im;
+                let next_w_re = w_re * wlen_re - w_im * wlen_im;
+                w_im = w_re * wlen_im + w_im * wlen_re;
+                w_re = next_w_re;
+            }
+            start += len;
+        }
+        len <<= 1;
+    }
+    if inverse {
+        for i in 0..size {
+            re[i] = re[i] / f64(size);
+            im[i] = im[i] / f64(size);
+        }
+    }
+}
+
+fn main() {
+    let n = read();
+    let m = read();
+    let signal = read_array(n);
+    let mask = read_array(m);
+    var size = 1;
+    while size < n + m {
+        size <<= 1;
+    }
+    let re_a = array(size, 0.0);
+    let im_a = array(size, 0.0);
+    let re_b = array(size, 0.0);
+    let im_b = array(size, 0.0);
+    for i in 0..n {
+        re_a[i] = f64(signal[i]);
+    }
+    for i in 0..m {
+        re_b[i] = f64(mask[m - 1 - i]);
+    }
+    fft_transform(re_a, im_a, size, false);
+    fft_transform(re_b, im_b, size, false);
+    for i in 0..size {
+        let product_re = re_a[i] * re_b[i] - im_a[i] * im_b[i];
+        im_a[i] = re_a[i] * im_b[i] + im_a[i] * re_b[i];
+        re_a[i] = product_re;
+    }
+    fft_transform(re_a, im_a, size, true);
+    for t in 0..n + m - 1 {
+        if t != 0 {
+            print(" ");
+        }
+        print(i64(re_a[t] + 0.5));
+    }
+    println();
+}

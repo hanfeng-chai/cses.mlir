@@ -1,0 +1,64 @@
+fn main() {
+    let n = read();
+    let m = read();
+    let adjacency = array(n, 0);
+    for e in 0..m {
+        let a = read() - 1;
+        let b = read() - 1;
+        if a != b {
+            adjacency[a] |= 1 << b;
+            adjacency[b] |= 1 << a;
+        }
+    }
+    let full = (1 << n) - 1;
+    let independent = array(1 << n, 0);
+    independent[0] = 1;
+    for mask in 1..=full {
+        var low = 0;
+        while ((mask >> low) & 1) == 0 {
+            low += 1;
+        }
+        let rest = mask ^ (1 << low);
+        if independent[rest] == 1 && (adjacency[low] & mask) == 0 {
+            independent[mask] = 1;
+        }
+    }
+    let dp = array(1 << n, 1000000000);
+    let choice = array(1 << n, 0);
+    dp[0] = 0;
+    for mask in 1..=full {
+        var low = 0;
+        while ((mask >> low) & 1) == 0 {
+            low += 1;
+        }
+        var s = mask;
+        while s != 0 {
+            if ((s >> low) & 1) == 1 && independent[s] == 1 {
+                let candidate = dp[mask ^ s] + 1;
+                if candidate < dp[mask] {
+                    dp[mask] = candidate;
+                    choice[mask] = s;
+                }
+            }
+            s = (s - 1) & mask;
+        }
+    }
+    let color = array(n, 0);
+    var mask = full;
+    var current_color = 0;
+    while mask != 0 {
+        current_color += 1;
+        let s = choice[mask];
+        for v in 0..n {
+            if ((s >> v) & 1) == 1 {
+                color[v] = current_color;
+            }
+        }
+        mask ^= s;
+    }
+    println(dp[full]);
+    for v in 0..n {
+        print(color[v], " ");
+    }
+    println();
+}

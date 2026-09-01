@@ -1,0 +1,20 @@
+fn main() {
+    let count = read();
+    let coins = array(count, 0);
+    for index in 0..count {
+        coins[index] = read();
+    }
+    sort(coins);
+    var reachable = 0;
+    var active = true;
+    var index = 0;
+    while index < count && active {
+        if coins[index] > reachable + 1 {
+            active = false;
+        } else {
+            reachable += coins[index];
+            index += 1;
+        }
+    }
+    println(reachable + 1);
+}

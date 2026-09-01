@@ -1,0 +1,16 @@
+fn main() {
+    let nodes = read();
+    let edges = read();
+    let length = read();
+    let modulus = 1_000_000_007;
+    let matrix = array(nodes * nodes, 0);
+    for edge in 0..edges {
+        let source = read() - 1;
+        let destination = read() - 1;
+        matrix[source * nodes + destination] = (
+            matrix[source * nodes + destination] + 1
+        ) % modulus;
+    }
+    matrix_power_mod(matrix, nodes, length, modulus);
+    println(matrix[nodes - 1]);
+}

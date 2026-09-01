@@ -1,0 +1,16 @@
+fn main() {
+    let s = read_text();
+    let n = length(s);
+    let dp = array(n + 1, 0);
+    dp[0] = 1;
+    let last = array(26, -1);
+    for i in 1..=n {
+        let c = at(s, i - 1) - 97;
+        dp[i] = 2 * dp[i - 1] % 1000000007;
+        if last[c] != -1 {
+            dp[i] = (dp[i] - dp[last[c] - 1] + 1000000007) % 1000000007;
+        }
+        last[c] = i;
+    }
+    println((dp[n] - 1 + 1000000007) % 1000000007);
+}

@@ -1,0 +1,43 @@
+fn main() {
+    let size = read();
+    let queries = read();
+    let values = array(size + 1, 0);
+    let sorted = array(size, 0);
+    for index in 1..=size {
+        values[index] = read();
+        sorted[index - 1] = values[index];
+    }
+    sort(sorted);
+    for index in 1..=size {
+        values[index] = lower_bound(sorted, values[index]) + 1;
+    }
+    let right = array(queries, 0);
+    let left = array(queries, 0);
+    let owner = array(queries, 0);
+    for query in 0..queries {
+        left[query] = read();
+        right[query] = read();
+        owner[query] = query;
+    }
+    sort_triples(right, left, owner);
+    let last = array(size + 1, 0);
+    let tree = array(size + 1, 0);
+    let answer = array(queries, 0);
+    var position = 1;
+    for query in 0..queries {
+        while position <= right[query] {
+            let value = values[position];
+            if last[value] != 0 {
+                fenwick_add(tree, last[value], -1);
+            }
+            fenwick_add(tree, position, 1);
+            last[value] = position;
+            position += 1;
+        }
+        answer[owner[query]] = fenwick_sum(tree, right[query])
+            - fenwick_sum(tree, left[query] - 1);
+    }
+    for query in 0..queries {
+        println(answer[query]);
+    }
+}

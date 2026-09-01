@@ -2,6 +2,9 @@
 
 Tooling for solving [CSES Problem Set](https://cses.fi) problems in C++23:
 download statements and test data, judge locally, submit, and debug in VS Code.
+The repository also contains **Toy** — a compact MLIR-based language for
+competitive programming — with a Toy solution for every one of the 400
+problems. See `toy_lang/README.md` and `toy_lang/docs/language.md`.
 
 ## Setup
 
@@ -61,6 +64,20 @@ ctest --test-dir build                          # one registered test per input 
 `judge` runs `NNN-solver < t.in > t.tmp`, then `checker t.in t.tmp t.out`
 (verdict written to `build/NNN/t.res`). A per-problem `problems/NNN/checker.cpp`
 overrides the shared `checker/checker.cpp` (testlib).
+
+## Toy language
+
+Every `problems/NNN/main.toy` compiles to a native executable and is judged
+against the same test data as `main.cpp`:
+
+```bash
+cmake --build build --target toy-build-NNN    # compile one Toy solution
+cmake --build build --target toy-judge-NNN    # run all tests for problem NNN
+cmake --build build --target toy-judge        # run all 400 problems
+```
+
+Interactive problems 270-275 are judged through `tools/interact.py`.
+Solutions run under a 512 MiB / 300 s guard (`tools/toy_guard.py`).
 
 ## VS Code debugging
 

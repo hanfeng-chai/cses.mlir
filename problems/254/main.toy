@@ -1,0 +1,99 @@
+fn main() {
+    let n = read();
+    let m = read();
+    let q = read();
+    let max_nodes = n + m + 5;
+    let dsu_parent = array(n + 1, 0);
+    let dsu_size = array(n + 1, 0);
+    let root = array(n + 1, 0);
+    for i in 1..=n {
+        dsu_parent[i] = i;
+        dsu_size[i] = 1;
+        root[i] = i;
+    }
+    let label = array(max_nodes, 0);
+    let child_first = array(max_nodes, 0);
+    let child_second = array(max_nodes, 0);
+    var count = n;
+    for day in 1..=m {
+        let a = read();
+        let b = read();
+        let ra = dsu_find(dsu_parent, a);
+        let rb = dsu_find(dsu_parent, b);
+        if ra != rb {
+            count += 1;
+            let node = count;
+            label[node] = day;
+            child_first[node] = root[ra];
+            child_second[node] = root[rb];
+            dsu_union(dsu_parent, dsu_size, a, b);
+            root[dsu_find(dsu_parent, b)] = node;
+        }
+    }
+    let parent = array(count + 1, 0);
+    for v in 1..=count {
+        let c1 = child_first[v];
+        if c1 != 0 {
+            parent[c1] = v;
+        }
+        let c2 = child_second[v];
+        if c2 != 0 {
+            parent[c2] = v;
+        }
+    }
+    var levels = 1;
+    while (1 << levels) < count + 1 {
+        levels += 1;
+    }
+    let stride = count + 1;
+    let up = array(levels * stride, 0);
+    let depth = array(count + 1, 0);
+    let comp = array(count + 1, 0);
+    let stack = array(count, 0);
+    var component_id = 0;
+    for v in 1..=count {
+        if parent[v] == 0 {
+            component_id += 1;
+            var stack_size = 1;
+            stack[0] = v;
+            comp[v] = component_id;
+            depth[v] = 0;
+            up[v] = 0;
+            while stack_size > 0 {
+                stack_size -= 1;
+                let node = stack[stack_size];
+                let c1 = child_first[node];
+                if c1 != 0 {
+                    depth[c1] = depth[node] + 1;
+                    comp[c1] = component_id;
+                    up[c1] = node;
+                    stack[stack_size] = c1;
+                    stack_size += 1;
+                }
+                let c2 = child_second[node];
+                if c2 != 0 {
+                    depth[c2] = depth[node] + 1;
+                    comp[c2] = component_id;
+                    up[c2] = node;
+                    stack[stack_size] = c2;
+                    stack_size += 1;
+                }
+            }
+        }
+    }
+    for level in 1..levels {
+        for v in 0..=count {
+            up[level * stride + v] = up[(level - 1) * stride + up[(level - 1) * stride + v]];
+        }
+    }
+    for query in 0..q {
+        let a = read();
+        let b = read();
+        if comp[a] != comp[b] {
+            println(-1);
+        } else {
+            let lca = tree_lca(up, depth, stride, levels, a, b);
+            println(label[lca]);
+        }
+    }
+}

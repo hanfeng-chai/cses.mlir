@@ -1,0 +1,14 @@
+fn main() {
+    let n = read();
+    for i in 0..n {
+        let a = read();
+        let b = read();
+        let x = read();
+        let g = gcd(a, b);
+        if x <= a && x % g == 0 {
+            print("YES\n");
+        } else {
+            print("NO\n");
+        }
+    }
+}

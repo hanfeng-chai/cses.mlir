@@ -1,0 +1,249 @@
+fn main() {
+    let n = read();
+    let m = read();
+    let head = array(n + 1, -1);
+    let to = array(m, 0);
+    let next = array(m, 0);
+    let edge_a = array(m, 0);
+    let edge_b = array(m, 0);
+    for e in 0..m {
+        let a = read();
+        let b = read();
+        edge_a[e] = a;
+        edge_b[e] = b;
+        to[e] = b;
+        next[e] = head[a];
+        head[a] = e;
+    }
+    let comp = array(n + 1, -1);
+    let low = array(n + 1, 0);
+    let disc = array(n + 1, 0);
+    let on_stack = array(n + 1, 0);
+    let cursor = array(n + 1, 0);
+    let stack = array(n, 0);
+    let dfs = array(n, 0);
+    var timer = 0;
+    var scc_count = 0;
+    var stack_size = 0;
+    for s in 1..=n {
+        if disc[s] != 0 {
+            continue;
+        }
+        var dfs_size = 1;
+        dfs[0] = s;
+        while dfs_size > 0 {
+            let u = dfs[dfs_size - 1];
+            if disc[u] == 0 {
+                timer += 1;
+                disc[u] = timer;
+                low[u] = timer;
+                cursor[u] = head[u];
+                stack[stack_size] = u;
+                stack_size += 1;
+                on_stack[u] = 1;
+            }
+            var pushed = false;
+            while cursor[u] != -1 && !pushed {
+                let e = cursor[u];
+                cursor[u] = next[e];
+                let w = to[e];
+                if disc[w] == 0 {
+                    dfs[dfs_size] = w;
+                    dfs_size += 1;
+                    pushed = true;
+                } else if on_stack[w] == 1 {
+                    if disc[w] < low[u] {
+                        low[u] = disc[w];
+                    }
+                }
+            }
+            if pushed {
+                continue;
+            }
+            if low[u] == disc[u] {
+                var popping = true;
+                while popping {
+                    stack_size -= 1;
+                    let x = stack[stack_size];
+                    on_stack[x] = 0;
+                    comp[x] = scc_count;
+                    if x == u {
+                        popping = false;
+                    }
+                }
+                scc_count += 1;
+            }
+            dfs_size -= 1;
+            if dfs_size > 0 {
+                let p = dfs[dfs_size - 1];
+                if low[u] < low[p] {
+                    low[p] = low[u];
+                }
+            }
+        }
+    }
+    if scc_count == 1 {
+        println(0);
+        return;
+    }
+    let rep = array(scc_count, 0);
+    for v in 1..=n {
+        rep[comp[v]] = v;
+    }
+    let pair_first = array(m, 1000000000);
+    let pair_second = array(m, 1000000000);
+    var pair_count = 0;
+    for e in 0..m {
+        let cu = comp[edge_a[e]];
+        let cv = comp[edge_b[e]];
+        if cu != cv {
+            pair_first[pair_count] = cu;
+            pair_second[pair_count] = cv;
+            pair_count += 1;
+        }
+    }
+    sort_pairs(pair_first, pair_second);
+    let cadj_head = array(scc_count, -1);
+    let cadj_to = array(pair_count, 0);
+    let cadj_next = array(pair_count, 0);
+    let has_in = array(scc_count, 0);
+    let has_out = array(scc_count, 0);
+    var cadj_count = 0;
+    var i = 0;
+    while i < pair_count {
+        let cu = pair_first[i];
+        let cv = pair_second[i];
+        if cadj_count == 0 || cu != pair_first[cadj_count - 1] || cv != pair_second[cadj_count - 1] {
+            pair_first[cadj_count] = cu;
+            pair_second[cadj_count] = cv;
+            cadj_count += 1;
+        }
+        i += 1;
+    }
+    for e in 0..cadj_count {
+        let cu = pair_first[e];
+        let cv = pair_second[e];
+        cadj_to[e] = cv;
+        cadj_next[e] = cadj_head[cu];
+        cadj_head[cu] = e;
+        has_out[cu] = 1;
+        has_in[cv] = 1;
+    }
+    let sources = array(scc_count, 0);
+    let sinks = array(scc_count, 0);
+    var source_count = 0;
+    var sink_count = 0;
+    for c in 0..scc_count {
+        if has_in[c] == 0 {
+            sources[source_count] = c;
+            source_count += 1;
+        }
+        if has_out[c] == 0 {
+            sinks[sink_count] = c;
+            sink_count += 1;
+        }
+    }
+    let visited = array(scc_count, 0);
+    let ptr = array(scc_count, 0);
+    for c in 0..scc_count {
+        ptr[c] = cadj_head[c];
+    }
+    let pair_source = array(scc_count, 0);
+    let pair_sink = array(scc_count, 0);
+    let paired_source = array(scc_count, 0);
+    let paired_sink = array(scc_count, 0);
+    let walk_stack = array(scc_count, 0);
+    var pairs = 0;
+    for si in 0..source_count {
+        let v = sources[si];
+        if visited[v] != 0 {
+            continue;
+        }
+        var walk_size = 1;
+        walk_stack[0] = v;
+        visited[v] = 1;
+        var found_sink = -1;
+        while walk_size > 0 && found_sink == -1 {
+            let u = walk_stack[walk_size - 1];
+            if has_out[u] == 0 {
+                found_sink = u;
+                break;
+            }
+            var advanced = false;
+            while ptr[u] != -1 && !advanced {
+                let e = ptr[u];
+                ptr[u] = cadj_next[e];
+                let w = cadj_to[e];
+                if visited[w] == 0 {
+                    visited[w] = 1;
+                    walk_stack[walk_size] = w;
+                    walk_size += 1;
+                    advanced = true;
+                }
+            }
+            if !advanced {
+                walk_size -= 1;
+            }
+        }
+        if found_sink != -1 {
+            pair_source[pairs] = v;
+            pair_sink[pairs] = found_sink;
+            paired_source[v] = 1;
+            paired_sink[found_sink] = 1;
+            pairs += 1;
+        }
+    }
+    let remaining_sources = array(source_count, 0);
+    let remaining_sinks = array(sink_count, 0);
+    var remaining_source_count = 0;
+    var remaining_sink_count = 0;
+    for si in 0..source_count {
+        if paired_source[sources[si]] == 0 {
+            remaining_sources[remaining_source_count] = sources[si];
+            remaining_source_count += 1;
+        }
+    }
+    for si in 0..sink_count {
+        if paired_sink[sinks[si]] == 0 {
+            remaining_sinks[remaining_sink_count] = sinks[si];
+            remaining_sink_count += 1;
+        }
+    }
+    let answer_first = array(2 * n, 0);
+    let answer_second = array(2 * n, 0);
+    var answer_count = 0;
+    for i in 0..pairs {
+        let sink_scc = pair_sink[i];
+        let source_scc = pair_source[(i + 1) % pairs];
+        answer_first[answer_count] = rep[sink_scc];
+        answer_second[answer_count] = rep[source_scc];
+        answer_count += 1;
+    }
+    let hub_sink = pair_sink[0];
+    let hub_source = pair_source[0];
+    var ri = 0;
+    var rj = 0;
+    while ri < remaining_source_count && rj < remaining_sink_count {
+        answer_first[answer_count] = rep[remaining_sinks[rj]];
+        answer_second[answer_count] = rep[remaining_sources[ri]];
+        answer_count += 1;
+        ri += 1;
+        rj += 1;
+    }
+    while ri < remaining_source_count {
+        answer_first[answer_count] = rep[hub_sink];
+        answer_second[answer_count] = rep[remaining_sources[ri]];
+        answer_count += 1;
+        ri += 1;
+    }
+    while rj < remaining_sink_count {
+        answer_first[answer_count] = rep[remaining_sinks[rj]];
+        answer_second[answer_count] = rep[hub_source];
+        answer_count += 1;
+        rj += 1;
+    }
+    println(answer_count);
+    for e in 0..answer_count {
+        println(answer_first[e], " ", answer_second[e]);
+    }
+}

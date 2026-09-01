@@ -1,0 +1,54 @@
+fn main() {
+    let n = read();
+    let k = read();
+    let grid = array(n * n, i8(0));
+    for i in 0..n {
+        let line = read_text();
+        for j in 0..n {
+            grid[i * n + j] = i8(at(line, j));
+        }
+    }
+    let row_a = array(n, 0);
+    let row_b = array(n, 0);
+    let count = array(k, 0);
+    var parity = 0;
+    for i in 0..n {
+        for j in 0..n {
+            var d = 1;
+            if i != 0 && j != 0 {
+                let c = grid[i * n + j];
+                if c == grid[(i - 1) * n + j] && c == grid[i * n + j - 1] && c == grid[(i - 1) * n + j - 1] {
+                    var best = 0;
+                    if parity == 0 {
+                        best = row_b[j];
+                        if row_a[j - 1] < best {
+                            best = row_a[j - 1];
+                        }
+                        if row_b[j - 1] < best {
+                            best = row_b[j - 1];
+                        }
+                    } else {
+                        best = row_a[j];
+                        if row_b[j - 1] < best {
+                            best = row_b[j - 1];
+                        }
+                        if row_a[j - 1] < best {
+                            best = row_a[j - 1];
+                        }
+                    }
+                    d = best + 1;
+                }
+            }
+            if parity == 0 {
+                row_a[j] = d;
+            } else {
+                row_b[j] = d;
+            }
+            count[i64(grid[i * n + j]) - 65] += d;
+        }
+        parity = 1 - parity;
+    }
+    for c in 0..k {
+        println(count[c]);
+    }
+}

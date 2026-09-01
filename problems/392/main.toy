@@ -1,0 +1,35 @@
+fn main() {
+    let n = read();
+    let x = read_array(n);
+    let counts = array(n + 1, 0);
+    for i in 0..n {
+        counts[x[i]] += 1;
+    }
+    let f = array(n + 1, 0);
+    for g in 1..=n {
+        var c = 0;
+        var m = g;
+        while m <= n {
+            c += counts[m];
+            m += g;
+        }
+        if c > 0 {
+            f[g] = (pow_mod(2, c, 1000000007) - 1 + 1000000007) % 1000000007;
+        }
+    }
+    let exact = array(n + 1, 0);
+    for g in n..=1 by -1 {
+        var value = f[g];
+        var m = 2 * g;
+        while m <= n {
+            value = (value - exact[m] + 1000000007) % 1000000007;
+            m += g;
+        }
+        exact[g] = value;
+    }
+    for g in 1..=n {
+        print(exact[g]);
+        print(" ");
+    }
+    print("\n");
+}

@@ -1,0 +1,35 @@
+fn main() {
+    let count = read();
+    let coins = array(count, 0);
+    var total = 0;
+    for index in 0..count {
+        coins[index] = read();
+        total += coins[index];
+    }
+    let possible = array(total + 1, 0);
+    possible[0] = 1;
+    var reachable = 0;
+    for index in 0..count {
+        var sum = reachable + coins[index] + 1;
+        while sum > coins[index] {
+            sum -= 1;
+            if possible[sum - coins[index]] != 0 {
+                possible[sum] = 1;
+            }
+        }
+        reachable += coins[index];
+    }
+    var distinct = 0;
+    for sum in 1..=total {
+        if possible[sum] != 0 {
+            distinct += 1;
+        }
+    }
+    println(distinct);
+    for sum in 1..=total {
+        if possible[sum] != 0 {
+            print(sum, " ");
+        }
+    }
+    println();
+}

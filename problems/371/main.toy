@@ -1,0 +1,38 @@
+fn main() {
+    let t = read();
+    for test in 0..t {
+        let n = read();
+        let m = read();
+        let k = read();
+        let a = n - 1;
+        let b = m - 1;
+        var row = 1;
+        var col = 1;
+        if a > 0 {
+            let period = 2 * a;
+            let r = k % period;
+            if r <= a {
+                row = r + 1;
+            } else {
+                row = period - r + 1;
+            }
+        }
+        if b > 0 {
+            let period = 2 * b;
+            let r = k % period;
+            if r <= b {
+                col = r + 1;
+            } else {
+                col = period - r + 1;
+            }
+        }
+        let g = gcd(a, b);
+        let l = a / g * b;
+        let changes = k / a + k / b - k / l;
+        print(row);
+        print(" ");
+        print(col);
+        print(" ");
+        println(changes);
+    }
+}

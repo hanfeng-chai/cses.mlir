@@ -1,0 +1,71 @@
+fn main() {
+    let a = read();
+    let b = read();
+    let n = read();
+    let x = array(n, 0);
+    let y = array(n, 0);
+    for i in 0..n {
+        x[i] = read();
+        y[i] = read();
+    }
+    let key = array(n, 0);
+    let idx = array(n, 0);
+    let filler = array(n, 0);
+    for i in 0..n {
+        key[i] = y[i] - x[i];
+        idx[i] = i;
+    }
+    sort_triples(key, idx, filler);
+
+    let neg_inf = -9000000000000000000;
+    var best_p = array(n + 1, 0);
+    var best_a = array(n + 1, 0);
+    for i in 0..=n {
+        best_p[i] = neg_inf;
+        best_a[i] = neg_inf;
+    }
+    if a == 0 {
+        best_p[0] = 0;
+    }
+    let queue_p = heap(2 * n + 10);
+    var sum = 0;
+    for k in 1..=n {
+        let v = x[idx[k - 1]];
+        heap_push(queue_p, v, 0);
+        sum += v;
+        if heap_size(queue_p) > a {
+            sum -= heap_first(queue_p);
+            heap_pop(queue_p);
+        }
+        if heap_size(queue_p) == a {
+            best_p[k] = sum;
+        }
+    }
+    if b == 0 {
+        best_a[n] = 0;
+    }
+    let queue_a = heap(2 * n + 10);
+    sum = 0;
+    for k in n - 1..=0 by -1 {
+        let v = y[idx[k]];
+        heap_push(queue_a, v, 0);
+        sum += v;
+        if heap_size(queue_a) > b {
+            sum -= heap_first(queue_a);
+            heap_pop(queue_a);
+        }
+        if heap_size(queue_a) == b {
+            best_a[k] = sum;
+        }
+    }
+
+    var best = neg_inf;
+    for k in 0..=n {
+        if best_p[k] != neg_inf && best_a[k] != neg_inf {
+            if best_p[k] + best_a[k] > best {
+                best = best_p[k] + best_a[k];
+            }
+        }
+    }
+    println(best);
+}

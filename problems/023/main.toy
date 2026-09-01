@@ -1,0 +1,42 @@
+fn main() {
+    let text = read_text();
+    let size = length(text);
+    let counts = array(26, 0);
+    for index in 0..size {
+        counts[at(text, index) - 65] += 1;
+    }
+
+    var possible = true;
+    for letter in 0..26 {
+        if counts[letter] > (size + 1) / 2 {
+            possible = false;
+        }
+    }
+    if !possible {
+        println(-1);
+    } else {
+        var last = -1;
+        for position in 0..size {
+            let remaining = size - position;
+            var forced = -1;
+            var letter = 0;
+            while letter < 26 && forced == -1 {
+                if counts[letter] * 2 > remaining {
+                    forced = letter;
+                }
+                letter += 1;
+            }
+            var selected = forced;
+            if selected == -1 {
+                selected = 0;
+                while selected == last || counts[selected] == 0 {
+                    selected += 1;
+                }
+            }
+            put(65 + selected);
+            counts[selected] -= 1;
+            last = selected;
+        }
+        println();
+    }
+}

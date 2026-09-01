@@ -1,0 +1,70 @@
+fn main() {
+    let movies = read();
+    let queries = read();
+    let movie_start = array(movies, 0);
+    let movie_end = array(movies, 0);
+    let query_start = array(queries, 0);
+    let query_end = array(queries, 0);
+    let coordinate_count = 2 * movies + 2 * queries;
+    let coordinates = array(coordinate_count, 0);
+    for movie in 0..movies {
+        movie_start[movie] = read();
+        movie_end[movie] = read();
+        coordinates[2 * movie] = movie_start[movie];
+        coordinates[2 * movie + 1] = movie_end[movie];
+    }
+    for query in 0..queries {
+        query_start[query] = read();
+        query_end[query] = read();
+        coordinates[2 * movies + 2 * query] = query_start[query];
+        coordinates[2 * movies + 2 * query + 1] = query_end[query];
+    }
+    sort(coordinates);
+    let sentinel = coordinate_count;
+    let minimum_end = array(coordinate_count, sentinel);
+    for movie in 0..movies {
+        let start = lower_bound(coordinates, movie_start[movie]);
+        let end = lower_bound(coordinates, movie_end[movie]);
+        if end < minimum_end[start] {
+            minimum_end[start] = end;
+        }
+    }
+    let next_movie = array(coordinate_count + 1, sentinel);
+    var index = coordinate_count;
+    while index > 0 {
+        index -= 1;
+        next_movie[index] = next_movie[index + 1];
+        if minimum_end[index] < next_movie[index] {
+            next_movie[index] = minimum_end[index];
+        }
+    }
+    var levels = 1;
+    while (1 << levels) <= movies {
+        levels += 1;
+    }
+    let stride = coordinate_count + 1;
+    let up = array(levels * stride, sentinel);
+    for coordinate in 0..stride {
+        up[coordinate] = next_movie[coordinate];
+    }
+    for level in 1..levels {
+        for coordinate in 0..stride {
+            up[level * stride + coordinate] = up[(level - 1) * stride
+                + up[(level - 1) * stride + coordinate]];
+        }
+    }
+    for query in 0..queries {
+        var coordinate = lower_bound(coordinates, query_start[query]);
+        var count = 0;
+        var level = levels;
+        while level > 0 {
+            level -= 1;
+            let destination = up[level * stride + coordinate];
+            if destination < coordinate_count && coordinates[destination] <= query_end[query] {
+                count += 1 << level;
+                coordinate = destination;
+            }
+        }
+        println(count);
+    }
+}

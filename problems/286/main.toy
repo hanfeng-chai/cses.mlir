@@ -1,0 +1,38 @@
+fn main() {
+    let n = read();
+    var levels = 1;
+    while (1 << levels) <= n {
+        levels += 1;
+    }
+    let size = 1 << levels;
+    let c = array(size, 0);
+    for i in 0..n {
+        let a = read();
+        c[a] += 1;
+    }
+    for b in 0..levels {
+        for m in 0..size {
+            if ((m >> b) & 1) == 0 {
+                c[m] += c[m | (1 << b)];
+            }
+        }
+    }
+    let g = array(size, 0);
+    for m in 0..size {
+        g[m] = (pow_mod(2, c[m], 1000000007) - 1 + 1000000007) % 1000000007;
+    }
+    for b in 0..levels {
+        for m in 0..size {
+            if ((m >> b) & 1) == 0 {
+                g[m] = (g[m] - g[m | (1 << b)] + 1000000007) % 1000000007;
+            }
+        }
+    }
+    for k in 0..=n {
+        if k != 0 {
+            print(" ");
+        }
+        print(g[k]);
+    }
+    println();
+}

@@ -1,0 +1,47 @@
+fn combination(fact: array<i64>, inv: array<i64>, a: i64, b: i64) -> i64 {
+    if b < 0 || b > a {
+        return 0;
+    }
+    return fact[a] * inv[b] % 1000000007 * inv[a - b] % 1000000007;
+}
+
+fn main() {
+    let n = read();
+    let fact = array(n + 1, 0);
+    let inv = array(n + 1, 0);
+    fact[0] = 1;
+    for i in 1..=n {
+        fact[i] = fact[i - 1] * i % 1000000007;
+    }
+    inv[n] = pow_mod(fact[n], 1000000005, 1000000007);
+    for i in n..=1 by -1 {
+        inv[i - 1] = inv[i] * i % 1000000007;
+    }
+
+    var weight = array(n + 1, 0);
+    for s in 1..=n {
+        var forest = 1;
+        if s != n {
+            forest = s % 1000000007 * pow_mod(n, n - s - 1, 1000000007) % 1000000007;
+        }
+        weight[s] = combination(fact, inv, n, s) * forest % 1000000007;
+    }
+
+    var p = array(n + 2, 0);
+    var r = array(n + 2, 0);
+    p[0] = 1;
+    var degree = 0;
+    for s in 1..=n {
+        for d in degree + 1..=1 by -1 {
+            p[d] = (p[d - 1] + (s - 1) % 1000000007 * p[d]) % 1000000007;
+        }
+        p[0] = (s - 1) % 1000000007 * p[0] % 1000000007;
+        degree += 1;
+        for d in 1..=degree {
+            r[d] = (r[d] + weight[s] * p[d]) % 1000000007;
+        }
+    }
+    for k in 1..=n {
+        println(r[k]);
+    }
+}

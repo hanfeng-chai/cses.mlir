@@ -1,0 +1,35 @@
+fn main() {
+    let count = read();
+    let arrival = array(count, 0);
+    let departure = array(count, 0);
+    let original = array(count, 0);
+    for customer in 0..count {
+        arrival[customer] = read();
+        departure[customer] = read();
+        original[customer] = customer;
+    }
+    sort_triples(arrival, departure, original);
+    let assignment = array(count, 0);
+    let active = ordered(count);
+    let base = count + 1;
+    var rooms = 0;
+    for customer in 0..count {
+        let earliest = ordered_first(active);
+        let earliest_departure = earliest / base;
+        var room = 0;
+        if ordered_size(active) > 0 && earliest_departure < arrival[customer] {
+            ordered_erase(active, earliest);
+            room = earliest % base;
+        } else {
+            rooms += 1;
+            room = rooms;
+        }
+        assignment[original[customer]] = room;
+        ordered_insert(active, departure[customer] * base + room);
+    }
+    println(rooms);
+    for customer in 0..count {
+        print(assignment[customer], " ");
+    }
+    println();
+}

@@ -1,0 +1,44 @@
+fn main() {
+    let count = read();
+    let left = array(count, 0);
+    let negative_right = array(count, 0);
+    let original = array(count, 0);
+    for index in 0..count {
+        left[index] = read();
+        negative_right[index] = 0 - read();
+        original[index] = index;
+    }
+    sort_triples(left, negative_right, original);
+    let contains = array(count, 0);
+    let contained = array(count, 0);
+    var maximum_right = -1;
+    for index in 0..count {
+        let right = 0 - negative_right[index];
+        if maximum_right >= right {
+            contained[original[index]] = 1;
+        }
+        if right > maximum_right {
+            maximum_right = right;
+        }
+    }
+    var minimum_right = 9_223_372_036_854_775_807;
+    var index = count;
+    while index > 0 {
+        index -= 1;
+        let right = 0 - negative_right[index];
+        if minimum_right <= right {
+            contains[original[index]] = 1;
+        }
+        if right < minimum_right {
+            minimum_right = right;
+        }
+    }
+    for range in 0..count {
+        print(contains[range], " ");
+    }
+    println();
+    for range in 0..count {
+        print(contained[range], " ");
+    }
+    println();
+}

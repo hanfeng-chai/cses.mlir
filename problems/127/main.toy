@@ -1,0 +1,15 @@
+fn main() {
+    let size = read();
+    let values = array(size + 1, 0);
+    let alive = array(size + 1, 0);
+    for index in 1..=size {
+        values[index] = read();
+        fenwick_add(alive, index, 1);
+    }
+    for removal in 0..size {
+        let position = fenwick_find(alive, read());
+        print(values[position], " ");
+        fenwick_add(alive, position, -1);
+    }
+    println();
+}

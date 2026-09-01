@@ -1,0 +1,14 @@
+fn main() {
+    let count = read();
+    let lengths = array(count, 0);
+    for index in 0..count {
+        lengths[index] = read();
+    }
+    sort(lengths);
+    let median = lengths[count / 2];
+    var cost = 0;
+    for index in 0..count {
+        cost += absolute(lengths[index] - median);
+    }
+    println(cost);
+}

@@ -1,0 +1,46 @@
+fn main() {
+    let size = read();
+    let queries = read();
+    let height = array(size + 1, 0);
+    let previous = array(size, 0);
+    let position = array(size, 0);
+    let stack = array(size, 0);
+    var stack_size = 0;
+    for index in 1..=size {
+        height[index] = read();
+        while stack_size > 0 && height[stack[stack_size - 1]] < height[index] {
+            stack_size -= 1;
+        }
+        previous[index - 1] = 0;
+        if stack_size > 0 {
+            previous[index - 1] = stack[stack_size - 1];
+        }
+        position[index - 1] = index;
+        stack[stack_size] = index;
+        stack_size += 1;
+    }
+    sort_pairs(previous, position);
+    let left = array(queries, 0);
+    let right = array(queries, 0);
+    let query_index = array(queries, 0);
+    for query in 0..queries {
+        left[query] = read();
+        right[query] = read();
+        query_index[query] = query;
+    }
+    sort_triples(left, right, query_index);
+    let answer = array(queries, 0);
+    let tree = array(size + 1, 0);
+    var activated = 0;
+    for query in 0..queries {
+        while activated < size && previous[activated] < left[query] {
+            fenwick_add(tree, position[activated], 1);
+            activated += 1;
+        }
+        answer[query_index[query]] = fenwick_sum(tree, right[query])
+            - fenwick_sum(tree, left[query] - 1);
+    }
+    for query in 0..queries {
+        println(answer[query]);
+    }
+}

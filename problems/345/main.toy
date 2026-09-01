@@ -1,0 +1,87 @@
+fn try_finish(used: array<i64>, permutation: array<i64>, length: i64, previous: i64, total: i64) -> bool {
+    if length == total {
+        return true;
+    }
+    for value in 1..=total {
+        if used[value] == 0 && absolute(value - previous) != 1 {
+            used[value] = 1;
+            permutation[length] = value;
+            if try_finish(used, permutation, length + 1, value, total) {
+                return true;
+            }
+            used[value] = 0;
+        }
+    }
+    return false;
+}
+
+fn main() {
+    let n = read();
+    if n == 1 {
+        println(1);
+        return;
+    }
+    if n == 2 || n == 3 {
+        print("NO SOLUTION\n");
+        return;
+    }
+    if n <= 9 {
+        var small = array(10, 0);
+        small[0] = 2; small[1] = 4; small[2] = 1; small[3] = 3;
+        if n == 5 {
+            small[0] = 1; small[1] = 3; small[2] = 5; small[3] = 2; small[4] = 4;
+        } else if n == 6 {
+            small[0] = 1; small[1] = 3; small[2] = 5; small[3] = 2; small[4] = 4; small[5] = 6;
+        } else if n == 7 {
+            small[0] = 1; small[1] = 3; small[2] = 5; small[3] = 2; small[4] = 6; small[5] = 4; small[6] = 7;
+        } else if n == 8 {
+            small[0] = 1; small[1] = 3; small[2] = 5; small[3] = 2; small[4] = 6; small[5] = 8; small[6] = 4; small[7] = 7;
+        } else if n == 9 {
+            small[0] = 1; small[1] = 3; small[2] = 5; small[3] = 2; small[4] = 4; small[5] = 7; small[6] = 9; small[7] = 6; small[8] = 8;
+        }
+        for i in 0..n {
+            print(small[i]);
+            print(" ");
+        }
+        print("\n");
+        return;
+    }
+
+    var permutation = array(n, 0);
+    permutation[0] = 1; permutation[1] = 3; permutation[2] = 5; permutation[3] = 2;
+    permutation[4] = 4; permutation[5] = 6; permutation[6] = 8; permutation[7] = 10;
+    var length = 8;
+    var odd_start = 7;
+    var even_start = 12;
+    var odd_block = true;
+    while length + 15 < n {
+        var start = odd_start;
+        if !odd_block {
+            start = even_start;
+        }
+        for i in 0..5 {
+            permutation[length] = start + 2 * i;
+            length += 1;
+        }
+        if odd_block {
+            odd_start += 10;
+        } else {
+            even_start += 10;
+        }
+        odd_block = !odd_block;
+    }
+
+    var used = array(n + 1, 0);
+    for i in 0..length {
+        used[permutation[i]] = 1;
+    }
+    if try_finish(used, permutation, length, permutation[length - 1], n) {
+        for i in 0..n {
+            print(permutation[i]);
+            print(" ");
+        }
+        print("\n");
+    } else {
+        print("NO SOLUTION\n");
+    }
+}

@@ -1,0 +1,31 @@
+fn main() {
+    let first = read_text();
+    let second = read_text();
+    let rows = length(first);
+    let columns = length(second);
+    let width = columns + 1;
+    let distance = array(2 * width, 0);
+    for column in 0..=columns {
+        distance[column] = column;
+    }
+    for row in 1..=rows {
+        let current = (row % 2) * width;
+        let previous = ((row - 1) % 2) * width;
+        distance[current] = row;
+        for column in 1..=columns {
+            var substitution = 1;
+            if at(first, row - 1) == at(second, column - 1) {
+                substitution = 0;
+            }
+            var best = distance[previous + column] + 1;
+            if distance[current + column - 1] + 1 < best {
+                best = distance[current + column - 1] + 1;
+            }
+            if distance[previous + column - 1] + substitution < best {
+                best = distance[previous + column - 1] + substitution;
+            }
+            distance[current + column] = best;
+        }
+    }
+    println(distance[(rows % 2) * width + columns]);
+}

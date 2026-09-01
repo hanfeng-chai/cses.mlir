@@ -1,0 +1,22 @@
+fn main() {
+    let count = read();
+    let values = array(count, 0);
+    let difference = array(count, 0);
+    var total = 0;
+    for index in 0..count {
+        values[index] = read();
+        difference[index] = values[index];
+        total += values[index];
+    }
+    for span in 1..count {
+        for left in 0..count - span {
+            let take_left = values[left] - difference[left + 1];
+            let take_right = values[left + span] - difference[left];
+            difference[left] = take_left;
+            if take_right > difference[left] {
+                difference[left] = take_right;
+            }
+        }
+    }
+    println((total + difference[0]) / 2);
+}

@@ -1,0 +1,113 @@
+fn main() {
+    let s = read_text();
+    let n = length(s);
+    var present = array(26, 0);
+    for i in 0..n {
+        present[at(s, i) - 97] = 1;
+    }
+    var reference = 0;
+    while present[reference] == 0 {
+        reference += 1;
+    }
+
+    let c = array((n + 1) * 26, 0);
+    var counts = array(26, 0);
+    for i in 0..n {
+        counts[at(s, i) - 97] += 1;
+        for letter in 0..26 {
+            if present[letter] == 1 {
+                c[(i + 1) * 26 + letter] = counts[letter] - counts[reference];
+            }
+        }
+    }
+
+    var idx = array(n + 1, 0);
+    var tmp = array(n + 1, 0);
+    for i in 0..=n {
+        idx[i] = i;
+    }
+    var width = 1;
+    while width < n + 1 {
+        var start = 0;
+        while start < n + 1 {
+            var mid = start + width;
+            if mid > n + 1 {
+                mid = n + 1;
+            }
+            var finish = start + 2 * width;
+            if finish > n + 1 {
+                finish = n + 1;
+            }
+            var i = start;
+            var j = mid;
+            var k = start;
+            while i < mid && j < finish {
+                // compare idx[i] and idx[j] lexicographically over 26 dims
+                var less = false;
+                var equal = true;
+                for letter in 0..26 {
+                    let a = c[idx[i] * 26 + letter];
+                    let b = c[idx[j] * 26 + letter];
+                    if a < b {
+                        less = true;
+                        equal = false;
+                        break;
+                    } else if a > b {
+                        less = false;
+                        equal = false;
+                        break;
+                    }
+                }
+                if equal {
+                    less = idx[i] < idx[j];
+                }
+                if less {
+                    tmp[k] = idx[i];
+                    i += 1;
+                } else {
+                    tmp[k] = idx[j];
+                    j += 1;
+                }
+                k += 1;
+            }
+            while i < mid {
+                tmp[k] = idx[i];
+                i += 1;
+                k += 1;
+            }
+            while j < finish {
+                tmp[k] = idx[j];
+                j += 1;
+                k += 1;
+            }
+            start = finish;
+        }
+        for i in 0..=n {
+            idx[i] = tmp[i];
+        }
+        width *= 2;
+    }
+
+    var ans = 0;
+    var run_start = 0;
+    while run_start <= n {
+        var run_end = run_start + 1;
+        while run_end <= n {
+            var same = true;
+            for letter in 0..26 {
+                if c[idx[run_start] * 26 + letter] != c[idx[run_end] * 26 + letter] {
+                    same = false;
+                    break;
+                }
+            }
+            if !same {
+                break;
+            }
+            run_end += 1;
+        }
+        let count = run_end - run_start;
+        ans += count * (count - 1) / 2;
+        run_start = run_end;
+    }
+    println(ans);
+}

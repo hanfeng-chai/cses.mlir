@@ -1,0 +1,41 @@
+fn main() {
+    let count = read();
+    let left = array(count, 0);
+    let negative_right = array(count, 0);
+    let original = array(count, 0);
+    let rights = array(count, 0);
+    for index in 0..count {
+        left[index] = read();
+        rights[index] = read();
+        negative_right[index] = 0 - rights[index];
+        original[index] = index;
+    }
+    sort(rights);
+    sort_triples(left, negative_right, original);
+
+    let contains = array(count, 0);
+    let contained = array(count, 0);
+    let tree = array(count + 1, 0);
+    for index in 0..count {
+        let coordinate = lower_bound(rights, 0 - negative_right[index]) + 1;
+        contained[original[index]] = index - fenwick_sum(tree, coordinate - 1);
+        fenwick_add(tree, coordinate, 1);
+    }
+
+    let reverse_tree = array(count + 1, 0);
+    var index = count;
+    while index > 0 {
+        index -= 1;
+        let coordinate = lower_bound(rights, 0 - negative_right[index]) + 1;
+        contains[original[index]] = fenwick_sum(reverse_tree, coordinate);
+        fenwick_add(reverse_tree, coordinate, 1);
+    }
+    for range in 0..count {
+        print(contains[range], " ");
+    }
+    println();
+    for range in 0..count {
+        print(contained[range], " ");
+    }
+    println();
+}

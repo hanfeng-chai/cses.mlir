@@ -1,0 +1,72 @@
+fn main() {
+    let rows = read();
+    let variables = read();
+    let width = variables + 1;
+    let modulus = 1_000_000_007;
+    let matrix = array(rows * width, 0);
+    for row in 0..rows {
+        for column in 0..width {
+            matrix[row * width + column] = ((read() % modulus) + modulus) % modulus;
+        }
+    }
+    let pivot_row = array(variables, -1);
+    var row = 0;
+    for column in 0..variables {
+        if row < rows {
+            var selected = -1;
+            var candidate = row;
+            while candidate < rows && selected == -1 {
+                if matrix[candidate * width + column] != 0 {
+                    selected = candidate;
+                }
+                candidate += 1;
+            }
+            if selected != -1 {
+                for current_column in column..width {
+                    let temporary = matrix[row * width + current_column];
+                    matrix[row * width + current_column] = matrix[selected * width + current_column];
+                    matrix[selected * width + current_column] = temporary;
+                }
+                let inverse = pow_mod(matrix[row * width + column], modulus - 2, modulus);
+                for current_column in column..width {
+                    matrix[row * width + current_column] = matrix[row * width + current_column]
+                        * inverse % modulus;
+                }
+                for other_row in 0..rows {
+                    if other_row != row {
+                        let factor = matrix[other_row * width + column];
+                        if factor != 0 {
+                            for current_column in column..width {
+                                matrix[other_row * width + current_column] = (
+                                    (matrix[other_row * width + current_column]
+                                        - factor * matrix[row * width + current_column])
+                                    % modulus + modulus
+                                ) % modulus;
+                            }
+                        }
+                    }
+                }
+                pivot_row[column] = row;
+                row += 1;
+            }
+        }
+    }
+    var consistent = true;
+    for remaining_row in row..rows {
+        if matrix[remaining_row * width + variables] != 0 {
+            consistent = false;
+        }
+    }
+    if !consistent {
+        println(-1);
+    } else {
+        for variable in 0..variables {
+            if pivot_row[variable] == -1 {
+                print(0, " ");
+            } else {
+                print(matrix[pivot_row[variable] * width + variables], " ");
+            }
+        }
+        println();
+    }
+}

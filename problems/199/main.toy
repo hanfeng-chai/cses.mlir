@@ -1,0 +1,30 @@
+fn main() {
+    let s = read_text();
+    let n = length(s);
+    let pi = array(n, 0);
+    for i in 1..n {
+        var j = pi[i - 1];
+        while j != 0 && at(s, i) != at(s, j) {
+            j = pi[j - 1];
+        }
+        if at(s, i) == at(s, j) {
+            j += 1;
+        }
+        pi[i] = j;
+    }
+    let borders = array(n, 0);
+    var count = 0;
+    var l = pi[n - 1];
+    while l > 0 {
+        borders[count] = l;
+        count += 1;
+        l = pi[l - 1];
+    }
+    for i in 0..count {
+        if i != 0 {
+            print(" ");
+        }
+        print(borders[count - 1 - i]);
+    }
+    println();
+}

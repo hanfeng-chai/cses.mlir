@@ -1,0 +1,13 @@
+fn main() {
+    let count = read();
+    let tops = ordered(count);
+    for index in 0..count {
+        let cube = read();
+        let replaced = ordered_higher(tops, cube, -1);
+        if replaced != -1 {
+            ordered_erase(tops, replaced);
+        }
+        ordered_insert(tops, cube);
+    }
+    println(ordered_size(tops));
+}

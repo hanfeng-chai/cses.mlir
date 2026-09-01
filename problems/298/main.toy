@@ -1,0 +1,46 @@
+fn main() {
+    let n = read();
+    let m = read();
+    let head = array(n + 1, -1);
+    let to = array(m, 0);
+    let next = array(m, 0);
+    let indegree = array(n + 1, 0);
+    for e in 0..m {
+        let a = read();
+        let b = read();
+        to[e] = a;
+        next[e] = head[b];
+        head[b] = e;
+        indegree[a] += 1;
+    }
+    let heap = heap(n + 5);
+    for v in 1..=n {
+        if indegree[v] == 0 {
+            heap_push(heap, 0 - v, v);
+        }
+    }
+    let order = array(n, 0);
+    var order_size = 0;
+    while heap_size(heap) > 0 {
+        let u = heap_second(heap);
+        heap_pop(heap);
+        order[order_size] = u;
+        order_size += 1;
+        var e = head[u];
+        while e != -1 {
+            let w = to[e];
+            indegree[w] -= 1;
+            if indegree[w] == 0 {
+                heap_push(heap, 0 - w, w);
+            }
+            e = next[e];
+        }
+    }
+    for i in 0..order_size {
+        if i != 0 {
+            print(" ");
+        }
+        print(order[order_size - 1 - i]);
+    }
+    println();
+}

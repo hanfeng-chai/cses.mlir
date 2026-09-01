@@ -1,0 +1,77 @@
+fn main() {
+    let n = read();
+    let x = read_array(n);
+    let max_value = 5001;
+    let spf = array(max_value, 0);
+    for i in 2..max_value {
+        if spf[i] == 0 {
+            var j = i;
+            while j < max_value {
+                if spf[j] == 0 {
+                    spf[j] = i;
+                }
+                j += i;
+            }
+        }
+    }
+    let prime_index = array(max_value, 0);
+    for i in 0..max_value {
+        prime_index[i] = -1;
+    }
+    var dim = 0;
+    for i in 2..max_value {
+        if spf[i] == i {
+            prime_index[i] = dim;
+            dim += 1;
+        }
+    }
+
+    let basis = array(dim * 11, 0);
+    var has_basis = array(dim, 0);
+    var rank = 0;
+
+    for i in 0..n {
+        var vec = array(11, 0);
+        var v = x[i];
+        while v > 1 {
+            let p = spf[v];
+            var e = 0;
+            while v % p == 0 {
+                v = v / p;
+                e += 1;
+            }
+            if e % 2 == 1 {
+                let pi = prime_index[p];
+                let word = pi / 64;
+                let shift = pi % 64;
+                vec[word] = vec[word] | (1 << shift);
+            }
+        }
+        var b = dim - 1;
+        while b >= 0 {
+            let word = b / 64;
+            let shift = b % 64;
+            if ((vec[word] >> shift) & 1) == 1 {
+                if has_basis[b] == 1 {
+                    for w in 0..11 {
+                        vec[w] = vec[w] ^ basis[b * 11 + w];
+                    }
+                } else {
+                    for w in 0..11 {
+                        basis[b * 11 + w] = vec[w];
+                    }
+                    has_basis[b] = 1;
+                    rank += 1;
+                    break;
+                }
+            }
+            b -= 1;
+        }
+    }
+
+    var ans = 1;
+    for i in 0..n - rank {
+        ans = ans * 2 % 1000000007;
+    }
+    println(ans);
+}

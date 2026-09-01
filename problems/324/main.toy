@@ -1,0 +1,46 @@
+fn main() {
+    let n = read();
+    let k = read();
+    let grid = array(n * n, i8(0));
+    for i in 0..n {
+        let line = read_text();
+        for j in 0..n {
+            grid[i * n + j] = i8(at(line, j));
+        }
+    }
+    let count = array(k, 0);
+    let height = array(n, 0);
+    let stack_height = array(n + 1, 0);
+    let stack_width = array(n + 1, 0);
+    for i in 0..n {
+        for j in 0..n {
+            if i > 0 && grid[i * n + j] == grid[(i - 1) * n + j] {
+                height[j] += 1;
+            } else {
+                height[j] = 1;
+            }
+        }
+        var top = 0;
+        var total = 0;
+        for j in 0..n {
+            if j > 0 && grid[i * n + j] != grid[i * n + j - 1] {
+                top = 0;
+                total = 0;
+            }
+            var width = 1;
+            while top > 0 && stack_height[top] >= height[j] {
+                total -= stack_height[top] * stack_width[top];
+                width += stack_width[top];
+                top -= 1;
+            }
+            top += 1;
+            stack_height[top] = height[j];
+            stack_width[top] = width;
+            total += height[j] * width;
+            count[i64(grid[i * n + j]) - 65] += total;
+        }
+    }
+    for c in 0..k {
+        println(count[c]);
+    }
+}

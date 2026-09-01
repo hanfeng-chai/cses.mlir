@@ -1,0 +1,75 @@
+fn operate(i: i64, j: i64) -> i64 {
+    print(i);
+    print(" ");
+    println(j);
+    flush();
+    return read();
+}
+
+fn main() {
+    let n = read();
+    // Phase 1: recover the permutation via Lehmer code (2n operations)
+    var suffix_inv = array(n + 2, 0);
+    var inv = 0;
+    for i in n..=1 by -1 {
+        let length = n - i + 1;
+        let before = inv;
+        inv = operate(i, n);
+        if inv == 0 {
+            return;
+        }
+        let change = inv - before;
+        var internal = 0;
+        if length > 1 {
+            internal = (length * (length - 1) / 2 - change) / 2;
+        }
+        suffix_inv[i] = internal;
+        inv = operate(i, n);
+    }
+    // lehmer[i] = number of smaller elements to the right of position i
+    var lehmer = array(n + 1, 0);
+    for i in 1..=n {
+        lehmer[i] = suffix_inv[i] - suffix_inv[i + 1];
+    }
+    // rebuild with a Fenwick tree over values 1..n (left to right Lehmer code)
+    let tree = array(n + 1, 0);
+    for v in 1..=n {
+        fenwick_add(tree, v, 1);
+    }
+    var a = array(n + 1, 0);
+    for i in 1..=n {
+        let v = fenwick_find(tree, lehmer[i] + 1);
+        fenwick_add(tree, v, -1);
+        a[i] = v;
+    }
+    // Phase 2: sort using selection-style reversals
+    var pos = array(n + 1, 0);
+    for i in 1..=n {
+        pos[a[i]] = i;
+    }
+    for v in 1..n {
+        let p = pos[v];
+        if p != v {
+            inv = operate(v, p);
+            if inv == 0 {
+                return;
+            }
+            // mirror positions inside [v, p]
+            var left = v;
+            var right = p;
+            while left < right {
+                let tmp = a[left];
+                a[left] = a[right];
+                a[right] = tmp;
+                left += 1;
+                right -= 1;
+            }
+            for i in v..=p {
+                pos[a[i]] = i;
+            }
+        }
+    }
+    if inv != 0 {
+        inv = operate(1, 1);
+    }
+}

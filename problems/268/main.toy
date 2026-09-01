@@ -1,0 +1,30 @@
+fn main() {
+    let n = read();
+    let k = read();
+    let values = read_array(n);
+    let sorted = array(n, 0);
+    for i in 0..n {
+        sorted[i] = values[i];
+    }
+    sort(sorted);
+    let size = unique_sorted(sorted, n);
+    for i in 0..n {
+        values[i] = lower_bound_prefix(sorted, size, values[i]);
+    }
+    let tree = array(size + 2, 0);
+    var inversions = 0;
+    for j in 0..k {
+        inversions += j - fenwick_sum(tree, values[j] + 1);
+        fenwick_add(tree, values[j] + 1, 1);
+    }
+    print(inversions);
+    for left in 0..n - k {
+        let new_value = values[left + k];
+        inversions -= fenwick_sum(tree, values[left]);
+        fenwick_add(tree, values[left] + 1, -1);
+        inversions += k - 1 - fenwick_sum(tree, new_value + 1);
+        fenwick_add(tree, new_value + 1, 1);
+        print(" ", inversions);
+    }
+    println();
+}

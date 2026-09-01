@@ -1,0 +1,41 @@
+fn main() {
+    let size = read();
+    let queries = read();
+    var levels = 1;
+    while (1 << levels) <= size {
+        levels += 1;
+    }
+    let stride = size + 1;
+    let sparse = array(levels * stride, 0);
+    for index in 1..=size {
+        sparse[index] = read();
+    }
+    for level in 1..levels {
+        let width = 1 << level;
+        for index in 1..=size - width + 1 {
+            let first = sparse[(level - 1) * stride + index];
+            let second = sparse[(level - 1) * stride + index + width / 2];
+            sparse[level * stride + index] = first;
+            if second < first {
+                sparse[level * stride + index] = second;
+            }
+        }
+    }
+    let floor_log = array(size + 1, 0);
+    for length in 2..=size {
+        floor_log[length] = floor_log[length / 2] + 1;
+    }
+    for query in 0..queries {
+        let left = read();
+        let right = read();
+        let length = right - left + 1;
+        let level = floor_log[length];
+        let first = sparse[level * stride + left];
+        let second = sparse[level * stride + right - (1 << level) + 1];
+        if first < second {
+            println(first);
+        } else {
+            println(second);
+        }
+    }
+}

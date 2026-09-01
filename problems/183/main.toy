@@ -1,0 +1,69 @@
+fn minplus_multiply(
+    size: i64, left: array<i64>, right: array<i64>, output: array<i64>, infinity: i64
+) {
+    for index in 0..size * size {
+        output[index] = infinity;
+    }
+    for row in 0..size {
+        for middle in 0..size {
+            if left[row * size + middle] < infinity {
+                for column in 0..size {
+                    if right[middle * size + column] < infinity {
+                        let candidate = left[row * size + middle]
+                            + right[middle * size + column];
+                        if candidate < output[row * size + column] {
+                            output[row * size + column] = candidate;
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+fn minplus_power(matrix: array<i64>, size: i64, exponent_value: i64, infinity: i64) {
+    let result = array(size * size, infinity);
+    let scratch = array(size * size, infinity);
+    for index in 0..size {
+        result[index * size + index] = 0;
+    }
+    var exponent = exponent_value;
+    while exponent > 0 {
+        if (exponent & 1) != 0 {
+            minplus_multiply(size, result, matrix, scratch, infinity);
+            for index in 0..size * size {
+                result[index] = scratch[index];
+            }
+        }
+        minplus_multiply(size, matrix, matrix, scratch, infinity);
+        for index in 0..size * size {
+            matrix[index] = scratch[index];
+        }
+        exponent >>= 1;
+    }
+    for index in 0..size * size {
+        matrix[index] = result[index];
+    }
+}
+
+fn main() {
+    let nodes = read();
+    let edges = read();
+    let length = read();
+    let infinity = 4_000_000_000_000_000_000;
+    let matrix = array(nodes * nodes, infinity);
+    for edge in 0..edges {
+        let source = read() - 1;
+        let destination = read() - 1;
+        let cost = read();
+        if cost < matrix[source * nodes + destination] {
+            matrix[source * nodes + destination] = cost;
+        }
+    }
+    minplus_power(matrix, nodes, length, infinity);
+    if matrix[nodes - 1] == infinity {
+        println(-1);
+    } else {
+        println(matrix[nodes - 1]);
+    }
+}

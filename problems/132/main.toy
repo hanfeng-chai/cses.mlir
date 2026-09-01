@@ -1,0 +1,54 @@
+fn main() {
+    let size = read();
+    let queries = read();
+    let values = array(size + 1, 0);
+    let coordinates = array(size, 0);
+    for index in 1..=size {
+        values[index] = read();
+        coordinates[index - 1] = values[index];
+    }
+    sort(coordinates);
+    let events = 2 * queries;
+    let event_prefix = array(events, 0);
+    let event_order = array(events, 0);
+    let low = array(events, 0);
+    let high = array(events, 0);
+    let sign = array(events, 0);
+    let owner = array(events, 0);
+    for query in 0..queries {
+        let left = read();
+        let right = read();
+        let minimum = read();
+        let maximum = read();
+        let first_coordinate = lower_bound(coordinates, minimum) + 1;
+        let last_coordinate = upper_bound(coordinates, maximum);
+        event_prefix[2 * query] = right;
+        event_prefix[2 * query + 1] = left - 1;
+        low[2 * query] = first_coordinate;
+        low[2 * query + 1] = first_coordinate;
+        high[2 * query] = last_coordinate;
+        high[2 * query + 1] = last_coordinate;
+        sign[2 * query] = 1;
+        sign[2 * query + 1] = -1;
+        owner[2 * query] = query;
+        owner[2 * query + 1] = query;
+        event_order[2 * query] = 2 * query;
+        event_order[2 * query + 1] = 2 * query + 1;
+    }
+    sort_pairs(event_prefix, event_order);
+    let tree = array(size + 1, 0);
+    let answer = array(queries, 0);
+    var position = 1;
+    for sorted_event in 0..events {
+        while position <= event_prefix[sorted_event] {
+            fenwick_add(tree, lower_bound(coordinates, values[position]) + 1, 1);
+            position += 1;
+        }
+        let event = event_order[sorted_event];
+        answer[owner[event]] += sign[event]
+            * (fenwick_sum(tree, high[event]) - fenwick_sum(tree, low[event] - 1));
+    }
+    for query in 0..queries {
+        println(answer[query]);
+    }
+}
